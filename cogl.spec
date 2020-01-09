@@ -6,7 +6,7 @@
 
 Name:          cogl
 Version:       1.18.2
-Release:       10%{?dist}
+Release:       12%{?dist}
 Summary:       A library for using 3D graphics hardware to draw pretty pictures
 
 Group:         Development/Libraries
@@ -18,6 +18,16 @@ Source0:       http://download.gnome.org/sources/cogl/1.18/cogl-%{version}.tar.x
 # development branch)
 Patch10: Add-support-for-setting-up-stereo-CoglOnscreens.patch
 Patch11: CoglTexturePixmapX11-add-support-for-stereo-content.patch
+Patch12: video-memory-purge.patch
+
+# See https://bugzilla.gnome.org/show_bug.cgi?id=768190
+Patch21: 0001-examples-cogl-crate.c-fix-bug-when-waiting-for-next-.patch
+Patch22: 0002-CoglGPUInfo-fix-check-for-NVIDIA.patch
+Patch23: 0003-CoglWinsysGLX-factor-out-some-duplicated-code.patch
+Patch24: 0004-Usability-of-SGI_video_sync-is-per-display-not-per-r.patch
+Patch25: 0005-Fix-the-get_clock_time-without-GLX_OML_sync_control.patch
+Patch26: 0006-For-NVIDIA-proprietary-drivers-implement-sync-events.patch
+Patch27: 0007-Add-cogl_xlib_renderer_set_threaded_swap_wait_enable.patch
 
 BuildRequires: autoconf automake libtool gettext-devel
 
@@ -98,6 +108,15 @@ This package contains the installable tests for %{cogl}.
 
 %patch10 -p1
 %patch11 -p1
+%patch12 -p1
+
+%patch21 -p1 -b .cogl-crate
+%patch22 -p1 -b .gpuinfo
+%patch23 -p1 -b .duplicated-code
+%patch24 -p1 -b .video-sync
+%patch25 -p1 -b .clock-time
+%patch26 -p1 -b .threaded-sync-events
+%patch27 -p1 -b .swap-wait-setter
 
 %build
 CFLAGS="$RPM_OPT_FLAGS -fPIC"
@@ -160,6 +179,24 @@ chrpath --delete $RPM_BUILD_ROOT%{_libdir}/libcogl-pango.so
 %endif
 
 %changelog
+* Wed Jun 29 2016 Owen Taylor <otaylor@redhat.com> - 1.18.2-12
+- Add patches to improve display synchronization on NVIDIA
+    
+  When testing quadbuffer stereo patches, GNOME Shell would sometimes
+  hang up on restart. This turned out to be a problem with display
+  synchronization on NVIDIA. The patches added here make display
+  synchronization work much more similarly with the NVIDIA drivers
+  and the open source drivers, which not only fixes this bug, but should
+  reduce future bugs.
+    
+  Resolves: #1305076
+
+- Add patches improving frame completion events in Cogl
+
+* Wed Jun 15 2016 Rui Matos <rmatos@redhat.com> - 1.18.2-11
+- Add patch to support NV_robustness_video_memory_purge
+  Resolves: rhbz#1330488
+
 * Thu Apr  9 2015 Rui Matos <rmatos@redhat.com> - 1.18.2-10
 - Rebase to 1.18.2 - Resolves: rhbz#1174508
 

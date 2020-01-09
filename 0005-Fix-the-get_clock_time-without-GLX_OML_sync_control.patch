@@ -1,0 +1,29 @@
+From 9259fc8ce95e38771e3501bd3936582f9a85b3a0 Mon Sep 17 00:00:00 2001
+From: "Owen W. Taylor" <otaylor@fishsoup.net>
+Date: Thu, 11 Feb 2016 17:12:09 -0500
+Subject: [PATCH 5/6] Fix the get_clock_time() without GLX_OML_sync_control
+
+When we don't have GLX_OML_sync_control, we still can set the
+frame presentation time, but we always use the system monotonic time,
+so return that from get_clock_time().
+---
+ cogl/winsys/cogl-winsys-glx.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/cogl/winsys/cogl-winsys-glx.c b/cogl/winsys/cogl-winsys-glx.c
+index cd0b211..8ce1e37 100644
+--- a/cogl/winsys/cogl-winsys-glx.c
++++ b/cogl/winsys/cogl-winsys-glx.c
+@@ -291,6 +291,9 @@ _cogl_winsys_get_clock_time (CoglContext *context)
+ {
+   CoglGLXRenderer *glx_renderer = context->display->renderer->winsys;
+ 
++  if (!glx_renderer->glXWaitForMsc)
++    return get_monotonic_time_ns ();
++
+   /* We don't call ensure_ust_type() because we don't have a drawable
+    * to work with. cogl_get_clock_time() is documented to only work
+    * once a valid, non-zero, timestamp has been retrieved from Cogl.
+-- 
+1.8.3.1
+

@@ -1,0 +1,28 @@
+From 30ee61a38eb9098cb45e566bef6c4d5a3a35f14b Mon Sep 17 00:00:00 2001
+From: "Owen W. Taylor" <otaylor@fishsoup.net>
+Date: Thu, 11 Feb 2016 15:06:23 -0500
+Subject: [PATCH 2/6] CoglGPUInfo - fix check for NVIDIA
+
+NVIDIA drivers have a vendor of "NVIDIA Corporation" not "NVIDIA".
+Check for both in case older drivers did use "NVIDIA"
+---
+ cogl/cogl-gpu-info.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/cogl/cogl-gpu-info.c b/cogl/cogl-gpu-info.c
+index 54dfe18..d91830d 100644
+--- a/cogl/cogl-gpu-info.c
++++ b/cogl/cogl-gpu-info.c
+@@ -169,7 +169,8 @@ check_qualcomm_vendor (const CoglGpuInfoStrings *strings)
+ static CoglBool
+ check_nvidia_vendor (const CoglGpuInfoStrings *strings)
+ {
+-  if (strcmp (strings->vendor_string, "NVIDIA") != 0)
++  if (strcmp (strings->vendor_string, "NVIDIA") != 0 &&
++      strcmp (strings->vendor_string, "NVIDIA Corporation") != 0)
+     return FALSE;
+ 
+   return TRUE;
+-- 
+1.8.3.1
+

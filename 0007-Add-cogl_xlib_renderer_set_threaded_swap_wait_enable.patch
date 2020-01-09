@@ -1,0 +1,159 @@
+From e31a4722c43db908e1831f77559d7a721cc08c1d Mon Sep 17 00:00:00 2001
+From: "Owen W. Taylor" <otaylor@fishsoup.net>
+Date: Wed, 29 Jun 2016 13:52:59 -0400
+Subject: [PATCH] Add cogl_xlib_renderer_set_threaded_swap_wait_enabled()
+
+Because the threaded-swap-wait functionality requires XInitThreads(),
+and because it isn't clear that it is a win for all applications,
+add a API function to conditionally enable it.
+
+Fix the cogl-crate example not to just have a hard-coded dependency
+on libX11.
+---
+ cogl/cogl-renderer-private.h  |  1 +
+ cogl/cogl-renderer.c          | 11 +++++++++++
+ cogl/cogl-xlib-renderer.h     | 30 ++++++++++++++++++++++++++++++
+ cogl/winsys/cogl-winsys-glx.c |  4 +++-
+ examples/cogl-crate.c         | 32 ++++++++++++++++++++++++++++++--
+ 5 files changed, 75 insertions(+), 3 deletions(-)
+
+diff -up cogl-1.18.2/cogl/cogl-renderer.c.swap-wait-setter cogl-1.18.2/cogl/cogl-renderer.c
+--- cogl-1.18.2/cogl/cogl-renderer.c.swap-wait-setter	2016-06-30 15:58:16.047534998 -0400
++++ cogl-1.18.2/cogl/cogl-renderer.c	2016-06-30 15:58:16.084535595 -0400
+@@ -357,6 +357,17 @@ cogl_xlib_renderer_request_reset_on_vide
+ 
+   renderer->xlib_want_reset_on_video_memory_purge = enable;
+ }
++
++void
++cogl_xlib_renderer_set_threaded_swap_wait_enabled (CoglRenderer *renderer,
++						   CoglBool enable)
++{
++  _COGL_RETURN_IF_FAIL (cogl_is_renderer (renderer));
++  /* NB: Renderers are considered immutable once connected */
++  _COGL_RETURN_IF_FAIL (!renderer->connected);
++
++  renderer->xlib_enable_threaded_swap_wait = enable;
++}
+ #endif /* COGL_HAS_XLIB_SUPPORT */
+ 
+ CoglBool
+diff -up cogl-1.18.2/cogl/cogl-renderer-private.h.swap-wait-setter cogl-1.18.2/cogl/cogl-renderer-private.h
+--- cogl-1.18.2/cogl/cogl-renderer-private.h.swap-wait-setter	2016-06-30 15:58:16.047534998 -0400
++++ cogl-1.18.2/cogl/cogl-renderer-private.h	2016-06-30 15:58:16.084535595 -0400
+@@ -71,6 +71,7 @@ struct _CoglRenderer
+   Display *foreign_xdpy;
+   CoglBool xlib_enable_event_retrieval;
+   CoglBool xlib_want_reset_on_video_memory_purge;
++  CoglBool xlib_enable_threaded_swap_wait;
+ #endif
+ 
+ #ifdef COGL_HAS_WIN32_SUPPORT
+diff -up cogl-1.18.2/cogl/cogl-xlib-renderer.h.swap-wait-setter cogl-1.18.2/cogl/cogl-xlib-renderer.h
+--- cogl-1.18.2/cogl/cogl-xlib-renderer.h.swap-wait-setter	2016-06-30 15:58:16.047534998 -0400
++++ cogl-1.18.2/cogl/cogl-xlib-renderer.h	2016-06-30 15:58:16.084535595 -0400
+@@ -166,6 +166,36 @@ void
+ cogl_xlib_renderer_set_event_retrieval_enabled (CoglRenderer *renderer,
+                                                 CoglBool enable);
+ 
++/**
++ * cogl_xlib_renderer_set_threaded_swap_wait_enabled:
++ * @renderer: a #CoglRenderer
++ * @enable: The new value
++ *
++ * Sets whether Cogl is allowed to use a separate threaded to wait for the
++ * completion of glXSwapBuffers() and call the frame callback for the
++ * corresponding #CoglOnscreen. This is a way of emulating the
++ * INTEL_swap_event extension, and will only ever be used if
++ * INTEL_swap_event is not present; it will also only be used for
++ * specific white-listed drivers that are known to work correctly with
++ * multiple contexts sharing state between threads.
++ *
++ * The advantage of enabling this is that it will allow your main loop
++ * to do other work while waiting for the system to be ready to draw
++ * the next frame, instead of blocking in glXSwapBuffers(). A disadvantage
++ * is that the driver will be prevented from buffering up multiple frames
++ * even if it thinks that it would be advantageous. In general, this
++ * will work best for something like a system compositor that is doing
++ * simple drawing but handling lots of other complex tasks.
++ * 
++ * If you enable this, you must call XInitThreads() before any other
++ * X11 calls in your program. (See the documentation for XInitThreads())
++ *
++ * Stability: unstable
++ */
++void
++cogl_xlib_renderer_set_threaded_swap_wait_enabled (CoglRenderer *renderer,
++						   CoglBool enable);
++
+ Display *
+ cogl_xlib_renderer_get_display (CoglRenderer *renderer);
+ 
+diff -up cogl-1.18.2/cogl/winsys/cogl-winsys-glx.c.swap-wait-setter cogl-1.18.2/cogl/winsys/cogl-winsys-glx.c
+--- cogl-1.18.2/cogl/winsys/cogl-winsys-glx.c.swap-wait-setter	2016-06-30 15:58:16.085535611 -0400
++++ cogl-1.18.2/cogl/winsys/cogl-winsys-glx.c	2016-06-30 15:58:55.708175372 -0400
+@@ -901,6 +901,7 @@ update_winsys_features (CoglContext *con
+     {
+       CoglGpuInfo *info = &context->gpu;
+       if (glx_display->have_vblank_counter &&
++	  context->display->renderer->xlib_enable_threaded_swap_wait &&
+ 	  info->vendor == COGL_GPU_INFO_VENDOR_NVIDIA)
+         {
+           COGL_FLAGS_SET (context->winsys_features,
+diff -up cogl-1.18.2/examples/cogl-crate.c.swap-wait-setter cogl-1.18.2/examples/cogl-crate.c
+--- cogl-1.18.2/examples/cogl-crate.c.swap-wait-setter	2016-06-30 15:58:16.082535563 -0400
++++ cogl-1.18.2/examples/cogl-crate.c	2016-06-30 15:58:16.085535611 -0400
+@@ -1,6 +1,9 @@
+ #include <cogl/cogl.h>
+ #include <cogl-pango/cogl-pango.h>
++#ifdef COGL_HAS_XLIB_SUPPORT
+ #include <X11/Xlib.h>
++#include <cogl/cogl-xlib.h>
++#endif /* COGL_HAS_XLIB_SUPPORT */
+ 
+ /* The state for this example... */
+ typedef struct _Data
+@@ -145,6 +148,8 @@ frame_event_cb (CoglOnscreen *onscreen,
+ int
+ main (int argc, char **argv)
+ {
++  CoglRenderer *renderer;
++  CoglDisplay *display;
+   CoglContext *ctx;
+   CoglOnscreen *onscreen;
+   CoglFramebuffer *fb;
+@@ -154,9 +159,32 @@ main (int argc, char **argv)
+   float fovy, aspect, z_near, z_2d, z_far;
+   CoglDepthState depth_state;
+ 
+-  XInitThreads ();
++  renderer = cogl_renderer_new ();
+ 
+-  ctx = cogl_context_new (NULL, &error);
++#ifdef COGL_HAS_XLIB_SUPPORT
++  /* Guess if we're using the GLX renderer; we could just blindly
++   * call XInitThreads() as long as we're linked against Xlib
++   * but it's a bit cleaner not to if we're not going to even
++   * open a display.
++   */
++  if (g_getenv("DISPLAY") != NULL)
++    {
++      const char *renderer_environment = g_getenv("COGL_RENDERER_NEW");
++      if (renderer_environment == NULL || g_strcmp0 (renderer_environment, "GLX") == 0)
++	{
++	  XInitThreads ();
++	  cogl_xlib_renderer_set_threaded_swap_wait_enabled (renderer, TRUE);
++	}
++    }
++#endif /* COGL_HAS_XLIB_SUPPORT */
++
++  if (!cogl_renderer_connect (renderer, &error)) {
++      fprintf (stderr, "Failed to connect CoglRenderer: %s\n", error->message);
++      return 1;
++  }
++
++  display = cogl_display_new (renderer, NULL);
++  ctx = cogl_context_new (display, &error);
+   if (!ctx) {
+       fprintf (stderr, "Failed to create context: %s\n", error->message);
+       return 1;
