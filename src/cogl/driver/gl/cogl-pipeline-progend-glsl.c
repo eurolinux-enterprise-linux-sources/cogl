@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2010 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  *
@@ -72,7 +78,7 @@ typedef struct
 
   /* This builtin is only necessary if the following private feature
    * is not implemented in the driver */
-  CoglPrivateFeatureFlags feature_replacement;
+  CoglPrivateFeature feature_replacement;
 } BuiltinUniformData;
 
 static BuiltinUniformData builtin_uniforms[] =
@@ -139,6 +145,8 @@ typedef struct
   int flushed_flip_state;
 
   UnitState *unit_state;
+
+  CoglPipelineCacheEntry *cache_entry;
 } CoglPipelineProgramState;
 
 static CoglUserDataKey program_state_key;
@@ -228,7 +236,8 @@ clear_flushed_matrix_stacks (CoglPipelineProgramState *program_state)
 }
 
 static CoglPipelineProgramState *
-program_state_new (int n_layers)
+program_state_new (int n_layers,
+                   CoglPipelineCacheEntry *cache_entry)
 {
   CoglPipelineProgramState *program_state;
 
@@ -238,6 +247,7 @@ program_state_new (int n_layers)
   program_state->unit_state = g_new (UnitState, n_layers);
   program_state->uniform_locations = NULL;
   program_state->attribute_locations = NULL;
+  program_state->cache_entry = cache_entry;
   _cogl_matrix_entry_cache_init (&program_state->modelview_cache);
   _cogl_matrix_entry_cache_init (&program_state->projection_cache);
 
@@ -258,6 +268,10 @@ destroy_program_state (void *user_data,
      uniforms */
   if (program_state->last_used_for_pipeline == instance)
     program_state->last_used_for_pipeline = NULL;
+
+  if (program_state->cache_entry &&
+      program_state->cache_entry->pipeline != instance)
+    program_state->cache_entry->usage_count--;
 
   if (--program_state->ref_count == 0)
     {
@@ -282,6 +296,17 @@ static void
 set_program_state (CoglPipeline *pipeline,
                   CoglPipelineProgramState *program_state)
 {
+  if (program_state)
+    {
+      program_state->ref_count++;
+
+      /* If we're not setting the state on the template pipeline then
+       * mark it as a usage of the pipeline cache entry */
+      if (program_state->cache_entry &&
+          program_state->cache_entry->pipeline != pipeline)
+        program_state->cache_entry->usage_count++;
+    }
+
   _cogl_object_set_user_data (COGL_OBJECT (pipeline),
                               &program_state_key,
                               program_state,
@@ -441,8 +466,8 @@ update_builtin_uniforms (CoglContext *context,
     return;
 
   for (i = 0; i < G_N_ELEMENTS (builtin_uniforms); i++)
-    if ((context->private_feature_flags &
-         builtin_uniforms[i].feature_replacement) == 0 &&
+    if (!_cogl_has_private_feature (context,
+                                    builtin_uniforms[i].feature_replacement) &&
         (program_state->dirty_builtin_uniforms & (1 << i)) &&
         program_state->builtin_uniform_locations[i] != -1)
       builtin_uniforms[i].update_func (pipeline,
@@ -641,7 +666,7 @@ _cogl_pipeline_progend_glsl_end (CoglPipeline *pipeline,
   CoglBool program_changed = FALSE;
   UpdateUniformsState state;
   CoglProgram *user_program;
-  CoglPipeline *template_pipeline = NULL;
+  CoglPipelineCacheEntry *cache_entry = NULL;
 
   _COGL_GET_CONTEXT (ctx, NO_RETVAL);
 
@@ -658,7 +683,7 @@ _cogl_pipeline_progend_glsl_end (CoglPipeline *pipeline,
          state */
       authority = _cogl_pipeline_find_equivalent_parent
         (pipeline,
-         (COGL_PIPELINE_STATE_AFFECTS_VERTEX_CODEGEN |
+         (_cogl_pipeline_get_state_for_vertex_codegen (ctx) |
           _cogl_pipeline_get_state_for_fragment_codegen (ctx)) &
          ~COGL_PIPELINE_STATE_LAYERS,
          _cogl_pipeline_get_layer_state_for_fragment_codegen (ctx) |
@@ -673,33 +698,30 @@ _cogl_pipeline_progend_glsl_end (CoglPipeline *pipeline,
           if (G_LIKELY (!(COGL_DEBUG_ENABLED
                           (COGL_DEBUG_DISABLE_PROGRAM_CACHES))))
             {
-              template_pipeline =
+              cache_entry =
                 _cogl_pipeline_cache_get_combined_template (ctx->pipeline_cache,
                                                             authority);
 
-              program_state = get_program_state (template_pipeline);
+              program_state = get_program_state (cache_entry->pipeline);
             }
 
           if (program_state)
             program_state->ref_count++;
           else
             program_state
-              = program_state_new (cogl_pipeline_get_n_layers (authority));
+              = program_state_new (cogl_pipeline_get_n_layers (authority),
+                                   cache_entry);
 
           set_program_state (authority, program_state);
 
-          if (template_pipeline)
-            {
-              program_state->ref_count++;
-              set_program_state (template_pipeline, program_state);
-            }
+          program_state->ref_count--;
+
+          if (cache_entry)
+            set_program_state (cache_entry->pipeline, program_state);
         }
 
       if (authority != pipeline)
-        {
-          program_state->ref_count++;
-          set_program_state (pipeline, program_state);
-        }
+        set_program_state (pipeline, program_state);
     }
 
   /* If the program has changed since the last link then we do
@@ -742,6 +764,13 @@ _cogl_pipeline_progend_glsl_end (CoglPipeline *pipeline,
       if ((backend_shader = _cogl_pipeline_vertend_glsl_get_shader (pipeline)))
         GE( ctx, glAttachShader (program_state->program, backend_shader) );
 
+      /* XXX: OpenGL as a special case requires the vertex position to
+       * be bound to generic attribute 0 so for simplicity we
+       * unconditionally bind the cogl_position_in attribute here...
+       */
+      GE( ctx, glBindAttribLocation (program_state->program,
+                                     0, "cogl_position_in"));
+
       link_program (program_state->program);
 
       program_changed = TRUE;
@@ -783,8 +812,8 @@ _cogl_pipeline_progend_glsl_end (CoglPipeline *pipeline,
       clear_flushed_matrix_stacks (program_state);
 
       for (i = 0; i < G_N_ELEMENTS (builtin_uniforms); i++)
-        if ((ctx->private_feature_flags &
-             builtin_uniforms[i].feature_replacement) == 0)
+        if (!_cogl_has_private_feature
+            (ctx, builtin_uniforms[i].feature_replacement))
           GE_RET( program_state->builtin_uniform_locations[i], ctx,
                   glGetUniformLocation (gl_program,
                                         builtin_uniforms[i].uniform_name) );
@@ -830,8 +859,8 @@ _cogl_pipeline_progend_glsl_pre_change_notify (CoglPipeline *pipeline,
 {
   _COGL_GET_CONTEXT (ctx, NO_RETVAL);
 
-  if ((change & (_cogl_pipeline_get_state_for_fragment_codegen (ctx) |
-                 COGL_PIPELINE_STATE_AFFECTS_VERTEX_CODEGEN)))
+  if ((change & (_cogl_pipeline_get_state_for_vertex_codegen (ctx) |
+                 _cogl_pipeline_get_state_for_fragment_codegen (ctx))))
     {
       dirty_program_state (pipeline);
     }
@@ -840,8 +869,8 @@ _cogl_pipeline_progend_glsl_pre_change_notify (CoglPipeline *pipeline,
       int i;
 
       for (i = 0; i < G_N_ELEMENTS (builtin_uniforms); i++)
-        if ((ctx->private_feature_flags &
-             builtin_uniforms[i].feature_replacement) == 0 &&
+        if (!_cogl_has_private_feature
+            (ctx, builtin_uniforms[i].feature_replacement) &&
             (change & builtin_uniforms[i].change))
           {
             CoglPipelineProgramState *program_state

@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Vertex Buffers</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Cogl Reference Manual">
 <link rel="up" href="ch01.html" title="Cogl - a modern 3D graphics API">
 <link rel="prev" href="cogl-Clipping.html" title="Clipping">
 <link rel="next" href="cogl-Matrices.html" title="Matrices">
-<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.19.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -44,7 +44,7 @@ unsigned <span class="returnvalue">int</span>        <a class="link" href="cogl-
                                                          <em class="parameter"><code>const <span class="type">char</span> *attribute_name</code></em>,
                                                          <em class="parameter"><code><span class="type">uint8_t</span> n_components</code></em>,
                                                          <em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglAttributeType" title="enum CoglAttributeType"><span class="type">CoglAttributeType</span></a> type</code></em>,
-                                                         <em class="parameter"><code><a href="../cogl-2.0-experimental/cogl-2.0-experimental-Common-Types.html#CoglBool"><span class="type">CoglBool</span></a> normalized</code></em>,
+                                                         <em class="parameter"><code><span class="type">CoglBool</span> normalized</code></em>,
                                                          <em class="parameter"><code><span class="type">uint16_t</span> stride</code></em>,
                                                          <em class="parameter"><code>const <span class="type">void</span> *pointer</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="cogl-Vertex-Buffers.html#cogl-vertex-buffer-delete" title="cogl_vertex_buffer_delete ()">cogl_vertex_buffer_delete</a>           (<em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglHandle" title="CoglHandle"><span class="type">CoglHandle</span></a> handle</code></em>,
@@ -59,7 +59,7 @@ enum                <a class="link" href="cogl-Vertex-Buffers.html#CoglVerticesM
                                                          <em class="parameter"><code><a class="link" href="cogl-Vertex-Buffers.html#CoglVerticesMode" title="enum CoglVerticesMode"><span class="type">CoglVerticesMode</span></a> mode</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> first</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> count</code></em>);
-<a href="../cogl-2.0-experimental/cogl-2.0-experimental-Common-Types.html#CoglBool"><span class="returnvalue">CoglBool</span></a>            <a class="link" href="cogl-Vertex-Buffers.html#cogl-is-vertex-buffer" title="cogl_is_vertex_buffer ()">cogl_is_vertex_buffer</a>               (<em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglHandle" title="CoglHandle"><span class="type">CoglHandle</span></a> handle</code></em>);
+<span class="returnvalue">CoglBool</span>            <a class="link" href="cogl-Vertex-Buffers.html#cogl-is-vertex-buffer" title="cogl_is_vertex_buffer ()">cogl_is_vertex_buffer</a>               (<em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglHandle" title="CoglHandle"><span class="type">CoglHandle</span></a> handle</code></em>);
 
 enum                <a class="link" href="cogl-Vertex-Buffers.html#CoglIndicesType" title="enum CoglIndicesType">CoglIndicesType</a>;
 <a class="link" href="cogl-General-API.html#CoglHandle" title="CoglHandle"><span class="returnvalue">CoglHandle</span></a>          <a class="link" href="cogl-Vertex-Buffers.html#cogl-vertex-buffer-indices-new" title="cogl_vertex_buffer_indices_new ()">cogl_vertex_buffer_indices_new</a>      (<em class="parameter"><code><a class="link" href="cogl-Vertex-Buffers.html#CoglIndicesType" title="enum CoglIndicesType"><span class="type">CoglIndicesType</span></a> indices_type</code></em>,
@@ -74,7 +74,7 @@ enum                <a class="link" href="cogl-Vertex-Buffers.html#CoglIndicesTy
                                                          <em class="parameter"><code><span class="type">int</span> count</code></em>);
 <a class="link" href="cogl-General-API.html#CoglHandle" title="CoglHandle"><span class="returnvalue">CoglHandle</span></a>          <a class="link" href="cogl-Vertex-Buffers.html#cogl-vertex-buffer-indices-get-for-quads" title="cogl_vertex_buffer_indices_get_for_quads ()">cogl_vertex_buffer_indices_get_for_quads</a>
                                                         (<em class="parameter"><code>unsigned <span class="type">int</span> n_indices</code></em>);
-<a href="../cogl-2.0-experimental/cogl-2.0-experimental-Common-Types.html#CoglBool"><span class="returnvalue">CoglBool</span></a>            <a class="link" href="cogl-Vertex-Buffers.html#cogl-is-vertex-buffer-indices" title="cogl_is_vertex_buffer_indices ()">cogl_is_vertex_buffer_indices</a>       (<em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglHandle" title="CoglHandle"><span class="type">CoglHandle</span></a> handle</code></em>);
+<span class="returnvalue">CoglBool</span>            <a class="link" href="cogl-Vertex-Buffers.html#cogl-is-vertex-buffer-indices" title="cogl_is_vertex_buffer_indices ()">cogl_is_vertex_buffer_indices</a>       (<em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglHandle" title="CoglHandle"><span class="type">CoglHandle</span></a> handle</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -123,6 +123,10 @@ that have changed.
 <div class="refsect2">
 <a name="cogl-vertex-buffer-new"></a><h3>cogl_vertex_buffer_new ()</h3>
 <pre class="programlisting"><a class="link" href="cogl-General-API.html#CoglHandle" title="CoglHandle"><span class="returnvalue">CoglHandle</span></a>          cogl_vertex_buffer_new              (<em class="parameter"><code>unsigned <span class="type">int</span> n_vertices</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_vertex_buffer_new</code> has been deprecated since version 1.16 and should not be used in newly-written code. Use the <span class="type">CoglPrimitive</span> api instead</p>
+</div>
 <p>
 Creates a new vertex buffer that you can use to add attributes.
 </p>
@@ -148,6 +152,10 @@ Creates a new vertex buffer that you can use to add attributes.
 <div class="refsect2">
 <a name="cogl-vertex-buffer-get-n-vertices"></a><h3>cogl_vertex_buffer_get_n_vertices ()</h3>
 <pre class="programlisting">unsigned <span class="returnvalue">int</span>        cogl_vertex_buffer_get_n_vertices   (<em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglHandle" title="CoglHandle"><span class="type">CoglHandle</span></a> handle</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_vertex_buffer_get_n_vertices</code> has been deprecated since version 1.16 and should not be used in newly-written code. Use the <span class="type">CoglPrimitive</span> api instead</p>
+</div>
 <p>
 Retrieves the number of vertices that <em class="parameter"><code>handle</code></em> represents
 </p>
@@ -175,9 +183,13 @@ Retrieves the number of vertices that <em class="parameter"><code>handle</code><
                                                          <em class="parameter"><code>const <span class="type">char</span> *attribute_name</code></em>,
                                                          <em class="parameter"><code><span class="type">uint8_t</span> n_components</code></em>,
                                                          <em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglAttributeType" title="enum CoglAttributeType"><span class="type">CoglAttributeType</span></a> type</code></em>,
-                                                         <em class="parameter"><code><a href="../cogl-2.0-experimental/cogl-2.0-experimental-Common-Types.html#CoglBool"><span class="type">CoglBool</span></a> normalized</code></em>,
+                                                         <em class="parameter"><code><span class="type">CoglBool</span> normalized</code></em>,
                                                          <em class="parameter"><code><span class="type">uint16_t</span> stride</code></em>,
                                                          <em class="parameter"><code>const <span class="type">void</span> *pointer</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_vertex_buffer_add</code> has been deprecated since version 1.16 and should not be used in newly-written code. Use the <span class="type">CoglPrimitive</span> api instead</p>
+</div>
 <p>
 Adds an attribute to a buffer, or replaces a previously added
 attribute with the same name.
@@ -253,9 +265,9 @@ can have a detail component, E.g. "gl_Color::active" or
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>normalized</code></em> :</span></p></td>
-<td>If <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, this specifies that values stored in an integer
+<td>If <code class="literal">TRUE</code>, this specifies that values stored in an integer
 format should be mapped into the range [-1.0, 1.0] or [0.0, 1.0]
-for unsigned values. If <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> they are converted to floats
+for unsigned values. If <code class="literal">FALSE</code> they are converted to floats
 directly.</td>
 </tr>
 <tr>
@@ -281,6 +293,10 @@ issue a draw call.</td>
 <a name="cogl-vertex-buffer-delete"></a><h3>cogl_vertex_buffer_delete ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_vertex_buffer_delete           (<em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglHandle" title="CoglHandle"><span class="type">CoglHandle</span></a> handle</code></em>,
                                                          <em class="parameter"><code>const <span class="type">char</span> *attribute_name</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_vertex_buffer_delete</code> has been deprecated since version 1.16 and should not be used in newly-written code. Use the <span class="type">CoglPrimitive</span> api instead</p>
+</div>
 <p>
 Deletes an attribute from a buffer. You will need to call
 <a class="link" href="cogl-Vertex-Buffers.html#cogl-vertex-buffer-submit" title="cogl_vertex_buffer_submit ()"><code class="function">cogl_vertex_buffer_submit()</code></a> or issue a draw call to commit this
@@ -307,6 +323,10 @@ change to the GPU.
 <div class="refsect2">
 <a name="cogl-vertex-buffer-submit"></a><h3>cogl_vertex_buffer_submit ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_vertex_buffer_submit           (<em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglHandle" title="CoglHandle"><span class="type">CoglHandle</span></a> handle</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_vertex_buffer_submit</code> has been deprecated since version 1.16 and should not be used in newly-written code. Use the <span class="type">CoglPrimitive</span> api instead</p>
+</div>
 <p>
 Submits all the user added attributes to the GPU; once submitted, the
 attributes can be used for drawing.
@@ -333,6 +353,10 @@ cost if the GPU doesn't natively support any of the given attribute formats.
 <a name="cogl-vertex-buffer-disable"></a><h3>cogl_vertex_buffer_disable ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_vertex_buffer_disable          (<em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglHandle" title="CoglHandle"><span class="type">CoglHandle</span></a> handle</code></em>,
                                                          <em class="parameter"><code>const <span class="type">char</span> *attribute_name</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_vertex_buffer_disable</code> has been deprecated since version 1.16 and should not be used in newly-written code. Use the <span class="type">CoglPrimitive</span> api instead</p>
+</div>
 <p>
 Disables a previosuly added attribute.
 </p>
@@ -367,6 +391,10 @@ function.
 <a name="cogl-vertex-buffer-enable"></a><h3>cogl_vertex_buffer_enable ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_vertex_buffer_enable           (<em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglHandle" title="CoglHandle"><span class="type">CoglHandle</span></a> handle</code></em>,
                                                          <em class="parameter"><code>const <span class="type">char</span> *attribute_name</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_vertex_buffer_enable</code> has been deprecated since version 1.16 and should not be used in newly-written code. Use the <span class="type">CoglPrimitive</span> api instead</p>
+</div>
 <p>
 Enables a previosuly disabled attribute.
 </p>
@@ -468,6 +496,10 @@ Different ways of interpreting vertices when drawing.
                                                          <em class="parameter"><code><a class="link" href="cogl-Vertex-Buffers.html#CoglVerticesMode" title="enum CoglVerticesMode"><span class="type">CoglVerticesMode</span></a> mode</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> first</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> count</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_vertex_buffer_draw</code> has been deprecated since version 1.16 and should not be used in newly-written code. Use the <span class="type">CoglPrimitive</span> api instead</p>
+</div>
 <p>
 Allows you to draw geometry using all or a subset of the
 vertices in a vertex buffer.
@@ -505,7 +537,11 @@ interpreted.</td>
 <hr>
 <div class="refsect2">
 <a name="cogl-is-vertex-buffer"></a><h3>cogl_is_vertex_buffer ()</h3>
-<pre class="programlisting"><a href="../cogl-2.0-experimental/cogl-2.0-experimental-Common-Types.html#CoglBool"><span class="returnvalue">CoglBool</span></a>            cogl_is_vertex_buffer               (<em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglHandle" title="CoglHandle"><span class="type">CoglHandle</span></a> handle</code></em>);</pre>
+<pre class="programlisting"><span class="returnvalue">CoglBool</span>            cogl_is_vertex_buffer               (<em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglHandle" title="CoglHandle"><span class="type">CoglHandle</span></a> handle</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_is_vertex_buffer</code> has been deprecated since version 1.16 and should not be used in newly-written code. Use the <span class="type">CoglPrimitive</span> api instead</p>
+</div>
 <p>
 Checks whether <em class="parameter"><code>handle</code></em> is a Vertex Buffer Object
 </p>
@@ -522,7 +558,7 @@ Checks whether <em class="parameter"><code>handle</code></em> is a Vertex Buffer
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the handle is a VBO, and <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>
+<code class="literal">TRUE</code> if the handle is a VBO, and <code class="literal">FALSE</code>
 otherwise</td>
 </tr>
 </tbody>
@@ -545,7 +581,7 @@ reduce the demand on memory bandwidth.
 </p>
 <p>
 Note that <a class="link" href="cogl-Vertex-Buffers.html#COGL-INDICES-TYPE-UNSIGNED-INT:CAPS"><code class="literal">COGL_INDICES_TYPE_UNSIGNED_INT</code></a> is only supported if the
-<a href="../cogl-2.0-experimental/cogl-2.0-experimental-The-Top-Level-Context.html#COGL-FEATURE-ID-UNSIGNED-INT-INDICES:CAPS"><code class="literal">COGL_FEATURE_ID_UNSIGNED_INT_INDICES</code></a> feature is available. This
+<code class="literal">COGL_FEATURE_ID_UNSIGNED_INT_INDICES</code> feature is available. This
 should always be available on OpenGL but on OpenGL ES it will only
 be available if the GL_OES_element_index_uint extension is
 advertized.
@@ -580,6 +616,10 @@ advertized.
 <pre class="programlisting"><a class="link" href="cogl-General-API.html#CoglHandle" title="CoglHandle"><span class="returnvalue">CoglHandle</span></a>          cogl_vertex_buffer_indices_new      (<em class="parameter"><code><a class="link" href="cogl-Vertex-Buffers.html#CoglIndicesType" title="enum CoglIndicesType"><span class="type">CoglIndicesType</span></a> indices_type</code></em>,
                                                          <em class="parameter"><code>const <span class="type">void</span> *indices_array</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> indices_len</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_vertex_buffer_indices_new</code> has been deprecated since version 1.16 and should not be used in newly-written code. Use the <span class="type">CoglPrimitive</span> api instead</p>
+</div>
 <p>
 Depending on how much geometry you are submitting it can be worthwhile
 optimizing the number of redundant vertices you submit. Using an index
@@ -625,6 +665,10 @@ your array of indices. <span class="annotation">[<acronym title="Parameter point
                                                          <em class="parameter"><code><span class="type">int</span> max_index</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> indices_offset</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> count</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_vertex_buffer_draw_elements</code> has been deprecated since version 1.16 and should not be used in newly-written code. Use the <span class="type">CoglPrimitive</span> api instead</p>
+</div>
 <p>
 This function lets you use an array of indices to specify the vertices
 within your vertex buffer that you want to draw. The indices themselves
@@ -680,6 +724,10 @@ index to use for drawing.</td>
 <a name="cogl-vertex-buffer-indices-get-for-quads"></a><h3>cogl_vertex_buffer_indices_get_for_quads ()</h3>
 <pre class="programlisting"><a class="link" href="cogl-General-API.html#CoglHandle" title="CoglHandle"><span class="returnvalue">CoglHandle</span></a>          cogl_vertex_buffer_indices_get_for_quads
                                                         (<em class="parameter"><code>unsigned <span class="type">int</span> n_indices</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_vertex_buffer_indices_get_for_quads</code> has been deprecated since version 1.16 and should not be used in newly-written code. Use the <span class="type">CoglPrimitive</span> api instead</p>
+</div>
 <p>
 Creates a vertex buffer containing the indices needed to draw pairs
 of triangles from a list of vertices grouped as quads. There will
@@ -694,13 +742,13 @@ The indices will follow this pattern:
 </p>
 <p>
 For example, if you submit vertices for a quad like like that shown
-in <a class="xref" href="cogl-Vertex-Buffers.html#quad-indices-order" title="Figure 4. Example of vertices submitted to form a quad">Figure 4, “Example of vertices submitted to form a quad”</a> then you can request 6
-indices to render two triangles like those shown in <a class="xref" href="cogl-Vertex-Buffers.html#quad-indices-triangles" title="Figure 5. Illustration of the triangle indices that will be generated">Figure 5, “Illustration of the triangle indices that will be generated”</a>.
+in <a class="xref" href="cogl-Vertex-Buffers.html#quad-indices-order" title="Figure 2. Example of vertices submitted to form a quad">Figure 2, “Example of vertices submitted to form a quad”</a> then you can request 6
+indices to render two triangles like those shown in <a class="xref" href="cogl-Vertex-Buffers.html#quad-indices-triangles" title="Figure 3. Illustration of the triangle indices that will be generated">Figure 3, “Illustration of the triangle indices that will be generated”</a>.
 </p>
 <p>
 </p>
 <div class="figure">
-<a name="quad-indices-order"></a><p class="title"><b>Figure 4. Example of vertices submitted to form a quad</b></p>
+<a name="quad-indices-order"></a><p class="title"><b>Figure 2. Example of vertices submitted to form a quad</b></p>
 <div class="figure-contents"><div><img src="quad-indices-order.png" alt="Example of vertices submitted to form a quad"></div></div>
 </div>
 <p><br class="figure-break">
@@ -708,7 +756,7 @@ indices to render two triangles like those shown in <a class="xref" href="cogl-V
 <p>
 </p>
 <div class="figure">
-<a name="quad-indices-triangles"></a><p class="title"><b>Figure 5. Illustration of the triangle indices that will be generated</b></p>
+<a name="quad-indices-triangles"></a><p class="title"><b>Figure 3. Illustration of the triangle indices that will be generated</b></p>
 <div class="figure-contents"><div><img src="quad-indices-triangles.png" alt="Illustration of the triangle indices that will be generated"></div></div>
 </div>
 <p><br class="figure-break">
@@ -734,7 +782,11 @@ owned by Cogl and should not be modified or unref'd.</td>
 <hr>
 <div class="refsect2">
 <a name="cogl-is-vertex-buffer-indices"></a><h3>cogl_is_vertex_buffer_indices ()</h3>
-<pre class="programlisting"><a href="../cogl-2.0-experimental/cogl-2.0-experimental-Common-Types.html#CoglBool"><span class="returnvalue">CoglBool</span></a>            cogl_is_vertex_buffer_indices       (<em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglHandle" title="CoglHandle"><span class="type">CoglHandle</span></a> handle</code></em>);</pre>
+<pre class="programlisting"><span class="returnvalue">CoglBool</span>            cogl_is_vertex_buffer_indices       (<em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglHandle" title="CoglHandle"><span class="type">CoglHandle</span></a> handle</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_is_vertex_buffer_indices</code> has been deprecated since version 1.16 and should not be used in newly-written code. Use the <span class="type">CoglPrimitive</span> api instead</p>
+</div>
 <p>
 Checks whether <em class="parameter"><code>handle</code></em> is a handle to the indices for a vertex
 buffer object
@@ -753,7 +805,7 @@ buffer object
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the handle is indices, and <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>
+<code class="literal">TRUE</code> if the handle is indices, and <code class="literal">FALSE</code>
 otherwise</td>
 </tr>
 </tbody>
@@ -764,6 +816,6 @@ otherwise</td>
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18.1</div>
+          Generated by GTK-Doc V1.19.1</div>
 </body>
 </html>

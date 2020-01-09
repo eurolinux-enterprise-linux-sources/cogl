@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
- * Copyright (C) 2011, 2012 Intel Corporation.
+ * Copyright (C) 2011, 2012, 2013 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  * Authors:
@@ -38,6 +45,7 @@
 #include "cogl-onscreen-private.h"
 #include "cogl-winsys-sdl-private.h"
 #include "cogl-error-private.h"
+#include "cogl-poll-private.h"
 #include "cogl-sdl.h"
 
 typedef struct _CoglContextSdl2
@@ -47,14 +55,13 @@ typedef struct _CoglContextSdl2
 
 typedef struct _CoglRendererSdl2
 {
-  int stub;
+  CoglClosure *resize_notify_idle;
 } CoglRendererSdl2;
 
 typedef struct _CoglDisplaySdl2
 {
   SDL_Window *dummy_window;
   SDL_GLContext *context;
-  CoglBool pending_resize_notify;
 } CoglDisplaySdl2;
 
 typedef struct _CoglOnscreenSdl2
@@ -162,12 +169,23 @@ _cogl_winsys_display_setup (CoglDisplay *display,
   set_gl_attribs_from_framebuffer_config (&display->onscreen_template->config);
 
   if (display->renderer->driver == COGL_DRIVER_GLES1)
-    SDL_GL_SetAttribute (SDL_GL_CONTEXT_MAJOR_VERSION, 1);
+    {
+      SDL_GL_SetAttribute (SDL_GL_CONTEXT_PROFILE_MASK,
+                           SDL_GL_CONTEXT_PROFILE_ES);
+      SDL_GL_SetAttribute (SDL_GL_CONTEXT_MAJOR_VERSION, 1);
+      SDL_GL_SetAttribute (SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    }
   else if (display->renderer->driver == COGL_DRIVER_GLES2)
-    SDL_GL_SetAttribute (SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    {
+      SDL_GL_SetAttribute (SDL_GL_CONTEXT_PROFILE_MASK,
+                           SDL_GL_CONTEXT_PROFILE_ES);
+      SDL_GL_SetAttribute (SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+      SDL_GL_SetAttribute (SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    }
   else if (display->renderer->driver == COGL_DRIVER_GL3)
     {
       SDL_GL_SetAttribute (SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+      SDL_GL_SetAttribute (SDL_GL_CONTEXT_MINOR_VERSION, 1);
       SDL_GL_SetAttribute (SDL_GL_CONTEXT_PROFILE_MASK,
                            SDL_GL_CONTEXT_PROFILE_CORE);
       SDL_GL_SetAttribute (SDL_GL_CONTEXT_FLAGS,
@@ -234,12 +252,13 @@ _cogl_winsys_display_setup (CoglDisplay *display,
       break;
 
     case COGL_DRIVER_GLES2:
-      if (!g_str_has_prefix (gl_version, "OpenGL ES 2"))
+      if (!g_str_has_prefix (gl_version, "OpenGL ES 2") &&
+          !g_str_has_prefix (gl_version, "OpenGL ES 3"))
         {
           _cogl_set_error (error, COGL_WINSYS_ERROR,
                            COGL_WINSYS_ERROR_INIT,
                            "The GLES2 driver was requested but SDL is "
-                           "not using GLES2");
+                           "not using GLES2 or GLES3");
           goto error;
         }
       break;
@@ -266,45 +285,115 @@ error:
   return FALSE;
 }
 
-static CoglFilterReturn
-sdl_event_filter_cb (SDL_Event *event, void *data)
+static void
+flush_pending_notifications_cb (void *data,
+                                void *user_data)
 {
-  if (event->type == SDL_WINDOWEVENT &&
-      event->window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+  CoglFramebuffer *framebuffer = data;
+
+  if (framebuffer->type == COGL_FRAMEBUFFER_TYPE_ONSCREEN)
     {
-      CoglContext *context = data;
+      CoglOnscreen *onscreen = COGL_ONSCREEN (framebuffer);
+      CoglOnscreenSdl2 *sdl_onscreen = onscreen->winsys;
+
+      if (sdl_onscreen->pending_resize_notify)
+        {
+          _cogl_onscreen_notify_resize (onscreen);
+          sdl_onscreen->pending_resize_notify = FALSE;
+        }
+    }
+}
+
+static void
+flush_pending_resize_notifications_idle (void *user_data)
+{
+  CoglContext *context = user_data;
+  CoglRenderer *renderer = context->display->renderer;
+  CoglRendererSdl2 *sdl_renderer = renderer->winsys;
+
+  /* This needs to be disconnected before invoking the callbacks in
+   * case the callbacks cause it to be queued again */
+  _cogl_closure_disconnect (sdl_renderer->resize_notify_idle);
+  sdl_renderer->resize_notify_idle = NULL;
+
+  g_list_foreach (context->framebuffers,
+                  flush_pending_notifications_cb,
+                  NULL);
+}
+
+static CoglFilterReturn
+sdl_window_event_filter (SDL_WindowEvent *event,
+                         CoglContext *context)
+{
+  SDL_Window *window;
+  CoglFramebuffer *framebuffer;
+
+  window = SDL_GetWindowFromID (event->windowID);
+
+  if (window == NULL)
+    return COGL_FILTER_CONTINUE;
+
+  framebuffer = SDL_GetWindowData (window, COGL_SDL_WINDOW_DATA_KEY);
+
+  if (framebuffer == NULL || framebuffer->context != context)
+    return COGL_FILTER_CONTINUE;
+
+  if (event->event == SDL_WINDOWEVENT_SIZE_CHANGED)
+    {
       CoglDisplay *display = context->display;
-      CoglDisplaySdl2 *sdl_display = display->winsys;
-      float width = event->window.data1;
-      float height = event->window.data2;
-      CoglFramebuffer *framebuffer;
+      CoglRenderer *renderer = display->renderer;
+      CoglRendererSdl2 *sdl_renderer = renderer->winsys;
+      float width = event->data1;
+      float height = event->data2;
       CoglOnscreenSdl2 *sdl_onscreen;
-      SDL_Window *window;
-
-      window = SDL_GetWindowFromID (event->window.windowID);
-
-      if (window == NULL)
-        return COGL_FILTER_CONTINUE;
-
-      framebuffer = SDL_GetWindowData (window, COGL_SDL_WINDOW_DATA_KEY);
-
-      if (framebuffer == NULL || framebuffer->context != context)
-        return COGL_FILTER_CONTINUE;
 
       _cogl_framebuffer_winsys_update_size (framebuffer, width, height);
 
-      sdl_onscreen = COGL_ONSCREEN (framebuffer)->winsys;
-
       /* We only want to notify that a resize happened when the
-         application calls cogl_context_dispatch so instead of immediately
-         notifying we'll set a flag to remember to notify later */
-      sdl_display->pending_resize_notify = TRUE;
-      sdl_onscreen->pending_resize_notify = TRUE;
+       * application calls cogl_context_dispatch so instead of
+       * immediately notifying we queue an idle callback */
+      if (!sdl_renderer->resize_notify_idle)
+        {
+          sdl_renderer->resize_notify_idle =
+            _cogl_poll_renderer_add_idle (renderer,
+                                          flush_pending_resize_notifications_idle,
+                                          context,
+                                          NULL);
+        }
 
-      return COGL_FILTER_CONTINUE;
+      sdl_onscreen = COGL_ONSCREEN (framebuffer)->winsys;
+      sdl_onscreen->pending_resize_notify = TRUE;
+    }
+  else if (event->event == SDL_WINDOWEVENT_EXPOSED)
+    {
+      CoglOnscreenDirtyInfo info;
+
+      /* Sadly SDL doesn't seem to report the rectangle of the expose
+       * event so we'll just queue the whole window */
+      info.x = 0;
+      info.y = 0;
+      info.width = framebuffer->width;
+      info.height = framebuffer->height;
+
+      _cogl_onscreen_queue_dirty (COGL_ONSCREEN (framebuffer), &info);
     }
 
   return COGL_FILTER_CONTINUE;
+}
+
+static CoglFilterReturn
+sdl_event_filter_cb (SDL_Event *event, void *data)
+{
+  CoglContext *context = data;
+
+  switch (event->type)
+    {
+    case SDL_WINDOWEVENT:
+      return sdl_window_event_filter (&event->window, context);
+
+    default:
+      return COGL_FILTER_CONTINUE;
+    }
 }
 
 static CoglBool
@@ -325,6 +414,12 @@ _cogl_winsys_context_init (CoglContext *context, CoglError **error)
     COGL_FLAGS_SET (context->winsys_features,
                     COGL_WINSYS_FEATURE_SWAP_REGION_THROTTLE,
                     TRUE);
+
+  /* We'll manually handle queueing dirty events in response to
+   * SDL_WINDOWEVENT_EXPOSED events */
+  COGL_FLAGS_SET (context->private_features,
+                  COGL_PRIVATE_FEATURE_DIRTY_EVENTS,
+                  TRUE);
 
   _cogl_renderer_add_native_filter (renderer,
                                     (CoglNativeFilterFunc) sdl_event_filter_cb,
@@ -453,7 +548,9 @@ _cogl_winsys_onscreen_init (CoglOnscreen *onscreen,
 }
 
 static void
-_cogl_winsys_onscreen_swap_buffers (CoglOnscreen *onscreen)
+_cogl_winsys_onscreen_swap_buffers_with_damage (CoglOnscreen *onscreen,
+                                                const int *rectangles,
+                                                int n_rectangles)
 {
   CoglOnscreenSdl2 *sdl_onscreen = onscreen->winsys;
 
@@ -484,42 +581,6 @@ _cogl_winsys_onscreen_set_visibility (CoglOnscreen *onscreen,
     SDL_ShowWindow (sdl_onscreen->window);
   else
     SDL_HideWindow (sdl_onscreen->window);
-}
-
-static void
-flush_pending_notifications_cb (void *data,
-                                void *user_data)
-{
-  CoglFramebuffer *framebuffer = data;
-
-  if (framebuffer->type == COGL_FRAMEBUFFER_TYPE_ONSCREEN)
-    {
-      CoglOnscreen *onscreen = COGL_ONSCREEN (framebuffer);
-      CoglOnscreenSdl2 *sdl_onscreen = onscreen->winsys;
-
-      if (sdl_onscreen->pending_resize_notify)
-        {
-          _cogl_onscreen_notify_resize (onscreen);
-          sdl_onscreen->pending_resize_notify = FALSE;
-        }
-    }
-}
-
-static void
-_cogl_winsys_poll_dispatch (CoglContext *context,
-                            const CoglPollFD *poll_fds,
-                            int n_poll_fds)
-{
-  CoglDisplay *display = context->display;
-  CoglDisplaySdl2 *sdl_display = display->winsys;
-
-  if (sdl_display->pending_resize_notify)
-    {
-      g_list_foreach (context->framebuffers,
-                      flush_pending_notifications_cb,
-                      NULL);
-      sdl_display->pending_resize_notify = FALSE;
-    }
 }
 
 SDL_Window *
@@ -564,12 +625,11 @@ _cogl_winsys_sdl_get_vtable (void)
       vtable.onscreen_init = _cogl_winsys_onscreen_init;
       vtable.onscreen_deinit = _cogl_winsys_onscreen_deinit;
       vtable.onscreen_bind = _cogl_winsys_onscreen_bind;
-      vtable.onscreen_swap_buffers = _cogl_winsys_onscreen_swap_buffers;
+      vtable.onscreen_swap_buffers_with_damage =
+        _cogl_winsys_onscreen_swap_buffers_with_damage;
       vtable.onscreen_update_swap_throttled =
         _cogl_winsys_onscreen_update_swap_throttled;
       vtable.onscreen_set_visibility = _cogl_winsys_onscreen_set_visibility;
-
-      vtable.poll_dispatch = _cogl_winsys_poll_dispatch;
 
       vtable_inited = TRUE;
     }

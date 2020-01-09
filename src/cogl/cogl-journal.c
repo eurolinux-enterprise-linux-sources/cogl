@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2007,2008,2009 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  */
@@ -153,6 +160,8 @@ _cogl_journal_new (CoglFramebuffer *framebuffer)
 
   journal->entries = g_array_new (FALSE, FALSE, sizeof (CoglJournalEntry));
   journal->vertices = g_array_new (FALSE, FALSE, sizeof (float));
+
+  _cogl_list_init (&journal->pending_fences);
 
   return _cogl_journal_object_new (journal);
 }
@@ -299,7 +308,7 @@ _cogl_journal_flush_modelview_and_entries (CoglJournalEntry *batch_start,
     draw_flags |= COGL_DRAW_COLOR_ATTRIBUTE_IS_OPAQUE;
 
 #ifdef HAVE_COGL_GL
-  if ((ctx->private_feature_flags & COGL_PRIVATE_FEATURE_QUADS))
+  if (_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_QUADS))
     {
       /* XXX: it's rather evil that we sneak in the GL_QUADS enum here... */
       _cogl_framebuffer_draw_attributes (framebuffer,
@@ -630,7 +639,7 @@ _cogl_journal_flush_vbo_offsets_and_entries (CoglJournalEntry *batch_start,
                         4,
                         COGL_ATTRIBUTE_TYPE_UNSIGNED_BYTE);
 
-  if (!(ctx->private_feature_flags & COGL_PRIVATE_FEATURE_QUADS))
+  if (!_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_QUADS))
     state->indices = cogl_get_rectangle_indices (ctx, batch_len);
 
   /* We only create new Attributes when the stride within the
@@ -1048,7 +1057,7 @@ create_attribute_buffer (CoglJournal *journal,
   /* If CoglBuffers are being emulated with malloc then there's not
      really any point in using the pool so we'll just allocate the
      buffer directly */
-  if (!(ctx->private_feature_flags & COGL_PRIVATE_FEATURE_VBOS))
+  if (!_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_VBOS))
     return cogl_attribute_buffer_new_with_size (ctx, n_bytes);
 
   vbo = journal->vbo_pool[journal->next_vbo_in_pool];
@@ -1267,6 +1276,18 @@ _cogl_journal_all_entries_within_bounds (CoglJournal *journal,
   return TRUE;
 }
 
+static void
+post_fences (CoglJournal *journal)
+{
+  CoglFenceClosure *fence, *tmp;
+
+  _cogl_list_for_each_safe (fence, tmp, &journal->pending_fences, link)
+    {
+      _cogl_list_remove (&fence->link);
+      _cogl_fence_submit (fence);
+    }
+}
+
 /* XXX NB: When _cogl_journal_flush() returns all state relating
  * to pipelines, all glEnable flags and current matrix state
  * is undefined.
@@ -1290,7 +1311,10 @@ _cogl_journal_flush (CoglJournal *journal)
                      0 /* no application private data */);
 
   if (journal->entries->len == 0)
-    return;
+    {
+      post_fences (journal);
+      return;
+    }
 
   framebuffer = journal->framebuffer;
   ctx = framebuffer->context;
@@ -1388,6 +1412,8 @@ _cogl_journal_flush (CoglJournal *journal)
   _cogl_journal_discard (journal);
   COGL_TIMER_STOP (_cogl_uprof_context, discard_timer);
 
+  post_fences (journal);
+
   COGL_TIMER_STOP (_cogl_uprof_context, flush_timer);
 }
 
@@ -1435,6 +1461,12 @@ _cogl_journal_log_quad (CoglJournal  *journal,
                      0 /* no application private data */);
 
   COGL_TIMER_START (_cogl_uprof_context, log_timer);
+
+  /* Adding something to the journal should mean that we are in the
+   * middle of the scene. Although this will also end up being set
+   * when the journal is actually flushed, we set it here explicitly
+   * so that we will know sooner */
+  _cogl_framebuffer_mark_mid_scene (framebuffer);
 
   /* If the framebuffer was previously empty then we'll take a
      reference to the current framebuffer. This reference will be

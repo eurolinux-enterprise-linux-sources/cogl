@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2009,2010,2011,2012 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  *
@@ -25,13 +32,12 @@
  *  Robert Bragg   <robert@linux.intel.com>
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <config.h>
 
 #include <string.h>
 
 #include "cogl-private.h"
+#include "cogl-texture-private.h"
 #include "cogl-texture-2d-gl.h"
 #include "cogl-texture-2d-gl-private.h"
 #include "cogl-texture-2d-private.h"
@@ -56,6 +62,13 @@ _cogl_texture_2d_gl_can_create (CoglContext *ctx,
   GLenum gl_intformat;
   GLenum gl_format;
   GLenum gl_type;
+
+  /* If NPOT textures aren't supported then the size must be a power
+     of two */
+  if (!cogl_has_feature (ctx, COGL_FEATURE_ID_TEXTURE_NPOT_BASIC) &&
+      (!_cogl_util_is_pot (width) ||
+       !_cogl_util_is_pot (height)))
+    return FALSE;
 
   ctx->driver_vtable->pixel_format_to_gl (ctx,
                                           internal_format,
@@ -90,22 +103,29 @@ _cogl_texture_2d_gl_init (CoglTexture2D *tex_2d)
   tex_2d->gl_legacy_texobj_wrap_mode_t = GL_FALSE;
 }
 
-CoglBool
-_cogl_texture_2d_gl_allocate (CoglTexture *tex,
-                              CoglError **error)
+static CoglBool
+allocate_with_size (CoglTexture2D *tex_2d,
+                    CoglTextureLoader *loader,
+                    CoglError **error)
 {
+  CoglTexture *tex = COGL_TEXTURE (tex_2d);
+  CoglPixelFormat internal_format;
+  int width = loader->src.sized.width;
+  int height = loader->src.sized.height;
   CoglContext *ctx = tex->context;
-  CoglTexture2D *tex_2d = COGL_TEXTURE_2D (tex);
   GLenum gl_intformat;
   GLenum gl_format;
   GLenum gl_type;
   GLenum gl_error;
   GLenum gl_texture;
 
+  internal_format =
+    _cogl_texture_determine_internal_format (tex, COGL_PIXEL_FORMAT_ANY);
+
   if (!_cogl_texture_2d_gl_can_create (ctx,
-                                       tex->width,
-                                       tex->height,
-                                       tex_2d->internal_format))
+                                       width,
+                                       height,
+                                       internal_format))
     {
       _cogl_set_error (error, COGL_TEXTURE_ERROR,
                        COGL_TEXTURE_ERROR_SIZE,
@@ -115,13 +135,12 @@ _cogl_texture_2d_gl_allocate (CoglTexture *tex,
     }
 
   ctx->driver_vtable->pixel_format_to_gl (ctx,
-                                          tex_2d->internal_format,
+                                          internal_format,
                                           &gl_intformat,
                                           &gl_format,
                                           &gl_type);
 
-  gl_texture =
-    ctx->texture_driver->gen (ctx, GL_TEXTURE_2D, tex_2d->internal_format);
+  gl_texture = ctx->texture_driver->gen (ctx, GL_TEXTURE_2D, internal_format);
 
   tex_2d->gl_internal_format = gl_intformat;
 
@@ -134,7 +153,7 @@ _cogl_texture_2d_gl_allocate (CoglTexture *tex,
     ;
 
   ctx->glTexImage2D (GL_TEXTURE_2D, 0, gl_intformat,
-                     tex->width, tex->height, 0, gl_format, gl_type, NULL);
+                     width, height, 0, gl_format, gl_type, NULL);
 
   if (_cogl_gl_util_catch_out_of_memory (ctx, error))
     {
@@ -145,45 +164,72 @@ _cogl_texture_2d_gl_allocate (CoglTexture *tex,
   tex_2d->gl_texture = gl_texture;
   tex_2d->gl_internal_format = gl_intformat;
 
+  tex_2d->internal_format = internal_format;
+
+  _cogl_texture_set_allocated (tex, internal_format, width, height);
+
   return TRUE;
 }
 
-CoglTexture2D *
-_cogl_texture_2d_gl_new_from_bitmap (CoglBitmap *bmp,
-                                     CoglPixelFormat internal_format,
-                                     CoglError **error)
+static CoglBool
+allocate_from_bitmap (CoglTexture2D *tex_2d,
+                      CoglTextureLoader *loader,
+                      CoglError **error)
 {
+  CoglTexture *tex = COGL_TEXTURE (tex_2d);
+  CoglBitmap *bmp = loader->src.bitmap.bitmap;
   CoglContext *ctx = _cogl_bitmap_get_context (bmp);
-  CoglTexture2D *tex_2d;
-  CoglBitmap *dst_bmp;
+  CoglPixelFormat internal_format;
+  int width = cogl_bitmap_get_width (bmp);
+  int height = cogl_bitmap_get_height (bmp);
+  CoglBool can_convert_in_place = loader->src.bitmap.can_convert_in_place;
+  CoglBitmap *upload_bmp;
   GLenum gl_intformat;
   GLenum gl_format;
   GLenum gl_type;
 
-  dst_bmp = _cogl_texture_prepare_for_upload (bmp,
-                                              internal_format,
-                                              &internal_format,
-                                              &gl_intformat,
-                                              &gl_format,
-                                              &gl_type,
-                                              error);
-  if (!dst_bmp)
-    return NULL;
+  internal_format =
+    _cogl_texture_determine_internal_format (tex, cogl_bitmap_get_format (bmp));
 
-  tex_2d = _cogl_texture_2d_create_base (ctx,
-                                         cogl_bitmap_get_width (bmp),
-                                         cogl_bitmap_get_height (bmp),
-                                         internal_format);
+  if (!_cogl_texture_2d_gl_can_create (ctx,
+                                       width,
+                                       height,
+                                       internal_format))
+    {
+      _cogl_set_error (error, COGL_TEXTURE_ERROR,
+                       COGL_TEXTURE_ERROR_SIZE,
+                       "Failed to create texture 2d due to size/format"
+                       " constraints");
+      return FALSE;
+    }
+
+  upload_bmp = _cogl_bitmap_convert_for_upload (bmp,
+                                                internal_format,
+                                                can_convert_in_place,
+                                                error);
+  if (upload_bmp == NULL)
+    return FALSE;
+
+  ctx->driver_vtable->pixel_format_to_gl (ctx,
+                                          cogl_bitmap_get_format (upload_bmp),
+                                          NULL, /* internal format */
+                                          &gl_format,
+                                          &gl_type);
+  ctx->driver_vtable->pixel_format_to_gl (ctx,
+                                          internal_format,
+                                          &gl_intformat,
+                                          NULL,
+                                          NULL);
 
   /* Keep a copy of the first pixel so that if glGenerateMipmap isn't
      supported we can fallback to using GL_GENERATE_MIPMAP */
   if (!cogl_has_feature (ctx, COGL_FEATURE_ID_OFFSCREEN))
     {
       CoglError *ignore = NULL;
-      uint8_t *data = _cogl_bitmap_map (dst_bmp,
+      uint8_t *data = _cogl_bitmap_map (upload_bmp,
                                         COGL_BUFFER_ACCESS_READ, 0,
                                         &ignore);
-      CoglPixelFormat format = cogl_bitmap_get_format (dst_bmp);
+      CoglPixelFormat format = cogl_bitmap_get_format (upload_bmp);
 
       tex_2d->first_pixel.gl_format = gl_format;
       tex_2d->first_pixel.gl_type = gl_type;
@@ -192,7 +238,7 @@ _cogl_texture_2d_gl_new_from_bitmap (CoglBitmap *bmp,
         {
           memcpy (tex_2d->first_pixel.data, data,
                   _cogl_pixel_format_get_bytes_per_pixel (format));
-          _cogl_bitmap_unmap (dst_bmp);
+          _cogl_bitmap_unmap (upload_bmp);
         }
       else
         {
@@ -210,52 +256,47 @@ _cogl_texture_2d_gl_new_from_bitmap (CoglBitmap *bmp,
                                           GL_TEXTURE_2D,
                                           tex_2d->gl_texture,
                                           FALSE,
-                                          dst_bmp,
+                                          upload_bmp,
                                           gl_intformat,
                                           gl_format,
                                           gl_type,
                                           error))
     {
-      cogl_object_unref (dst_bmp);
-      cogl_object_unref (tex_2d);
-      return NULL;
+      cogl_object_unref (upload_bmp);
+      return FALSE;
     }
 
   tex_2d->gl_internal_format = gl_intformat;
 
-  cogl_object_unref (dst_bmp);
+  cogl_object_unref (upload_bmp);
 
-  _cogl_texture_set_allocated (COGL_TEXTURE (tex_2d), TRUE);
+  tex_2d->internal_format = internal_format;
 
-  return tex_2d;
+  _cogl_texture_set_allocated (tex, internal_format, width, height);
 
+  return TRUE;
 }
 
 #if defined (COGL_HAS_EGL_SUPPORT) && defined (EGL_KHR_image_base)
-CoglTexture2D *
-_cogl_egl_texture_2d_gl_new_from_image (CoglContext *ctx,
-                                        int width,
-                                        int height,
-                                        CoglPixelFormat format,
-                                        EGLImageKHR image,
-                                        CoglError **error)
+static CoglBool
+allocate_from_egl_image (CoglTexture2D *tex_2d,
+                         CoglTextureLoader *loader,
+                         CoglError **error)
 {
-  CoglTexture2D *tex_2d;
+  CoglTexture *tex = COGL_TEXTURE (tex_2d);
+  CoglContext *ctx = tex->context;
+  CoglPixelFormat internal_format = loader->src.egl_image.format;
   GLenum gl_error;
 
-  tex_2d = _cogl_texture_2d_create_base (ctx,
-                                         width, height,
-                                         format);
-
   tex_2d->gl_texture =
-    ctx->texture_driver->gen (ctx, GL_TEXTURE_2D, format);
+    ctx->texture_driver->gen (ctx, GL_TEXTURE_2D, internal_format);
   _cogl_bind_gl_texture_transient (GL_TEXTURE_2D,
                                    tex_2d->gl_texture,
                                    FALSE);
 
   while ((gl_error = ctx->glGetError ()) != GL_NO_ERROR)
     ;
-  ctx->glEGLImageTargetTexture2D (GL_TEXTURE_2D, image);
+  ctx->glEGLImageTargetTexture2D (GL_TEXTURE_2D, loader->src.egl_image.image);
   if (ctx->glGetError () != GL_NO_ERROR)
     {
       _cogl_set_error (error,
@@ -263,15 +304,174 @@ _cogl_egl_texture_2d_gl_new_from_image (CoglContext *ctx,
                        COGL_TEXTURE_ERROR_BAD_PARAMETER,
                        "Could not create a CoglTexture2D from a given "
                        "EGLImage");
-      cogl_object_unref (tex_2d);
-      return NULL;
+      GE( ctx, glDeleteTextures (1, &tex_2d->gl_texture) );
+      return FALSE;
     }
 
-  _cogl_texture_set_allocated (COGL_TEXTURE (tex_2d), TRUE);
+  tex_2d->internal_format = internal_format;
 
-  return tex_2d;
+  _cogl_texture_set_allocated (tex,
+                               internal_format,
+                               loader->src.egl_image.width,
+                               loader->src.egl_image.height);
+
+  return TRUE;
 }
 #endif
+
+static CoglBool
+allocate_from_gl_foreign (CoglTexture2D *tex_2d,
+                          CoglTextureLoader *loader,
+                          CoglError **error)
+{
+  CoglTexture *tex = COGL_TEXTURE (tex_2d);
+  CoglContext *ctx = tex->context;
+  CoglPixelFormat format = loader->src.gl_foreign.format;
+  GLenum gl_error = 0;
+  GLint gl_compressed = GL_FALSE;
+  GLenum gl_int_format = 0;
+
+  if (!ctx->texture_driver->allows_foreign_gl_target (ctx, GL_TEXTURE_2D))
+    {
+      _cogl_set_error (error,
+                       COGL_SYSTEM_ERROR,
+                       COGL_SYSTEM_ERROR_UNSUPPORTED,
+                       "Foreign GL_TEXTURE_2D textures are not "
+                       "supported by your system");
+      return FALSE;
+    }
+
+  /* Make sure binding succeeds */
+  while ((gl_error = ctx->glGetError ()) != GL_NO_ERROR)
+    ;
+
+  _cogl_bind_gl_texture_transient (GL_TEXTURE_2D,
+                                   loader->src.gl_foreign.gl_handle, TRUE);
+  if (ctx->glGetError () != GL_NO_ERROR)
+    {
+      _cogl_set_error (error,
+                       COGL_SYSTEM_ERROR,
+                       COGL_SYSTEM_ERROR_UNSUPPORTED,
+                       "Failed to bind foreign GL_TEXTURE_2D texture");
+      return FALSE;
+    }
+
+  /* Obtain texture parameters
+     (only level 0 we are interested in) */
+
+#ifdef HAVE_COGL_GL
+  if (_cogl_has_private_feature
+      (ctx, COGL_PRIVATE_FEATURE_QUERY_TEXTURE_PARAMETERS))
+    {
+      GE( ctx, glGetTexLevelParameteriv (GL_TEXTURE_2D, 0,
+                                         GL_TEXTURE_COMPRESSED,
+                                         &gl_compressed) );
+
+      {
+        GLint val;
+
+        GE( ctx, glGetTexLevelParameteriv (GL_TEXTURE_2D, 0,
+                                           GL_TEXTURE_INTERNAL_FORMAT,
+                                           &val) );
+
+        gl_int_format = val;
+      }
+
+      /* If we can query GL for the actual pixel format then we'll ignore
+         the passed in format and use that. */
+      if (!ctx->driver_vtable->pixel_format_from_gl_internal (ctx,
+                                                              gl_int_format,
+                                                              &format))
+        {
+          _cogl_set_error (error,
+                           COGL_SYSTEM_ERROR,
+                           COGL_SYSTEM_ERROR_UNSUPPORTED,
+                           "Unsupported internal format for foreign texture");
+          return FALSE;
+        }
+    }
+  else
+#endif
+    {
+      /* Otherwise we'll assume we can derive the GL format from the
+         passed in format */
+      ctx->driver_vtable->pixel_format_to_gl (ctx,
+                                              format,
+                                              &gl_int_format,
+                                              NULL,
+                                              NULL);
+    }
+
+  /* Compressed texture images not supported */
+  if (gl_compressed == GL_TRUE)
+    {
+      _cogl_set_error (error,
+                       COGL_SYSTEM_ERROR,
+                       COGL_SYSTEM_ERROR_UNSUPPORTED,
+                       "Compressed foreign textures aren't currently supported");
+      return FALSE;
+    }
+
+  /* Note: previously this code would query the texture object for
+     whether it has GL_GENERATE_MIPMAP enabled to determine whether to
+     auto-generate the mipmap. This doesn't make much sense any more
+     since Cogl switch to using glGenerateMipmap. Ideally I think
+     cogl_texture_2d_gl_new_from_foreign should take a flags parameter so
+     that the application can decide whether it wants
+     auto-mipmapping. To be compatible with existing code, Cogl now
+     disables its own auto-mipmapping but leaves the value of
+     GL_GENERATE_MIPMAP alone so that it would still work but without
+     the dirtiness tracking that Cogl would do. */
+
+  _cogl_texture_2d_set_auto_mipmap (COGL_TEXTURE (tex_2d), FALSE);
+
+  /* Setup bitmap info */
+  tex_2d->is_foreign = TRUE;
+  tex_2d->mipmaps_dirty = TRUE;
+
+  tex_2d->gl_texture = loader->src.gl_foreign.gl_handle;
+  tex_2d->gl_internal_format = gl_int_format;
+
+  /* Unknown filter */
+  tex_2d->gl_legacy_texobj_min_filter = GL_FALSE;
+  tex_2d->gl_legacy_texobj_mag_filter = GL_FALSE;
+
+  tex_2d->internal_format = format;
+
+  _cogl_texture_set_allocated (tex,
+                               format,
+                               loader->src.gl_foreign.width,
+                               loader->src.gl_foreign.height);
+  return TRUE;
+}
+
+CoglBool
+_cogl_texture_2d_gl_allocate (CoglTexture *tex,
+                              CoglError **error)
+{
+  CoglTexture2D *tex_2d = COGL_TEXTURE_2D (tex);
+  CoglTextureLoader *loader = tex->loader;
+
+  _COGL_RETURN_VAL_IF_FAIL (loader, FALSE);
+
+  switch (loader->src_type)
+    {
+    case COGL_TEXTURE_SOURCE_TYPE_SIZED:
+      return allocate_with_size (tex_2d, loader, error);
+    case COGL_TEXTURE_SOURCE_TYPE_BITMAP:
+      return allocate_from_bitmap (tex_2d, loader, error);
+    case COGL_TEXTURE_SOURCE_TYPE_EGL_IMAGE:
+#if defined (COGL_HAS_EGL_SUPPORT) && defined (EGL_KHR_image_base)
+      return allocate_from_egl_image (tex_2d, loader, error);
+#else
+      g_return_val_if_reached (FALSE);
+#endif
+    case COGL_TEXTURE_SOURCE_TYPE_GL_FOREIGN:
+      return allocate_from_gl_foreign (tex_2d, loader, error);
+    }
+
+  g_return_val_if_reached (FALSE);
+}
 
 void
 _cogl_texture_2d_gl_flush_legacy_texobj_filters (CoglTexture *tex,
@@ -328,95 +528,17 @@ _cogl_texture_2d_gl_flush_legacy_texobj_wrap_modes (CoglTexture *tex,
 }
 
 CoglTexture2D *
-cogl_texture_2d_new_from_foreign (CoglContext *ctx,
-                                  unsigned int gl_handle,
-                                  int width,
-                                  int height,
-                                  CoglPixelFormat format,
-                                  CoglError **error)
+cogl_texture_2d_gl_new_from_foreign (CoglContext *ctx,
+                                     unsigned int gl_handle,
+                                     int width,
+                                     int height,
+                                     CoglPixelFormat format)
 {
+  CoglTextureLoader *loader;
+
   /* NOTE: width, height and internal format are not queriable
    * in GLES, hence such a function prototype.
    */
-
-  GLenum gl_error = 0;
-  GLint gl_compressed = GL_FALSE;
-  GLenum gl_int_format = 0;
-  CoglTexture2D *tex_2d;
-
-  /* Assert it is a valid GL texture object */
-  g_return_val_if_fail (ctx->glIsTexture (gl_handle), NULL);
-
-  if (!ctx->texture_driver->allows_foreign_gl_target (ctx, GL_TEXTURE_2D))
-    {
-      _cogl_set_error (error,
-                       COGL_SYSTEM_ERROR,
-                       COGL_SYSTEM_ERROR_UNSUPPORTED,
-                       "Foreign GL_TEXTURE_2D textures are not "
-                       "supported by your system");
-      return NULL;
-    }
-
-
-  /* Make sure binding succeeds */
-  while ((gl_error = ctx->glGetError ()) != GL_NO_ERROR)
-    ;
-
-  _cogl_bind_gl_texture_transient (GL_TEXTURE_2D, gl_handle, TRUE);
-  if (ctx->glGetError () != GL_NO_ERROR)
-    {
-      _cogl_set_error (error,
-                       COGL_SYSTEM_ERROR,
-                       COGL_SYSTEM_ERROR_UNSUPPORTED,
-                       "Failed to bind foreign GL_TEXTURE_2D texture");
-      return NULL;
-    }
-
-  /* Obtain texture parameters
-     (only level 0 we are interested in) */
-
-#ifdef HAVE_COGL_GL
-  if ((ctx->private_feature_flags &
-       COGL_PRIVATE_FEATURE_QUERY_TEXTURE_PARAMETERS))
-    {
-      GE( ctx, glGetTexLevelParameteriv (GL_TEXTURE_2D, 0,
-                                         GL_TEXTURE_COMPRESSED,
-                                         &gl_compressed) );
-
-      {
-        GLint val;
-
-        GE( ctx, glGetTexLevelParameteriv (GL_TEXTURE_2D, 0,
-                                           GL_TEXTURE_INTERNAL_FORMAT,
-                                           &val) );
-
-        gl_int_format = val;
-      }
-
-      /* If we can query GL for the actual pixel format then we'll ignore
-         the passed in format and use that. */
-      if (!ctx->driver_vtable->pixel_format_from_gl_internal (ctx,
-                                                              gl_int_format,
-                                                              &format))
-        {
-          _cogl_set_error (error,
-                           COGL_SYSTEM_ERROR,
-                           COGL_SYSTEM_ERROR_UNSUPPORTED,
-                           "Unsupported internal format for foreign texture");
-          return NULL;
-        }
-    }
-  else
-#endif
-    {
-      /* Otherwise we'll assume we can derive the GL format from the
-         passed in format */
-      ctx->driver_vtable->pixel_format_to_gl (ctx,
-                                              format,
-                                              &gl_int_format,
-                                              NULL,
-                                              NULL);
-    }
 
   /* Note: We always trust the given width and height without querying
    * the texture object because the user may be creating a Cogl
@@ -425,50 +547,20 @@ cogl_texture_2d_new_from_foreign (CoglContext *ctx,
    * clarify that it is reliable to query back the size from OpenGL.
    */
 
+  /* Assert it is a valid GL texture object */
+  _COGL_RETURN_VAL_IF_FAIL (ctx->glIsTexture (gl_handle), FALSE);
+
   /* Validate width and height */
-  g_return_val_if_fail (width > 0 && height > 0, NULL);
+  _COGL_RETURN_VAL_IF_FAIL (width > 0 && height > 0, NULL);
 
-  /* Compressed texture images not supported */
-  if (gl_compressed == GL_TRUE)
-    {
-      _cogl_set_error (error,
-                       COGL_SYSTEM_ERROR,
-                       COGL_SYSTEM_ERROR_UNSUPPORTED,
-                       "Compressed foreign textures aren't currently supported");
-      return NULL;
-    }
+  loader = _cogl_texture_create_loader ();
+  loader->src_type = COGL_TEXTURE_SOURCE_TYPE_GL_FOREIGN;
+  loader->src.gl_foreign.gl_handle = gl_handle;
+  loader->src.gl_foreign.width = width;
+  loader->src.gl_foreign.height = height;
+  loader->src.gl_foreign.format = format;
 
-  /* Note: previously this code would query the texture object for
-     whether it has GL_GENERATE_MIPMAP enabled to determine whether to
-     auto-generate the mipmap. This doesn't make much sense any more
-     since Cogl switch to using glGenerateMipmap. Ideally I think
-     cogl_texture_2d_new_from_foreign should take a flags parameter so
-     that the application can decide whether it wants
-     auto-mipmapping. To be compatible with existing code, Cogl now
-     disables its own auto-mipmapping but leaves the value of
-     GL_GENERATE_MIPMAP alone so that it would still work but without
-     the dirtiness tracking that Cogl would do. */
-
-  /* Create new texture */
-  tex_2d = _cogl_texture_2d_create_base (ctx,
-                                         width, height,
-                                         format);
-  _cogl_texture_2d_set_auto_mipmap (COGL_TEXTURE (tex_2d), FALSE);
-
-  /* Setup bitmap info */
-  tex_2d->is_foreign = TRUE;
-  tex_2d->mipmaps_dirty = TRUE;
-
-  tex_2d->gl_texture = gl_handle;
-  tex_2d->gl_internal_format = gl_int_format;
-
-  /* Unknown filter */
-  tex_2d->gl_legacy_texobj_min_filter = GL_FALSE;
-  tex_2d->gl_legacy_texobj_mag_filter = GL_FALSE;
-
-  _cogl_texture_set_allocated (COGL_TEXTURE (tex_2d), TRUE);
-
-  return tex_2d;
+  return _cogl_texture_2d_create_base (ctx, width, height, format, loader);
 }
 
 void
@@ -555,19 +647,27 @@ _cogl_texture_2d_gl_copy_from_bitmap (CoglTexture2D *tex_2d,
 {
   CoglTexture *tex = COGL_TEXTURE (tex_2d);
   CoglContext *ctx = tex->context;
+  CoglBitmap *upload_bmp;
+  CoglPixelFormat upload_format;
   GLenum gl_format;
   GLenum gl_type;
   CoglBool status = TRUE;
 
-  bmp = _cogl_texture_prepare_for_upload (bmp,
-                                          cogl_texture_get_format (tex),
-                                          NULL,
-                                          NULL,
-                                          &gl_format,
-                                          &gl_type,
-                                          error);
-  if (!bmp)
+  upload_bmp =
+    _cogl_bitmap_convert_for_upload (bmp,
+                                     _cogl_texture_get_format (tex),
+                                     FALSE, /* can't convert in place */
+                                     error);
+  if (upload_bmp == NULL)
     return FALSE;
+
+  upload_format = cogl_bitmap_get_format (upload_bmp);
+
+  ctx->driver_vtable->pixel_format_to_gl (ctx,
+                                          upload_format,
+                                          NULL, /* internal format */
+                                          &gl_format,
+                                          &gl_type);
 
   /* If this touches the first pixel then we'll update our copy */
   if (dst_x == 0 && dst_y == 0 &&
@@ -575,9 +675,9 @@ _cogl_texture_2d_gl_copy_from_bitmap (CoglTexture2D *tex_2d,
     {
       CoglError *ignore = NULL;
       uint8_t *data =
-        _cogl_bitmap_map (bmp, COGL_BUFFER_ACCESS_READ, 0, &ignore);
+        _cogl_bitmap_map (upload_bmp, COGL_BUFFER_ACCESS_READ, 0, &ignore);
       CoglPixelFormat bpp =
-        _cogl_pixel_format_get_bytes_per_pixel (cogl_bitmap_get_format (bmp));
+        _cogl_pixel_format_get_bytes_per_pixel (upload_format);
 
       tex_2d->first_pixel.gl_format = gl_format;
       tex_2d->first_pixel.gl_type = gl_type;
@@ -585,7 +685,9 @@ _cogl_texture_2d_gl_copy_from_bitmap (CoglTexture2D *tex_2d,
       if (data)
         {
           memcpy (tex_2d->first_pixel.data,
-                  data + cogl_bitmap_get_rowstride (bmp) * src_y + bpp * src_x,
+                  (data +
+                   cogl_bitmap_get_rowstride (upload_bmp) * src_y +
+                   bpp * src_x),
                   bpp);
           _cogl_bitmap_unmap (bmp);
         }
@@ -605,12 +707,12 @@ _cogl_texture_2d_gl_copy_from_bitmap (CoglTexture2D *tex_2d,
                                                         dst_x, dst_y,
                                                         width, height,
                                                         level,
-                                                        bmp,
+                                                        upload_bmp,
                                                         gl_format,
                                                         gl_type,
                                                         error);
 
-  cogl_object_unref (bmp);
+  cogl_object_unref (upload_bmp);
 
   _cogl_texture_gl_maybe_update_max_level (tex, level);
 

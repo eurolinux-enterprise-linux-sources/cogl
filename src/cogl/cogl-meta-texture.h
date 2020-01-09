@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2011 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  */
@@ -66,10 +72,10 @@ COGL_BEGIN_DECLS
  * Cogl doesn't aim to pretend that meta-textures are just like real
  * textures because it would get extremely complex to try and emulate
  * low-level GPU semantics transparently for these textures.  The low
- * level drawing APIs of Cogl, such as cogl_framebuffer_draw_attributes()
- * don't actually know anything about the #CoglMetaTexture interface and its
- * the developer's responsibility to resolve all textures referenced by a
- * #CoglPipeline to low-level textures before drawing.
+ * level drawing APIs of Cogl, such as cogl_primitive_draw() don't
+ * actually know anything about the #CoglMetaTexture interface and its
+ * the developer's responsibility to resolve all textures referenced
+ * by a #CoglPipeline to low-level textures before drawing.
  *
  * If you want to develop custom primitive APIs like
  * cogl_framebuffer_draw_rectangle() and you want to support drawing
@@ -77,7 +83,7 @@ COGL_BEGIN_DECLS
  * example, then you will need to use this #CoglMetaTexture interface
  * to be able to resolve high-level textures into low-level textures
  * before drawing with Cogl's low-level drawing APIs such as
- * cogl_framebuffer_draw_attributes().
+ * cogl_primitive_draw().
  *
  * <note>Most developers won't need to use this interface directly
  * but still it is worth understanding the distinction between
@@ -86,8 +92,15 @@ COGL_BEGIN_DECLS
  * meta-textures.</note>
  */
 
+#ifdef __COGL_H_INSIDE__
+/* For the public C api we typedef interface types as void to avoid needing
+ * lots of casting in code and instead we will rely on runtime type checking
+ * for these objects. */
+typedef void CoglMetaTexture;
+#else
 typedef struct _CoglMetaTexture CoglMetaTexture;
 #define COGL_META_TEXTURE(X) ((CoglMetaTexture *)X)
+#endif
 
 /**
  * CoglMetaTextureCallback:
@@ -153,10 +166,10 @@ typedef void (*CoglMetaTextureCallback) (CoglTexture *sub_texture,
  * internally use this API to resolve the low level textures of any
  * meta textures you have associated with CoglPipeline layers.
  *
- * <note>The low level drawing APIs such as cogl_framebuffer_draw_attributes()
+ * <note>The low level drawing APIs such as cogl_primitive_draw()
  * don't understand the #CoglMetaTexture interface and so it is your
- * responsibility to use this API to resolve all CoglPipeline
- * textures into low-level textures before drawing.</note>
+ * responsibility to use this API to resolve all CoglPipeline textures
+ * into low-level textures before drawing.</note>
  *
  * For each low-level texture that makes up part of the given region
  * of the @meta_texture, @callback is called specifying how the

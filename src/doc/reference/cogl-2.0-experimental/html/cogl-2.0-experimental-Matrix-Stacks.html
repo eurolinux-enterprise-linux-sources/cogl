@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Matrix Stacks</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Cogl 2.0 Reference Manual">
 <link rel="up" href="cogl-utilities.html" title="Utilities">
 <link rel="prev" href="cogl-2.0-experimental-Matrices.html" title="Matrices">
 <link rel="next" href="cogl-2.0-experimental-3-Component-Vectors.html" title="3 Component Vectors">
-<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.19.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -296,7 +296,7 @@ for the current position in the hierarchy by calling
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Matrix-Stacks.html#CoglMatrixStack" title="CoglMatrixStack"><span class="type">CoglMatrixStack</span></a>
+<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Matrix-Stacks.html#CoglMatrixStack" title="CoglMatrixStack"><span class="type">CoglMatrixStack</span></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -764,7 +764,7 @@ initialize a new <a class="link" href="cogl-2.0-experimental-Matrices.html#CoglM
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the inverse was successfully calculated or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>
+<code class="literal">TRUE</code> if the inverse was successfully calculated or <code class="literal">FALSE</code>
 for degenerate transformations that can't be inverted (in this case the
 <em class="parameter"><code>inverse</code></em> matrix will simply be initialized with the identity matrix)</td>
 </tr>
@@ -835,7 +835,7 @@ composed of multiple operations.
 <p>
 If an internal matrix contains the required result then this
 function will directly return a pointer to that matrix, otherwise
-if the function returns <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> then <em class="parameter"><code>matrix</code></em> will be initialized
+if the function returns <code class="literal">NULL</code> then <em class="parameter"><code>matrix</code></em> will be initialized
 to match the current transform of <em class="parameter"><code>stack</code></em>.
 </p>
 <p>
@@ -864,7 +864,7 @@ returned.</div>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A direct pointer to the current transform or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+<td>A direct pointer to the current transform or <code class="literal">NULL</code>
 and in that case <em class="parameter"><code>matrix</code></em> will be initialized with
 the value of the current transform.</td>
 </tr>
@@ -890,7 +890,7 @@ composed of multiple operations.
 <p>
 If an internal matrix contains the required result then this
 function will directly return a pointer to that matrix, otherwise
-if the function returns <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> then <em class="parameter"><code>matrix</code></em> will be initialized
+if the function returns <code class="literal">NULL</code> then <em class="parameter"><code>matrix</code></em> will be initialized
 to match the transform of <em class="parameter"><code>entry</code></em>.
 </p>
 <p>
@@ -920,7 +920,7 @@ a matrix. <span class="annotation">[<acronym title="Parameter for returning resu
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A direct pointer to a <a class="link" href="cogl-2.0-experimental-Matrices.html#CoglMatrix" title="CoglMatrix"><span class="type">CoglMatrix</span></a> transform or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+<td>A direct pointer to a <a class="link" href="cogl-2.0-experimental-Matrices.html#CoglMatrix" title="CoglMatrix"><span class="type">CoglMatrix</span></a> transform or <code class="literal">NULL</code>
 and in that case <em class="parameter"><code>matrix</code></em> will be initialized with
 the effective transform represented by <em class="parameter"><code>entry</code></em>.</td>
 </tr>
@@ -972,7 +972,7 @@ the translation are.
 </p>
 <p>
 If the difference between the two translations involves anything
-other than a translation then the function returns <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>.
+other than a translation then the function returns <code class="literal">FALSE</code>.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -1006,9 +1006,9 @@ other than a translation then the function returns <a href="http://library.gnome
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the only difference between the transform of
+<code class="literal">TRUE</code> if the only difference between the transform of
 <em class="parameter"><code>entry0</code></em> and the transform of <em class="parameter"><code>entry1</code></em> is a translation,
-otherwise <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>.</td>
+otherwise <code class="literal">FALSE</code>.</td>
 </tr>
 </tbody>
 </table></div>
@@ -1022,8 +1022,8 @@ Determines whether <em class="parameter"><code>entry</code></em> is known to rep
 transform.
 </p>
 <p>
-If this returns <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> then the entry is definitely the identity
-matrix. If it returns <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> it may or may not be the identity
+If this returns <code class="literal">TRUE</code> then the entry is definitely the identity
+matrix. If it returns <code class="literal">FALSE</code> it may or may not be the identity
 matrix but no expensive comparison is performed to verify it.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -1040,8 +1040,8 @@ matrix but no expensive comparison is performed to verify it.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>entry</code></em> is definitely an identity transform,
-otherwise <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>.</td>
+<code class="literal">TRUE</code> if <em class="parameter"><code>entry</code></em> is definitely an identity transform,
+otherwise <code class="literal">FALSE</code>.</td>
 </tr>
 </tbody>
 </table></div>
@@ -1053,7 +1053,7 @@ otherwise <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Ma
                                                          <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Matrix-Stacks.html#CoglMatrixEntry" title="CoglMatrixEntry"><span class="type">CoglMatrixEntry</span></a> *entry1</code></em>);</pre>
 <p>
 Compares two arbitrary <a class="link" href="cogl-2.0-experimental-Matrix-Stacks.html#CoglMatrixEntry" title="CoglMatrixEntry"><span class="type">CoglMatrixEntry</span></a> transforms for equality
-returning <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if they are equal or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.
+returning <code class="literal">TRUE</code> if they are equal or <code class="literal">FALSE</code> otherwise.
 </p>
 <p>
 </p>
@@ -1080,8 +1080,8 @@ cheaper too.</div>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>entry0</code></em> represents the same transform as
-<em class="parameter"><code>entry1</code></em>, otherwise <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>.</td>
+<code class="literal">TRUE</code> if <em class="parameter"><code>entry0</code></em> represents the same transform as
+<em class="parameter"><code>entry1</code></em>, otherwise <code class="literal">FALSE</code>.</td>
 </tr>
 </tbody>
 </table></div>
@@ -1136,6 +1136,6 @@ calling <a class="link" href="cogl-2.0-experimental-Matrix-Stacks.html#cogl-matr
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18.1</div>
+          Generated by GTK-Doc V1.19.1</div>
 </body>
 </html>

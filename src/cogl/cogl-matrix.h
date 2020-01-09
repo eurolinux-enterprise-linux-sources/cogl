@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2008,2009 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  *
@@ -27,14 +34,20 @@
 #ifndef __COGL_MATRIX_H
 #define __COGL_MATRIX_H
 
+#include <cogl/cogl-defines.h>
+
 #ifdef COGL_HAS_GTYPE_SUPPORT
 #include <glib-object.h>
 #endif /* COGL_HAS_GTYPE_SUPPORT */
 
-#include "cogl-types.h"
+#include <cogl/cogl-types.h>
+#include <cogl/cogl-macros.h>
 
 #ifdef COGL_ENABLE_EXPERIMENTAL_API
-#include "cogl-quaternion.h"
+#include <cogl/cogl-quaternion.h>
+#endif
+#ifdef COGL_HAS_GTYPE_SUPPORT
+#include <glib-object.h>
 #endif
 
 COGL_BEGIN_DECLS
@@ -112,6 +125,7 @@ struct _CoglMatrix
   unsigned long  COGL_PRIVATE (_padding3);
 };
 COGL_STRUCT_SIZE_ASSERT (CoglMatrix, 128 + sizeof (unsigned long) * 3);
+
 
 /**
  * cogl_matrix_init_identity:
@@ -401,6 +415,7 @@ cogl_matrix_orthographic (CoglMatrix *matrix,
  *
  * Deprecated: 1.10: Use cogl_matrix_orthographic()
  */
+COGL_DEPRECATED_IN_1_10_FOR (cogl_matrix_orthographic)
 void
 cogl_matrix_ortho (CoglMatrix *matrix,
                    float       left,
@@ -559,8 +574,8 @@ cogl_matrix_equal (const void *v1, const void *v2);
  * Allocates a new #CoglMatrix on the heap and initializes it with
  * the same values as @matrix.
  *
- * Returns: A newly allocated #CoglMatrix which should be freed using
- * cogl_matrix_free()
+ * Return value: (transfer full): A newly allocated #CoglMatrix which
+ * should be freed using cogl_matrix_free()
  *
  * Since: 1.6
  */
@@ -776,9 +791,16 @@ cogl_matrix_transpose (CoglMatrix *matrix);
 void
 cogl_debug_matrix_print (const CoglMatrix *matrix);
 
-#ifdef _COGL_SUPPORTS_GTYPE_INTEGRATION
+#ifdef COGL_HAS_GTYPE_SUPPORT
 
-#define COGL_GTYPE_TYPE_MATRIX (cogl_gtype_matrix_get_type ())
+#define COGL_GTYPE_TYPE_MATRIX (cogl_matrix_get_gtype ())
+
+/**
+ * cogl_matrix_get_gtype:
+ *
+ * Returns: a #GType that can be used with the GLib type system.
+ */
+GType cogl_matrix_get_gtype (void);
 
 /**
  * cogl_gtype_matrix_get_type:
@@ -786,13 +808,14 @@ cogl_debug_matrix_print (const CoglMatrix *matrix);
  * Returns: the GType for the registered "CoglMatrix" boxed type. This
  * can be used for example to define GObject properties that accept a
  * #CoglMatrix value.
+ *
+ * Deprecated: 1.18: Use cogl_matrix_get_gtype() instead.
  */
 GType
 cogl_gtype_matrix_get_type (void);
 
-#endif /* _COGL_SUPPORTS_GTYPE_INTEGRATION */
+#endif /* COGL_HAS_GTYPE_SUPPORT*/
 
 COGL_END_DECLS
 
 #endif /* __COGL_MATRIX_H */
-

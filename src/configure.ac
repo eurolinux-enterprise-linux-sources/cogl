@@ -24,8 +24,8 @@ m4_define([cogl_version],
 
 dnl Since the core Cogl library has to also maintain support for the
 dnl Cogl 1.x API for Clutter then we track the 1.x version separately.
-m4_define([cogl_1_minor_version], [14])
-m4_define([cogl_1_micro_version], [0])
+m4_define([cogl_1_minor_version], [18])
+m4_define([cogl_1_micro_version], [2])
 m4_define([cogl_1_version], [1.cogl_1_minor_version.cogl_1_micro_version])
 
 dnl ================================================================
@@ -55,9 +55,9 @@ dnl ================================================================
 #
 #  5. If any interfaces have been removed since the last public release,
 #     then set AGE to 0.
-m4_define([cogl_lt_current], 13)
-m4_define([cogl_lt_revision], 1)
-m4_define([cogl_lt_age], 1)
+m4_define([cogl_lt_current], 22)
+m4_define([cogl_lt_revision], 0)
+m4_define([cogl_lt_age], 2)
 # We do also tell libtool the pretty version:
 m4_define([cogl_lt_release], [cogl_version])
 
@@ -70,6 +70,9 @@ dnl ================================================================
 # libtool version info we don't automatically derive this from the
 # pretty version number because we want to test the results of
 # updating the version number in advance of a release.
+#
+# Possible status values are: git, snapshot or release
+#
 m4_define([cogl_release_status], [release])
 
 AC_INIT(cogl, [cogl_1_version])
@@ -93,6 +96,7 @@ m4_define([xcomposite_req_version],     [0.4])
 m4_define([xrandr_req_version],         [1.2])
 m4_define([cairo_req_version],          [1.10])
 m4_define([wayland_req_version],        [1.0.0])
+m4_define([wayland_server_req_version], [1.1.90])
 
 dnl These variables get copied into the generated README
 AC_SUBST([GLIB_REQ_VERSION], [glib_req_version])
@@ -105,13 +109,14 @@ AC_SUBST([GTK_DOC_REQ_VERSION], [gtk_doc_req_version])
 AC_SUBST([GI_REQ_VERSION], [gi_req_version])
 AC_SUBST([UPROF_REQ_VERSION], [uprof_req_version])
 AC_SUBST([WAYLAND_REQ_VERSION], [wayland_req_version])
+AC_SUBST([WAYLAND_SERVER_REQ_VERSION], [wayland_server_req_version])
 
 # Save this value here, since automake will set cflags later and we
 # want to know if the user specified custom cflags or not.
 cflags_set=${CFLAGS+set}
 
 AM_INIT_AUTOMAKE([1.11 foreign -Wno-portability no-define no-dist-gzip
-                  dist-bzip2 tar-ustar])
+                  dist-xz tar-ustar])
 AM_SILENT_RULES([yes])
 
 AH_BOTTOM([#include "config-custom.h"])
@@ -178,6 +183,12 @@ dnl internal glib configure (as-glibconfig.m4)
 m4_ifdef([LT_OUTPUT], [LT_OUTPUT])
 
 dnl ================================================================
+dnl Find an appropriate libm, for sin() etc.
+dnl ================================================================
+LT_LIB_M
+AC_SUBST(LIBM)
+
+dnl ================================================================
 dnl See what platform we are building for
 dnl ================================================================
 AC_CANONICAL_HOST
@@ -201,13 +212,48 @@ dnl ================================================================
 dnl Handle extra configure options
 dnl ================================================================
 
+
+dnl     ============================================================
+dnl     Installed tests
+dnl     ============================================================
+
+AC_ARG_ENABLE(installed_tests,
+              AS_HELP_STRING([--enable-installed-tests],
+                             [Install test programs (default: no)]),,
+              [enable_installed_tests=no])
+AM_CONDITIONAL(ENABLE_INSTALLED_TESTS, test x$enable_installed_tests = xyes)
+
+
+dnl     ============================================================
+dnl     Emscripten support
+dnl     ============================================================
+
+AC_ARG_ENABLE(
+  [emscripten],
+  [AC_HELP_STRING([--enable-emscripten=@<:@no/yes@:>@], [Support building for emscripten])],
+  [],
+  enable_emscripten=no
+)
+AS_IF([test "x$enable_emscripten" = "xyes"],
+      [
+        enable_standalone=yes
+        enable_sdl=yes
+        enable_gles2=yes
+        enable_gl=no
+        AC_DEFINE([USING_EMSCRIPTEN], 1, [Cogl is being compiled with emscripten])
+        COGL_DEFINES_SYMBOLS="$COGL_DEFINES_SYMBOLS COGL_HAS_EMSCRIPTEN_SUPPORT"
+      ]
+)
+AM_CONDITIONAL(USING_EMSCRIPTEN, [test "$enable_emscripten" = "yes"])
+
+
 dnl     ============================================================
 dnl     Standalone cogl
 dnl     ============================================================
 
 AC_ARG_ENABLE(
   [standalone],
-  [AC_HELP_STRING([--enable-debug=@<:@no/yes@:>@], [Build Cogl without any external depedency @<:@default=no@:>@])],
+  [AC_HELP_STRING([--enable-standalone=@<:@no/yes@:>@], [Build Cogl without any external depedency @<:@default=no@:>@])],
   [],
   enable_standalone=no
 )
@@ -247,6 +293,18 @@ AS_CASE(
 
 AC_SUBST(COGL_DEBUG_CFLAGS)
 
+AC_ARG_ENABLE(
+  [unit-tests],
+  [AC_HELP_STRING([--enable-unit-tests=@<:@no/yes@:>@], [Build Cogl unit tests @<:@default=yes@:>@])],
+  [],
+  enable_unit_tests=yes
+)
+AS_IF([test "x$enable_unit_tests" = "xyes"],
+      [
+        AC_DEFINE([ENABLE_UNIT_TESTS], [1], [Whether to enable building unit tests])
+      ]
+)
+AM_CONDITIONAL(UNIT_TESTS, test "x$enable_unit_tests" = "xyes")
 
 dnl     ============================================================
 dnl     Enable cairo usage for debugging
@@ -380,18 +438,23 @@ dnl ================================================================
 dnl     ============================================================
 dnl     Should glib be used?
 dnl     ============================================================
-AM_PATH_GLIB_2_0([glib_req_version],
-                 [have_glib=yes], [have_glib=no],
-                 [gobject gthread gmodule-no-export])
-AC_ARG_ENABLE(
-  [glib],
-  [AC_HELP_STRING([--enable-glib=@<:@no/yes@:>@], [Enable glib support @<:@default=yes@:>@])],
-  [],
-  enable_glib=yes
-)
+AS_IF([test "x$enable_standalone" = "xno"],
+      [
+        AM_PATH_GLIB_2_0([glib_req_version],
+                         [have_glib=yes], [have_glib=no],
+                         [gobject gthread gmodule-no-export])
+        AC_ARG_ENABLE(
+                      [glib],
+                      [AC_HELP_STRING([--enable-glib=@<:@no/yes@:>@], [Enable glib support @<:@default=yes@:>@])],
+                      [],
+                      enable_glib=yes
+                      )
 
-AS_IF([test "x$have_glib" = "xno" && test "x$enable_glib" = "xyes"],
-      [AC_MSG_ERROR([gobject-2.0 is required])])
+        AS_IF([test "x$have_glib" = "xno" && test "x$enable_glib" = "xyes"],
+              [AC_MSG_ERROR([gobject-2.0 is required])])
+      ],
+      [enable_glib=no]
+)
 
 AM_CONDITIONAL([USE_GLIB], [test "x$enable_glib" = "xyes"])
 
@@ -440,6 +503,59 @@ AS_IF([test "x$enable_cogl_pango" = "xyes"],
 )
 
 dnl     ============================================================
+dnl     Should cogl-gst be built?
+dnl     ============================================================
+
+AS_IF([test "x$enable_glib" != "xyes"],
+      [
+        AS_IF([test "x$enable_cogl_gst" = "xyes"],
+              AC_MSG_ERROR([--enable-cogl-gst conflicts with --disable-glib]))
+        enable_cogl_gst=no
+      ]
+)
+
+AC_ARG_ENABLE(
+  [cogl-gst],
+  [AC_HELP_STRING([--enable-cogl-gst=@<:@no/yes@:>@], [Enable gstreamer support @<:@default=no@:>@])],
+  [],
+  enable_cogl_gst=no
+)
+AS_IF([test "x$enable_cogl_gst" = "xyes"],
+      [
+  COGL_GST_PKG_REQUIRES="$COGL_GST_PKG_REQUIRES gstreamer-1.0  gstreamer-fft-1.0 \
+                         gstreamer-audio-1.0 gstreamer-base-1.0 \
+                         gstreamer-video-1.0 gstreamer-plugins-base-1.0 \
+                         gstreamer-tag-1.0 gstreamer-controller-1.0"
+
+  GST_MAJORMINOR=1.0
+
+  dnl define location of gstreamer plugin directory
+  plugindir="\$(libdir)/gstreamer-$GST_MAJORMINOR"
+  AC_SUBST(plugindir)
+
+  dnl For the gtk doc generation
+  GSTREAMER_PREFIX="`$PKG_CONFIG --variable=prefix gstreamer-1.0`"
+  AC_SUBST(GSTREAMER_PREFIX)
+      ]
+)
+
+dnl     ============================================================
+dnl     Should cogl-path be built?
+dnl     ============================================================
+
+AC_ARG_ENABLE(
+  [cogl-path],
+  [AC_HELP_STRING([--enable-cogl-path=@<:@no/yes@:>@], [Enable 2D path support @<:@default=yes@:>@])],
+  [],
+  enable_cogl_path=yes
+)
+AS_IF([test "x$enable_cogl_path" = "xyes"],
+      [
+        COGL_DEFINES_SYMBOLS="$COGL_DEFINES_SYMBOLS COGL_HAS_COGL_PATH_SUPPORT"
+      ]
+)
+
+dnl     ============================================================
 dnl     Choose image loading backend
 dnl     ============================================================
 AC_ARG_ENABLE(
@@ -474,6 +590,7 @@ AS_IF(
     EXPERIMENTAL_OPTIONS="$EXPERIMENTAL_OPTIONS Quartz Core Graphics,"
     AC_DEFINE([USE_QUARTZ], 1,
 	      [Use Core Graphics (Quartz) for loading image data])
+    COGL_EXTRA_LDFLAGS="$COGL_EXTRA_LDFLAGS -framework ApplicationServices"
     COGL_IMAGE_BACKEND="quartz"
   ],
   [
@@ -613,24 +730,33 @@ AS_IF([test "x$enable_gles2" = "xyes"],
         COGL_DEFINES_SYMBOLS="$COGL_DEFINES_SYMBOLS COGL_HAS_GLES2"
         HAVE_GLES2=1
 
-        PKG_CHECK_EXISTS([glesv2],
-          [COGL_PKG_REQUIRES_GL="$COGL_PKG_REQUIRES_GL glesv2"
-           COGL_GLES2_LIBNAME="libGLESv2.so"
-          ],
-          [
-            # We have to check the two headers independently as GLES2/gl2ext.h
-            # needs to include GLES2/gl2.h to have the GL types defined (eg.
-            # GLenum).
-            AC_CHECK_HEADER([GLES2/gl2.h],
-                            [],
-                            [AC_MSG_ERROR([Unable to locate GLES2/gl2.h])])
-            AC_CHECK_HEADER([GLES2/gl2ext.h],
-                            [],
-                            [AC_MSG_ERROR([Unable to locate GLES2/gl2ext.h])],
-                            [#include <GLES2/gl2.h>])
+        AS_IF([test "x$enable_emscripten" = "xyes"],
+              [
+                GL_LIBRARY_DIRECTLY_LINKED=yes
+                COGL_GLES2_LIBNAME=""
+                AC_DEFINE([HAVE_COGL_WEBGL], 1, [Have WebGL for rendering])
+              ],
 
-            COGL_GLES2_LIBNAME="libGLESv2.so"
-          ])
+              [
+                PKG_CHECK_EXISTS([glesv2],
+                  [COGL_PKG_REQUIRES_GL="$COGL_PKG_REQUIRES_GL glesv2"
+                   COGL_GLES2_LIBNAME="libGLESv2.so"
+                  ],
+                  [
+                    # We have to check the two headers independently as GLES2/gl2ext.h
+                    # needs to include GLES2/gl2.h to have the GL types defined (eg.
+                    # GLenum).
+                    AC_CHECK_HEADER([GLES2/gl2.h],
+                                    [],
+                                    [AC_MSG_ERROR([Unable to locate GLES2/gl2.h])])
+                    AC_CHECK_HEADER([GLES2/gl2ext.h],
+                                    [],
+                                    [AC_MSG_ERROR([Unable to locate GLES2/gl2ext.h])],
+                                    [#include <GLES2/gl2.h>])
+
+                    COGL_GLES2_LIBNAME="libGLESv2.so"
+                  ])
+              ])
       ])
 
 HAVE_GL=0
@@ -798,35 +924,58 @@ AC_ARG_ENABLE(
   [enable_sdl=no])
 AS_IF([test "x$enable_sdl" = "xyes"],
       [
-        PKG_CHECK_MODULES([SDL],
-                          [sdl],
-                          [],
-                          [AC_MSG_ERROR([SDL support requested but SDL not found])])
+        AS_IF([test "x$enable_emscripten" = "xno"],
+              [
+                PKG_CHECK_MODULES([SDL],
+                                  [sdl],
+                                  [
+                                   COGL_PKG_REQUIRES="$COGL_PKG_REQUIRES sdl"
+                                  ],
+                                  [
+                                   AC_CHECK_HEADER([SDL/SDL.h],
+                                                   [],
+                                                   [AC_MSG_ERROR([SDL support requested but SDL not found])])
+                                  ])
+              ])
 
         SUPPORT_SDL=yes
         GL_WINSYS_APIS="$GL_WINSYS_APIS sdl"
-        COGL_PKG_REQUIRES="$COGL_PKG_REQUIRES sdl"
 
         COGL_DEFINES_SYMBOLS="$COGL_DEFINES_SYMBOLS COGL_HAS_SDL_SUPPORT"
 
-        dnl WebOS has a specially patched version of SDL to add
-        dnl support for creating a GLES1/2 context. This tries to
-        dnl detect that patch so we can use it if the GLES2 driver is
-        dnl selected.
-        cogl_save_CPPFLAGS="$CPPFLAGS"
-        CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
-        AC_CHECK_DECL([SDL_OPENGLES],
-                      [SUPPORT_SDL_GLES=yes],
-                      [SUPPORT_SDL_GLES=no],
-                      [#include <SDL.h>])
-        AC_CHECK_DECL([SDL_GL_CONTEXT_MAJOR_VERSION], [], [SUPPORT_SDL_GLES=no],
-                      [#include <SDL.h>])
-        AC_CHECK_DECL([SDL_GL_CONTEXT_MINOR_VERSION], [], [SUPPORT_SDL_GLES=no],
-                      [#include <SDL.h>])
-        CPPFLAGS="$cogl_save_CPPFLAGS"
+        dnl If we are building with emscripten then that simply implies we are
+        dnl using SDL in conjunction with WebGL (GLES2)
+        AS_IF([test "x$enable_emscripten" = "xyes"],
+              [
+                SUPPORTED_SDL_GL_APIS="webgl"
+                SUPPORT_SDL_WEBGL=yes
+                SUPPORT_SDL_GLES=no
+                COGL_DEFINES_SYMBOLS="$COGL_DEFINES_SYMBOLS COGL_HAS_SDL_WEBGL_SUPPORT"
+              ],
+              [
+                dnl WebOS has a specially patched version of SDL to add
+                dnl support for creating a GLES1/2 context. This tries to
+                dnl detect that patch so we can use it if the GLES2 driver is
+                dnl selected.
+                cogl_save_CPPFLAGS="$CPPFLAGS"
+                CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+                AC_CHECK_DECL([SDL_OPENGLES],
+                              [SUPPORT_SDL_GLES=yes],
+                              [SUPPORT_SDL_GLES=no],
+                              [#include <SDL.h>])
+                AC_CHECK_DECL([SDL_GL_CONTEXT_MAJOR_VERSION], [], [SUPPORT_SDL_GLES=no],
+                              [#include <SDL.h>])
+                AC_CHECK_DECL([SDL_GL_CONTEXT_MINOR_VERSION], [], [SUPPORT_SDL_GLES=no],
+                              [#include <SDL.h>])
+                CPPFLAGS="$cogl_save_CPPFLAGS"
 
-        AS_IF([test "x$SUPPORT_SDL_GLES" = "xyes"],
-              COGL_DEFINES_SYMBOLS="$COGL_DEFINES_SYMBOLS COGL_HAS_SDL_GLES_SUPPORT")
+                AS_IF([test "x$SUPPORT_SDL_GLES" = "xyes"],
+                      [
+                       SUPPORTED_SDL_GL_APIS="gles1 gles2"
+                       COGL_DEFINES_SYMBOLS="$COGL_DEFINES_SYMBOLS COGL_HAS_SDL_GLES_SUPPORT"
+                      ],
+                      [ SUPPORTED_SDL_GL_APIS="gl" ])
+              ])
       ],
       [SUPPORT_SDL=no])
 AM_CONDITIONAL(SUPPORT_SDL, [test "x$SUPPORT_SDL" = "xyes"])
@@ -945,12 +1094,12 @@ AS_IF([test "x$enable_kms_egl_platform" = "xyes"],
                            COGL_PKG_REQUIRES="$COGL_PKG_REQUIRES gbm"
                            COGL_PKG_REQUIRES="$COGL_PKG_REQUIRES libdrm"
                          ],
-                         [AC_MSG_ERROR([Unable to locate required kms libraries])])
+                         [AC_MSG_ERROR([Unable to locate required libgbm library for the KMS egl platform])])
 
         GBM_VERSION=`$PKG_CONFIG --modversion gbm`
         GBM_MAJOR=`echo $GBM_VERSION | cut -d'.' -f1`
         GBM_MINOR=`echo $GBM_VERSION | cut -d'.' -f2`
-        GBM_MICRO=`echo $GBM_VERSION | cut -d'.' -f3`
+        GBM_MICRO=`echo $GBM_VERSION | cut -d'.' -f3 | sed 's/-.*//'`
 
         AC_DEFINE_UNQUOTED([COGL_GBM_MAJOR], [$GBM_MAJOR], [The major version for libgbm])
         AC_DEFINE_UNQUOTED([COGL_GBM_MINOR], [$GBM_MINOR], [The minor version for libgbm])
@@ -972,8 +1121,8 @@ AS_IF([test "x$enable_wayland_egl_server" = "xyes"],
         NEED_EGL=yes
 
         PKG_CHECK_MODULES(WAYLAND_SERVER,
-                          [wayland-server >= wayland_req_version])
-        COGL_PKG_REQUIRES="$COGL_PKG_REQUIRES wayland-server >= wayland_req_version"
+                          [wayland-server >= wayland_server_req_version])
+        COGL_PKG_REQUIRES="$COGL_PKG_REQUIRES wayland-server >= wayland_server_req_version"
 
         COGL_DEFINES_SYMBOLS="$COGL_DEFINES_SYMBOLS COGL_HAS_WAYLAND_EGL_SERVER_SUPPORT"
       ])
@@ -1008,7 +1157,12 @@ AC_ARG_ENABLE(
   [xlib-egl-platform],
   [AC_HELP_STRING([--enable-xlib-egl-platform=@<:@no/yes@:>@], [Enable support for the Xlib egl platform @<:@default=auto@:>@])],
   [],
-  AS_IF([test "x$enable_gles1" = "xyes" -o "x$enable_gles2" = "xyes" && test "x$SUPPORT_SDL_GLES" != "xyes" && test "x$SUPPORT_SDL2" != "xyes" && test $EGL_PLATFORM_COUNT -eq 0],
+  AS_IF([test "x$enable_gles1" = "xyes" -o \
+         "x$enable_gles2" = "xyes" && \
+         test "x$SUPPORT_SDL_GLES" != "xyes" && \
+         test "x$SUPPORT_SDL_WEBGL" != "xyes" && \
+         test "x$SUPPORT_SDL2" != "xyes" && \
+         test $EGL_PLATFORM_COUNT -eq 0],
         [enable_xlib_egl_platform=yes], [enable_xlib_egl_platform=no])
 )
 AS_IF([test "x$enable_xlib_egl_platform" = "xyes"],
@@ -1111,22 +1265,25 @@ AS_ALL_LINGUAS
 
 
 AC_SUBST(COGL_PKG_REQUIRES)
-PKG_CHECK_MODULES(COGL_DEP, [$COGL_PKG_REQUIRES])
-if test -n "$COGL_PKG_REQUIRES_GL"; then
-  PKG_CHECK_MODULES(COGL_DEP_GL, [$COGL_PKG_REQUIRES_GL])
+if test -n "$COGL_PKG_REQUIRES"; then
+  PKG_CHECK_MODULES(COGL_DEP, [$COGL_PKG_REQUIRES])
 
-  dnl Strip out the GL libraries from the GL pkg-config files so we can
-  dnl dynamically load them instead
-  gl_libs=""
-  for x in $COGL_DEP_GL_LIBS; do
-    AS_CASE([$x],
-            [-lGL], [],
-            [-lGLESv2], [],
-            [-lGLESv1_CM], [],
-            [*], [gl_libs="$gl_libs $x"])
-  done
-  COGL_DEP_CFLAGS="$COGL_DEP_CFLAGS $COGL_DEP_CFLAGS_GL"
-  COGL_DEP_LIBS="$COGL_DEP_LIBS $gl_libs"
+  if test -n "$COGL_PKG_REQUIRES_GL"; then
+    PKG_CHECK_MODULES(COGL_DEP_GL, [$COGL_PKG_REQUIRES_GL])
+
+    dnl Strip out the GL libraries from the GL pkg-config files so we can
+    dnl dynamically load them instead
+    gl_libs=""
+    for x in $COGL_DEP_GL_LIBS; do
+      AS_CASE([$x],
+              [-lGL], [],
+              [-lGLESv2], [],
+              [-lGLESv1_CM], [],
+              [*], [gl_libs="$gl_libs $x"])
+    done
+    COGL_DEP_CFLAGS="$COGL_DEP_CFLAGS $COGL_DEP_CFLAGS_GL"
+    COGL_DEP_LIBS="$COGL_DEP_LIBS $gl_libs"
+  fi
 fi
 AC_SUBST(COGL_PANGO_PKG_REQUIRES)
 
@@ -1134,6 +1291,16 @@ AS_IF([test "x$enable_cogl_pango" = "xyes"],
   [PKG_CHECK_MODULES(COGL_PANGO_DEP, [$COGL_PANGO_PKG_REQUIRES])]
 )
 AM_CONDITIONAL([BUILD_COGL_PANGO], [test "x$enable_cogl_pango" = "xyes"])
+
+AM_CONDITIONAL([BUILD_COGL_PATH], [test "x$enable_cogl_path" = "xyes"])
+
+AC_SUBST(COGL_GST_PKG_REQUIRES)
+
+AS_IF([test "x$enable_cogl_gst" = "xyes"],
+  [PKG_CHECK_MODULES(COGL_GST_DEP, [$COGL_GST_PKG_REQUIRES])]
+)
+AM_CONDITIONAL([BUILD_COGL_GST], [test "x$enable_cogl_gst" = "xyes"])
+
 
 
 dnl ================================================================
@@ -1160,7 +1327,10 @@ dnl ================================================================
 AC_PATH_X
 AC_HEADER_STDC
 AC_CHECK_HEADERS(fcntl.h limits.h unistd.h)
-
+AC_CHECK_HEADER([endian.h],
+                [AC_CHECK_DECL([__FLOAT_WORD_ORDER],
+                               AC_DEFINE([HAVE_FLOAT_WORD_ORDER], [1],
+                                         [Has the __FLOAT_WORD_ORDER macro]))])
 
 dnl ================================================================
 dnl Checks for library functions.
@@ -1168,10 +1338,20 @@ dnl ================================================================
 
 dnl The 'ffs' function is part of C99 so it isn't always
 dnl available. Cogl has a fallback if needed.
-AC_CHECK_FUNCS([ffs])
+dnl
+dnl XXX: ffs isnt available with the emscripten toolchain currently
+dnl but the check passes so we manually skip the check in this case
+AS_IF([test "x$enable_emscripten" = "xno"],
+      [AC_CHECK_FUNCS([ffs])])
 
 dnl 'memmem' is a GNU extension but we have a simple fallback
 AC_CHECK_FUNCS([memmem])
+
+dnl This is used in the cogl-gles2-gears example but it is a GNU extension
+save_libs="$LIBS"
+LIBS="$LIBS $LIBM"
+AC_CHECK_FUNCS([sincos])
+LIBS="$save_libs"
 
 dnl ================================================================
 dnl Platform values
@@ -1179,29 +1359,42 @@ dnl ================================================================
 
 dnl These are values from system headers that we want to copy into the
 dnl public Cogl headers without having to include the system header
-AC_CHECK_HEADER(poll.h,
-        [
-         AC_COMPUTE_INT(COGL_SYSDEF_POLLIN, POLLIN, [#include <poll.h>],
-                        AC_MSG_ERROR([Unable to get value of POLLIN]))
-         AC_COMPUTE_INT(COGL_SYSDEF_POLLPRI, POLLPRI, [#include <poll.h>],
-                        AC_MSG_ERROR([Unable to get value of POLLPRI]))
-         AC_COMPUTE_INT(COGL_SYSDEF_POLLOUT, POLLOUT, [#include <poll.h>],
-                        AC_MSG_ERROR([Unable to get value of POLLOUT]))
-         AC_COMPUTE_INT(COGL_SYSDEF_POLLERR, POLLERR, [#include <poll.h>],
-                        AC_MSG_ERROR([Unable to get value of POLLERR]))
-         AC_COMPUTE_INT(COGL_SYSDEF_POLLHUP, POLLHUP, [#include <poll.h>],
-                        AC_MSG_ERROR([Unable to get value of POLLHUP]))
-         AC_COMPUTE_INT(COGL_SYSDEF_POLLNVAL, POLLNVAL, [#include <poll.h>],
-                        AC_MSG_ERROR([Unable to get value of POLLNVAL]))
-        ],
-        [
-         COGL_SYSDEF_POLLIN=1
-         COGL_SYSDEF_POLLPRI=2
-         COGL_SYSDEF_POLLOUT=4
-         COGL_SYSDEF_POLLERR=8
-         COGL_SYSDEF_POLLHUP=16
-         COGL_SYSDEF_POLLNVAL=32
-        ])
+dnl
+dnl XXX: poll(2) can't currently be used with emscripten even though
+dnl poll.h is in the toolchain headers so we manually skip the check
+dnl in this case
+have_poll_h=no
+AS_IF([test "x$enable_emscripten" = "xno"],
+      [
+       AC_CHECK_HEADER(poll.h,
+                       [
+                        AC_COMPUTE_INT(COGL_SYSDEF_POLLIN, POLLIN, [#include <poll.h>],
+                                       AC_MSG_ERROR([Unable to get value of POLLIN]))
+                        AC_COMPUTE_INT(COGL_SYSDEF_POLLPRI, POLLPRI, [#include <poll.h>],
+                                       AC_MSG_ERROR([Unable to get value of POLLPRI]))
+                        AC_COMPUTE_INT(COGL_SYSDEF_POLLOUT, POLLOUT, [#include <poll.h>],
+                                       AC_MSG_ERROR([Unable to get value of POLLOUT]))
+                        AC_COMPUTE_INT(COGL_SYSDEF_POLLERR, POLLERR, [#include <poll.h>],
+                                       AC_MSG_ERROR([Unable to get value of POLLERR]))
+                        AC_COMPUTE_INT(COGL_SYSDEF_POLLHUP, POLLHUP, [#include <poll.h>],
+                                       AC_MSG_ERROR([Unable to get value of POLLHUP]))
+                        AC_COMPUTE_INT(COGL_SYSDEF_POLLNVAL, POLLNVAL, [#include <poll.h>],
+                                       AC_MSG_ERROR([Unable to get value of POLLNVAL]))
+                        COGL_DEFINES_SYMBOLS="$COGL_DEFINES_SYMBOLS COGL_HAS_POLL_SUPPORT"
+                        have_poll_h=yes
+                       ])
+      ])
+
+AS_IF([test "x$have_poll_h" = "xno"],
+      [
+       COGL_SYSDEF_POLLIN=1
+       COGL_SYSDEF_POLLPRI=2
+       COGL_SYSDEF_POLLOUT=4
+       COGL_SYSDEF_POLLERR=8
+       COGL_SYSDEF_POLLHUP=16
+       COGL_SYSDEF_POLLNVAL=32
+      ])
+
 COGL_DEFINES_EXTRA="$COGL_DEFINES_EXTRA
 #define COGL_SYSDEF_POLLIN $COGL_SYSDEF_POLLIN
 #define COGL_SYSDEF_POLLPRI $COGL_SYSDEF_POLLPRI
@@ -1244,6 +1437,8 @@ AC_SUBST(COGL_DEP_CFLAGS)
 AC_SUBST(COGL_DEP_LIBS)
 AC_SUBST(COGL_PANGO_DEP_CFLAGS)
 AC_SUBST(COGL_PANGO_DEP_LIBS)
+AC_SUBST(COGL_GST_DEP_CFLAGS)
+AC_SUBST(COGL_GST_DEP_LIBS)
 AC_SUBST(COGL_EXTRA_CFLAGS)
 AC_SUBST(COGL_EXTRA_LDFLAGS)
 
@@ -1263,6 +1458,7 @@ deps/Makefile
 deps/glib/Makefile
 deps/gmodule/Makefile
 deps/gmodule/gmoduleconf.h
+test-fixtures/Makefile
 cogl/Makefile
 cogl/cogl-1.0.pc
 cogl/cogl-2.0-experimental.pc
@@ -1276,19 +1472,28 @@ cogl-pango/Makefile
 cogl-pango/cogl-pango-1.0.pc
 cogl-pango/cogl-pango-2.0-experimental.pc
 cogl-pango/cogl-pango.rc
+cogl-path/Makefile
+cogl-path/cogl-path-1.0.pc
+cogl-path/cogl-path-2.0-experimental.pc
+cogl-gst/Makefile
+cogl-gst/cogl-gst-1.0.pc
+cogl-gst/cogl-gst-2.0-experimental.pc
 cogl-gles2/Makefile
-cogl-gles2/cogl-gles2-experimental.pc
+cogl-gles2/cogl-gles2-1.0.pc
+cogl-gles2/cogl-gles2-2.0-experimental.pc
 doc/Makefile
 doc/reference/Makefile
 doc/reference/cogl/Makefile
 doc/reference/cogl/cogl-docs.xml
 doc/reference/cogl-2.0-experimental/Makefile
 doc/reference/cogl-2.0-experimental/cogl-2.0-experimental-docs.xml
+doc/reference/cogl-gst/Makefile
+doc/reference/cogl-gst/cogl-gst-docs.xml
 examples/Makefile
 tests/Makefile
+tests/config.env
 tests/conform/Makefile
-tests/conform/config.env
-tests/conform/test-launcher.sh
+tests/unit/Makefile
 tests/micro-perf/Makefile
 tests/data/Makefile
 po/Makefile.in
@@ -1324,17 +1529,20 @@ echo "        EGL Platforms:${EGL_PLATFORMS}"
 echo "        Wayland compositor support: ${enable_wayland_egl_server}"
 fi
 if test "x$SUPPORT_SDL" = "xyes"; then
-echo "        Support GLES under SDL: ${SUPPORT_SDL_GLES}"
+echo "        Supported SDL GL APIs: ${SUPPORTED_SDL_GL_APIS}"
 fi
+echo "        Building for emscripten environment: $enable_emscripten"
 echo "        Build libcogl-gles2 GLES 2.0 frontend api: ${enable_cogl_gles2}"
 echo "        Image backend: ${COGL_IMAGE_BACKEND}"
 echo "        Cogl Pango: ${enable_cogl_pango}"
-echo "        Profiling: ${enable_profile}"
+echo "        Cogl Gstreamer: ${enable_cogl_gst}"
+echo "        Cogl Path: ${enable_cogl_path}"
 
 # Compiler/Debug related flags
 echo ""
-echo " • Compiler options:"
-echo "        Cogl debug: ${enable_debug}"
+echo " • Build options:"
+echo "        Debugging: ${enable_debug}"
+echo "        Profiling: ${enable_profile}"
 echo "        Enable deprecated symbols: ${enable_deprecated}"
 echo "        Compiler flags: ${CFLAGS} ${COGL_EXTRA_CFLAGS}"
 echo "        Linker flags: ${LDFLAGS} ${COGL_EXTRA_LDFLAGS}"
@@ -1344,6 +1552,7 @@ echo ""
 echo " • Extra:"
 echo "        Build API reference: ${enable_gtk_doc}"
 echo "        Build introspection data: ${enable_introspection}"
+echo "        Build unit tests: ${enable_unit_tests}"
 echo "        Enable internationalization: ${USE_NLS}"
 
 echo ""

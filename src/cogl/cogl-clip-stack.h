@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2007,2008,2009,2010 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  */
@@ -24,7 +31,6 @@
 #ifndef __COGL_CLIP_STACK_H
 #define __COGL_CLIP_STACK_H
 
-#include "cogl2-path.h"
 #include "cogl-matrix.h"
 #include "cogl-primitive.h"
 #include "cogl-framebuffer.h"
@@ -41,14 +47,12 @@
 typedef struct _CoglClipStack CoglClipStack;
 typedef struct _CoglClipStackRect CoglClipStackRect;
 typedef struct _CoglClipStackWindowRect CoglClipStackWindowRect;
-typedef struct _CoglClipStackPath CoglClipStackPath;
 typedef struct _CoglClipStackPrimitive CoglClipStackPrimitive;
 
 typedef enum
   {
     COGL_CLIP_STACK_RECT,
     COGL_CLIP_STACK_WINDOW_RECT,
-    COGL_CLIP_STACK_PATH,
     COGL_CLIP_STACK_PRIMITIVE
   } CoglClipStackType;
 
@@ -65,14 +69,14 @@ typedef enum
  * CoglClipStack *stack_a = NULL;
  * stack_a = _cogl_clip_stack_push_rectangle (stack_a, ...);
  * stack_a = _cogl_clip_stack_push_rectangle (stack_a, ...);
- * stack_a = _cogl_clip_stack_push_from_path (stack_a, ...);
+ * stack_a = _cogl_clip_stack_push_primitive (stack_a, ...);
  * CoglClipStack *stack_b = NULL;
  * stack_b = cogl_clip_stack_push_window_rectangle (stack_b, ...);
  *
  *  stack_a
  *         \ holds a ref to
  *          +-----------+
- *          | path node |
+ *          | prim node |
  *          |ref count 1|
  *          +-----------+
  *                       \
@@ -143,16 +147,6 @@ struct _CoglClipStackWindowRect
      just adds to the scissor clip */
 };
 
-struct _CoglClipStackPath
-{
-  CoglClipStack _parent_data;
-
-  /* The matrix that was current when the clip was set */
-  CoglMatrixEntry *matrix_entry;
-
-  CoglPath *path;
-};
-
 struct _CoglClipStackPrimitive
 {
   CoglClipStack _parent_data;
@@ -181,13 +175,6 @@ _cogl_clip_stack_push_rectangle (CoglClipStack *stack,
                                  float y_1,
                                  float x_2,
                                  float y_2,
-                                 CoglMatrixEntry *modelview_entry,
-                                 CoglMatrixEntry *projection_entry,
-                                 const float *viewport);
-
-CoglClipStack *
-_cogl_clip_stack_push_from_path (CoglClipStack *stack,
-                                 CoglPath *path,
                                  CoglMatrixEntry *modelview_entry,
                                  CoglMatrixEntry *projection_entry,
                                  const float *viewport);

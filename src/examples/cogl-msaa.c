@@ -12,7 +12,7 @@ main (int argc, char **argv)
     CoglFramebuffer *fb;
     CoglError *error = NULL;
     CoglVertexP2C4 triangle_vertices[] = {
-        {0, 0.7, 0xff, 0x00, 0x00, 0x80},
+        {0, 0.7, 0xff, 0x00, 0x00, 0xff},
         {-0.7, -0.7, 0x00, 0xff, 0x00, 0xff},
         {0.7, -0.7, 0x00, 0x00, 0xff, 0xff}
     };
@@ -41,7 +41,7 @@ main (int argc, char **argv)
       }
 
     onscreen = cogl_onscreen_new (ctx, 640, 480);
-    fb = COGL_FRAMEBUFFER (onscreen);
+    fb = onscreen;
 
     cogl_framebuffer_set_samples_per_pixel (fb, 4);
 
@@ -62,11 +62,9 @@ main (int argc, char **argv)
 
     cogl_onscreen_show (onscreen);
 
-    tex = cogl_texture_new_with_size (320, 480,
-                                      COGL_TEXTURE_NO_SLICING,
-                                      COGL_PIXEL_FORMAT_ANY);
-    offscreen = cogl_offscreen_new_to_texture (tex);
-    offscreen_fb = COGL_FRAMEBUFFER (offscreen);
+    tex = cogl_texture_2d_new_with_size (ctx, 320, 480);
+    offscreen = cogl_offscreen_new_with_texture (tex);
+    offscreen_fb = offscreen;
     cogl_framebuffer_set_samples_per_pixel (offscreen_fb, 4);
     if (!cogl_framebuffer_allocate (offscreen_fb, &error))
       {
@@ -92,10 +90,10 @@ main (int argc, char **argv)
         cogl_framebuffer_push_matrix (fb);
         cogl_framebuffer_scale (fb, 0.5, 1, 1);
         cogl_framebuffer_translate (fb, -1, 0, 0);
-        cogl_framebuffer_draw_primitive (fb, pipeline, triangle);
+        cogl_primitive_draw (triangle, fb, pipeline);
         cogl_framebuffer_pop_matrix (fb);
 
-        cogl_framebuffer_draw_primitive (fb, pipeline, triangle);
+        cogl_primitive_draw (triangle, fb, pipeline);
         cogl_framebuffer_resolve_samples (offscreen_fb);
 
         texture_pipeline = cogl_pipeline_new (ctx);
@@ -105,9 +103,11 @@ main (int argc, char **argv)
 
         cogl_onscreen_swap_buffers (onscreen);
 
-        cogl_poll_get_info (ctx, &poll_fds, &n_poll_fds, &timeout);
+        cogl_poll_renderer_get_info (cogl_context_get_renderer (ctx),
+                                     &poll_fds, &n_poll_fds, &timeout);
         g_poll ((GPollFD *) poll_fds, n_poll_fds, 0);
-        cogl_poll_dispatch (ctx, poll_fds, n_poll_fds);
+        cogl_poll_renderer_dispatch (cogl_context_get_renderer (ctx),
+                                     poll_fds, n_poll_fds);
     }
 
     return 0;

@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2008,2009,2010,2011 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  *
@@ -34,7 +40,7 @@
 #include "cogl-matrix.h"
 #include "cogl-object-private.h"
 #include "cogl-profile.h"
-#include "cogl-queue.h"
+#include "cogl-list.h"
 #include "cogl-boxed-value.h"
 #include "cogl-pipeline-snippet-private.h"
 #include "cogl-pipeline-state.h"
@@ -117,7 +123,9 @@ typedef enum
   COGL_PIPELINE_STATE_USER_SHADER_INDEX,
   COGL_PIPELINE_STATE_DEPTH_INDEX,
   COGL_PIPELINE_STATE_FOG_INDEX,
+  COGL_PIPELINE_STATE_NON_ZERO_POINT_SIZE_INDEX,
   COGL_PIPELINE_STATE_POINT_SIZE_INDEX,
+  COGL_PIPELINE_STATE_PER_VERTEX_POINT_SIZE_INDEX,
   COGL_PIPELINE_STATE_LOGIC_OPS_INDEX,
   COGL_PIPELINE_STATE_CULL_FACE_INDEX,
   COGL_PIPELINE_STATE_UNIFORMS_INDEX,
@@ -165,8 +173,12 @@ typedef enum _CoglPipelineState
     1L<<COGL_PIPELINE_STATE_DEPTH_INDEX,
   COGL_PIPELINE_STATE_FOG =
     1L<<COGL_PIPELINE_STATE_FOG_INDEX,
+  COGL_PIPELINE_STATE_NON_ZERO_POINT_SIZE =
+    1L<<COGL_PIPELINE_STATE_NON_ZERO_POINT_SIZE_INDEX,
   COGL_PIPELINE_STATE_POINT_SIZE =
     1L<<COGL_PIPELINE_STATE_POINT_SIZE_INDEX,
+  COGL_PIPELINE_STATE_PER_VERTEX_POINT_SIZE =
+    1L<<COGL_PIPELINE_STATE_PER_VERTEX_POINT_SIZE_INDEX,
   COGL_PIPELINE_STATE_LOGIC_OPS =
     1L<<COGL_PIPELINE_STATE_LOGIC_OPS_INDEX,
   COGL_PIPELINE_STATE_CULL_FACE =
@@ -212,7 +224,9 @@ typedef enum _CoglPipelineState
    COGL_PIPELINE_STATE_USER_SHADER | \
    COGL_PIPELINE_STATE_DEPTH | \
    COGL_PIPELINE_STATE_FOG | \
+   COGL_PIPELINE_STATE_NON_ZERO_POINT_SIZE | \
    COGL_PIPELINE_STATE_POINT_SIZE | \
+   COGL_PIPELINE_STATE_PER_VERTEX_POINT_SIZE | \
    COGL_PIPELINE_STATE_LOGIC_OPS | \
    COGL_PIPELINE_STATE_CULL_FACE | \
    COGL_PIPELINE_STATE_UNIFORMS | \
@@ -230,11 +244,6 @@ typedef enum _CoglPipelineState
    COGL_PIPELINE_STATE_UNIFORMS | \
    COGL_PIPELINE_STATE_VERTEX_SNIPPETS | \
    COGL_PIPELINE_STATE_FRAGMENT_SNIPPETS)
-
-#define COGL_PIPELINE_STATE_AFFECTS_VERTEX_CODEGEN \
-  (COGL_PIPELINE_STATE_LAYERS | \
-   COGL_PIPELINE_STATE_USER_SHADER | \
-   COGL_PIPELINE_STATE_VERTEX_SNIPPETS)
 
 typedef enum
 {
@@ -329,6 +338,8 @@ typedef struct
   CoglDepthState depth_state;
   CoglPipelineFogState fog_state;
   float point_size;
+  unsigned int non_zero_point_size : 1;
+  unsigned int per_vertex_point_size : 1;
   CoglPipelineLogicOpsState logic_ops_state;
   CoglPipelineCullFaceState cull_face_state;
   CoglPipelineUniformsState uniforms_state;
@@ -424,10 +435,12 @@ struct _CoglPipeline
    * be allocated dynamically when required... */
   CoglPipelineBigState *big_state;
 
+#ifdef COGL_DEBUG_ENABLED
   /* For debugging purposes it's possible to associate a static const
    * string with a pipeline which can be an aid when trying to trace
    * where the pipeline originates from */
   const char      *static_breadcrumb;
+#endif
 
   /* Cached state... */
 
@@ -470,13 +483,28 @@ struct _CoglPipeline
    * blending, this holds our final decision */
   unsigned int          real_blend_enable:1;
 
+  /* Since the code for deciding if blending really needs to be
+   * enabled for a particular pipeline is quite expensive we update
+   * the real_blend_enable flag lazily when flushing a pipeline if
+   * this dirty flag has been set. */
+  unsigned int          dirty_real_blend_enable:1;
+
+  /* Whenever a pipeline is flushed we keep track of whether the
+   * pipeline was used with a color attribute where we don't know
+   * whether the colors are opaque. The real_blend_enable state
+   * depends on this, and must be updated whenever this changes (even
+   * if dirty_real_blend_enable isn't set) */
+  unsigned int          unknown_color_alpha:1;
+
   unsigned int          layers_cache_dirty:1;
   unsigned int          deprecated_get_layers_list_dirty:1;
 
+#ifdef COGL_DEBUG_ENABLED
   /* For debugging purposes it's possible to associate a static const
    * string with a pipeline which can be an aid when trying to trace
    * where the pipeline originates from */
   unsigned int          has_static_breadcrumb:1;
+#endif
 
   /* There are multiple fragment and vertex processing backends for
    * CoglPipeline, glsl, arbfp and fixed that are bundled under a
@@ -597,8 +625,9 @@ _cogl_pipeline_pre_change_notify (CoglPipeline     *pipeline,
 void
 _cogl_pipeline_prune_redundant_ancestry (CoglPipeline *pipeline);
 
-void _cogl_pipeline_update_blend_enable (CoglPipeline *pipeline,
-                                         CoglPipelineState changes);
+void
+_cogl_pipeline_update_real_blend_enable (CoglPipeline *pipeline,
+                                         CoglBool unknown_color_alpha);
 
 typedef enum
 {
@@ -835,15 +864,26 @@ _cogl_pipeline_compare_differences (CoglPipeline *pipeline0,
 CoglBool
 _cogl_pipeline_equal (CoglPipeline *pipeline0,
                       CoglPipeline *pipeline1,
-                      unsigned long differences,
+                      unsigned int differences,
                       unsigned long layer_differences,
                       CoglPipelineEvalFlags flags);
 
 unsigned int
 _cogl_pipeline_hash (CoglPipeline *pipeline,
-                     unsigned long differences,
+                     unsigned int differences,
                      unsigned long layer_differences,
                      CoglPipelineEvalFlags flags);
+
+/* Makes a copy of the given pipeline that is a child of the root
+ * pipeline rather than a child of the source pipeline. That way the
+ * new pipeline won't hold a reference to the source pipeline. The
+ * differences specified in @differences and @layer_differences are
+ * copied across and all other state is left with the default
+ * values. */
+CoglPipeline *
+_cogl_pipeline_deep_copy (CoglPipeline *pipeline,
+                          unsigned long differences,
+                          unsigned long layer_differences);
 
 CoglPipeline *
 _cogl_pipeline_journal_ref (CoglPipeline *pipeline);
@@ -875,9 +915,11 @@ _cogl_pipeline_set_blend_enabled (CoglPipeline *pipeline,
 CoglBool
 _cogl_pipeline_get_fog_enabled (CoglPipeline *pipeline);
 
+#ifdef COGL_DEBUG_ENABLED
 void
 _cogl_pipeline_set_static_breadcrumb (CoglPipeline *pipeline,
                                       const char *breadcrumb);
+#endif
 
 unsigned long
 _cogl_pipeline_get_age (CoglPipeline *pipeline);
@@ -942,6 +984,9 @@ _cogl_pipeline_init_state_hash_functions (void);
 
 void
 _cogl_pipeline_init_layer_state_hash_functions (void);
+
+CoglPipelineState
+_cogl_pipeline_get_state_for_vertex_codegen (CoglContext *context);
 
 CoglPipelineLayerState
 _cogl_pipeline_get_layer_state_for_fragment_codegen (CoglContext *context);

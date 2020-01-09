@@ -7,16 +7,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\tests\conform\test-utils.c"><Filter>Sources</Filter></ClCompile>
     <ClCompile Include="..\..\..\tests\conform\test-conform-main.c"><Filter>Sources</Filter></ClCompile>
     <ClCompile Include="..\..\..\tests\conform\test-atlas-migration.c"><Filter>Sources</Filter></ClCompile>
-    <ClCompile Include="..\..\..\tests\conform\test-bitmask.c"><Filter>Sources</Filter></ClCompile>
     <ClCompile Include="..\..\..\tests\conform\test-blend-strings.c"><Filter>Sources</Filter></ClCompile>
+    <ClCompile Include="..\..\..\tests\conform\test-blend.c"><Filter>Sources</Filter></ClCompile>
     <ClCompile Include="..\..\..\tests\conform\test-depth-test.c"><Filter>Sources</Filter></ClCompile>
+    <ClCompile Include="..\..\..\tests\conform\test-color-hsl.c"><Filter>Sources</Filter></ClCompile>
     <ClCompile Include="..\..\..\tests\conform\test-color-mask.c"><Filter>Sources</Filter></ClCompile>
     <ClCompile Include="..\..\..\tests\conform\test-backface-culling.c"><Filter>Sources</Filter></ClCompile>
     <ClCompile Include="..\..\..\tests\conform\test-just-vertex-shader.c"><Filter>Sources</Filter></ClCompile>
-    <ClCompile Include="..\..\..\tests\conform\test-path.c"><Filter>Sources</Filter></ClCompile>
     <ClCompile Include="..\..\..\tests\conform\test-pipeline-user-matrix.c"><Filter>Sources</Filter></ClCompile>
     <ClCompile Include="..\..\..\tests\conform\test-pipeline-uniforms.c"><Filter>Sources</Filter></ClCompile>
     <ClCompile Include="..\..\..\tests\conform\test-pixel-buffer.c"><Filter>Sources</Filter></ClCompile>
@@ -32,6 +31,7 @@
     <ClCompile Include="..\..\..\tests\conform\test-read-texture-formats.c"><Filter>Sources</Filter></ClCompile>
     <ClCompile Include="..\..\..\tests\conform\test-write-texture-formats.c"><Filter>Sources</Filter></ClCompile>
     <ClCompile Include="..\..\..\tests\conform\test-point-size.c"><Filter>Sources</Filter></ClCompile>
+    <ClCompile Include="..\..\..\tests\conform\test-point-size-attribute.c"><Filter>Sources</Filter></ClCompile>
     <ClCompile Include="..\..\..\tests\conform\test-point-sprite.c"><Filter>Sources</Filter></ClCompile>
     <ClCompile Include="..\..\..\tests\conform\test-no-gl-header.c"><Filter>Sources</Filter></ClCompile>
     <ClCompile Include="..\..\..\tests\conform\test-version.c"><Filter>Sources</Filter></ClCompile>
@@ -47,5 +47,13 @@
     <ClCompile Include="..\..\..\tests\conform\test-framebuffer-get-bits.c"><Filter>Sources</Filter></ClCompile>
     <ClCompile Include="..\..\..\tests\conform\test-primitive-and-journal.c"><Filter>Sources</Filter></ClCompile>
     <ClCompile Include="..\..\..\tests\conform\test-copy-replace-texture.c"><Filter>Sources</Filter></ClCompile>
+    <ClCompile Include="..\..\..\tests\conform\test-pipeline-cache-unrefs-texture.c"><Filter>Sources</Filter></ClCompile>
+    <ClCompile Include="..\..\..\tests\conform\test-texture-no-allocate.c"><Filter>Sources</Filter></ClCompile>
+    <ClCompile Include="..\..\..\tests\conform\test-pipeline-shader-state.c"><Filter>Sources</Filter></ClCompile>
+    <ClCompile Include="..\..\..\tests\conform\test-texture-rg.c"><Filter>Sources</Filter></ClCompile>
+    <ClCompile Include="..\..\..\tests\conform\test-fence.c"><Filter>Sources</Filter></ClCompile>
+    <ClCompile Include="..\..\..\tests\conform\test-path.c"><Filter>Sources</Filter></ClCompile>
+    <ClCompile Include="..\..\..\tests\conform\test-path-clip.c"><Filter>Sources</Filter></ClCompile>
+    <ClCompile Include="..\..\..\test-fixtures\test-utils.c"><Filter>Sources</Filter></ClCompile>
   </ItemGroup>
 </Project>

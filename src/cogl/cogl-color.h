@@ -1,25 +1,39 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2008,2009 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  */
+
+#if !defined(__COGL_H_INSIDE__) && !defined(COGL_COMPILATION)
+#error "Only <cogl/cogl.h> can be included directly."
+#endif
+
+#ifndef __COGL_COLOR_H__
+#define __COGL_COLOR_H__
 
 /**
  * SECTION:cogl-color
@@ -31,16 +45,23 @@
  * Since: 1.0
  */
 
-#if !defined(__COGL_H_INSIDE__) && !defined(COGL_COMPILATION)
-#error "Only <cogl/cogl.h> can be included directly."
+#include <cogl/cogl-types.h>
+#include <cogl/cogl-macros.h>
+
+#ifdef COGL_HAS_GTYPE_SUPPORT
+#include <glib-object.h>
 #endif
 
-#ifndef __COGL_COLOR_H__
-#define __COGL_COLOR_H__
-
-#include <cogl/cogl-types.h>
-
 COGL_BEGIN_DECLS
+
+#ifdef COGL_HAS_GTYPE_SUPPORT
+/**
+ * cogl_color_get_gtype:
+ *
+ * Returns: a #GType that can be used with the GLib type system.
+ */
+GType cogl_color_get_gtype (void);
+#endif
 
 /**
  * cogl_color_new:
@@ -112,6 +133,7 @@ cogl_color_init_from_4ub (CoglColor *color,
  * Since: 1.0
  * Deprecated: 1.4: Use cogl_color_init_from_4ub instead.
  */
+COGL_DEPRECATED_IN_1_4_FOR (cogl_color_init_from_4ub)
 void
 cogl_color_set_from_4ub (CoglColor *color,
                          uint8_t red,
@@ -151,6 +173,7 @@ cogl_color_init_from_4f (CoglColor *color,
  * Since: 1.0
  * Deprecated: 1.4: Use cogl_color_init_from_4f instead.
  */
+COGL_DEPRECATED_IN_1_4_FOR (cogl_color_init_from_4f)
 void
 cogl_color_set_from_4f (CoglColor *color,
                         float red,
@@ -537,6 +560,44 @@ cogl_color_unpremultiply (CoglColor *color);
  */
 CoglBool
 cogl_color_equal (const void *v1, const void *v2);
+
+/**
+ * cogl_color_to_hsl:
+ * @color: a #CoglColor
+ * @hue: (out): return location for the hue value or %NULL
+ * @saturation: (out): return location for the saturation value or %NULL
+ * @luminance: (out): return location for the luminance value or %NULL
+ *
+ * Converts @color to the HLS format.
+ *
+ * The @hue value is in the 0 .. 360 range. The @luminance and
+ * @saturation values are in the 0 .. 1 range.
+ *
+ * Since: 1.16
+ */
+void
+cogl_color_to_hsl (const CoglColor *color,
+                   float           *hue,
+                   float           *saturation,
+                   float           *luminance);
+
+/**
+ * cogl_color_init_from_hsl:
+ * @color: (out): return location for a #CoglColor
+ * @hue: hue value, in the 0 .. 360 range
+ * @saturation: saturation value, in the 0 .. 1 range
+ * @luminance: luminance value, in the 0 .. 1 range
+ *
+ * Converts a color expressed in HLS (hue, luminance and saturation)
+ * values into a #CoglColor.
+ *
+ * Since: 1.16
+ */
+void
+cogl_color_init_from_hsl (CoglColor *color,
+                          float      hue,
+                          float      saturation,
+                          float      luminance);
 
 COGL_END_DECLS
 

@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2007,2008,2009 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  */
@@ -28,6 +35,7 @@
 #include "cogl-private.h"
 #include "cogl-bitmap-private.h"
 #include "cogl-context-private.h"
+#include "cogl-texture-private.h"
 
 #include <string.h>
 
@@ -318,6 +326,7 @@ _cogl_bitmap_needs_short_temp_buffer (CoglPixelFormat format)
       g_assert_not_reached ();
 
     case COGL_PIXEL_FORMAT_A_8:
+    case COGL_PIXEL_FORMAT_RG_88:
     case COGL_PIXEL_FORMAT_RGB_565:
     case COGL_PIXEL_FORMAT_RGBA_4444:
     case COGL_PIXEL_FORMAT_RGBA_5551:
@@ -501,6 +510,106 @@ _cogl_bitmap_convert (CoglBitmap *src_bmp,
     {
       cogl_object_unref (dst_bmp);
       return NULL;
+    }
+
+  return dst_bmp;
+}
+
+static CoglBool
+driver_can_convert (CoglContext *ctx,
+                    CoglPixelFormat src_format,
+                    CoglPixelFormat internal_format)
+{
+  if (!_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_FORMAT_CONVERSION))
+    return FALSE;
+
+  if (src_format == internal_format)
+    return TRUE;
+
+  /* If the driver doesn't natively support alpha textures then it
+   * won't work correctly to convert to/from component-alpha
+   * textures */
+  if (!_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_ALPHA_TEXTURES) &&
+      (src_format == COGL_PIXEL_FORMAT_A_8 ||
+       internal_format == COGL_PIXEL_FORMAT_A_8))
+    return FALSE;
+
+  /* Same for red-green textures. If red-green textures aren't
+   * supported then the internal format should never be RG_88 but we
+   * should still be able to convert from an RG source image */
+  if (!cogl_has_feature (ctx, COGL_FEATURE_ID_TEXTURE_RG) &&
+      src_format == COGL_PIXEL_FORMAT_RG_88)
+    return FALSE;
+
+  return TRUE;
+}
+
+CoglBitmap *
+_cogl_bitmap_convert_for_upload (CoglBitmap *src_bmp,
+                                 CoglPixelFormat internal_format,
+                                 CoglBool can_convert_in_place,
+                                 CoglError **error)
+{
+  CoglContext *ctx = _cogl_bitmap_get_context (src_bmp);
+  CoglPixelFormat src_format = cogl_bitmap_get_format (src_bmp);
+  CoglBitmap *dst_bmp;
+
+  _COGL_RETURN_VAL_IF_FAIL (internal_format != COGL_PIXEL_FORMAT_ANY, NULL);
+
+  /* OpenGL supports specifying a different format for the internal
+     format when uploading texture data. We should use this to convert
+     formats because it is likely to be faster and support more types
+     than the Cogl bitmap code. However under GLES the internal format
+     must be the same as the bitmap format and it only supports a
+     limited number of formats so we must convert using the Cogl
+     bitmap code instead */
+
+  if (driver_can_convert (ctx, src_format, internal_format))
+    {
+      /* If the source format does not have the same premult flag as the
+         internal_format then we need to copy and convert it */
+      if (_cogl_texture_needs_premult_conversion (src_format,
+                                                  internal_format))
+        {
+          if (can_convert_in_place)
+            {
+              if (_cogl_bitmap_convert_premult_status (src_bmp,
+                                                       (src_format ^
+                                                        COGL_PREMULT_BIT),
+                                                       error))
+                {
+                  dst_bmp = cogl_object_ref (src_bmp);
+                }
+              else
+                return NULL;
+            }
+          else
+            {
+              dst_bmp = _cogl_bitmap_convert (src_bmp,
+                                              src_format ^ COGL_PREMULT_BIT,
+                                              error);
+              if (dst_bmp == NULL)
+                return NULL;
+            }
+        }
+      else
+        dst_bmp = cogl_object_ref (src_bmp);
+    }
+  else
+    {
+      CoglPixelFormat closest_format;
+
+      closest_format =
+        ctx->driver_vtable->pixel_format_to_gl (ctx,
+                                                internal_format,
+                                                NULL, /* ignore gl intformat */
+                                                NULL, /* ignore gl format */
+                                                NULL); /* ignore gl type */
+
+      if (closest_format != src_format)
+        dst_bmp = _cogl_bitmap_convert (src_bmp, closest_format, error);
+      else
+        dst_bmp = cogl_object_ref (src_bmp);
     }
 
   return dst_bmp;

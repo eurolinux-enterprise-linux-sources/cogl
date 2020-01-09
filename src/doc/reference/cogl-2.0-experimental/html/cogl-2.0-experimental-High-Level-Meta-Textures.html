@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>High Level Meta Textures</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Cogl 2.0 Reference Manual">
 <link rel="up" href="cogl-meta-textures.html" title="Meta Textures">
 <link rel="prev" href="cogl-meta-textures.html" title="Meta Textures">
 <link rel="next" href="cogl-2.0-experimental-Sub-Textures.html" title="Sub Textures">
-<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.19.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -39,7 +39,7 @@
 </tr></table></div>
 <div class="refsynopsisdiv">
 <a name="cogl-2.0-experimental-High-Level-Meta-Textures.synopsis"></a><h2>Synopsis</h2>
-<pre class="synopsis">                    <a class="link" href="cogl-2.0-experimental-High-Level-Meta-Textures.html#CoglMetaTexture" title="CoglMetaTexture">CoglMetaTexture</a>;
+<pre class="synopsis">typedef             <a class="link" href="cogl-2.0-experimental-High-Level-Meta-Textures.html#CoglMetaTexture" title="CoglMetaTexture">CoglMetaTexture</a>;
 <span class="returnvalue">void</span>                (<a class="link" href="cogl-2.0-experimental-High-Level-Meta-Textures.html#CoglMetaTextureCallback" title="CoglMetaTextureCallback ()">*CoglMetaTextureCallback</a>)          (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-The-Texture-Interface.html#CoglTexture" title="CoglTexture"><span class="type">CoglTexture</span></a> *sub_texture</code></em>,
                                                          <em class="parameter"><code>const <span class="type">float</span> *sub_texture_coords</code></em>,
                                                          <em class="parameter"><code>const <span class="type">float</span> *meta_coords</code></em>,
@@ -88,10 +88,10 @@ emulate the texture repeat modes.
 Cogl doesn't aim to pretend that meta-textures are just like real
 textures because it would get extremely complex to try and emulate
 low-level GPU semantics transparently for these textures.  The low
-level drawing APIs of Cogl, such as <code class="function">cogl_framebuffer_draw_attributes()</code>
-don't actually know anything about the <a class="link" href="cogl-2.0-experimental-High-Level-Meta-Textures.html#CoglMetaTexture" title="CoglMetaTexture"><span class="type">CoglMetaTexture</span></a> interface and its
-the developer's responsibility to resolve all textures referenced by a
-<a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> to low-level textures before drawing.
+level drawing APIs of Cogl, such as <a class="link" href="cogl-2.0-experimental-Primitives.html#cogl-primitive-draw" title="cogl_primitive_draw ()"><code class="function">cogl_primitive_draw()</code></a> don't
+actually know anything about the <a class="link" href="cogl-2.0-experimental-High-Level-Meta-Textures.html#CoglMetaTexture" title="CoglMetaTexture"><span class="type">CoglMetaTexture</span></a> interface and its
+the developer's responsibility to resolve all textures referenced
+by a <a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> to low-level textures before drawing.
 </p>
 <p>
 If you want to develop custom primitive APIs like
@@ -100,7 +100,7 @@ with <span class="type">CoglAtlasTexture</span>s or <a class="link" href="cogl-2
 example, then you will need to use this <a class="link" href="cogl-2.0-experimental-High-Level-Meta-Textures.html#CoglMetaTexture" title="CoglMetaTexture"><span class="type">CoglMetaTexture</span></a> interface
 to be able to resolve high-level textures into low-level textures
 before drawing with Cogl's low-level drawing APIs such as
-<code class="function">cogl_framebuffer_draw_attributes()</code>.
+<a class="link" href="cogl-2.0-experimental-Primitives.html#cogl-primitive-draw" title="cogl_primitive_draw ()"><code class="function">cogl_primitive_draw()</code></a>.
 </p>
 <p>
 </p>
@@ -117,7 +117,8 @@ meta-textures.</div>
 <a name="cogl-2.0-experimental-High-Level-Meta-Textures.details"></a><h2>Details</h2>
 <div class="refsect2">
 <a name="CoglMetaTexture"></a><h3>CoglMetaTexture</h3>
-<pre class="programlisting">typedef struct _CoglMetaTexture CoglMetaTexture;</pre>
+<pre class="programlisting">typedef void CoglMetaTexture;
+</pre>
 </div>
 <hr>
 <div class="refsect2">
@@ -208,10 +209,10 @@ meta textures you have associated with CoglPipeline layers.
 <p>
 </p>
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
-<h3 class="title">Note</h3>The low level drawing APIs such as <code class="function">cogl_framebuffer_draw_attributes()</code>
+<h3 class="title">Note</h3>The low level drawing APIs such as <a class="link" href="cogl-2.0-experimental-Primitives.html#cogl-primitive-draw" title="cogl_primitive_draw ()"><code class="function">cogl_primitive_draw()</code></a>
 don't understand the <a class="link" href="cogl-2.0-experimental-High-Level-Meta-Textures.html#CoglMetaTexture" title="CoglMetaTexture"><span class="type">CoglMetaTexture</span></a> interface and so it is your
-responsibility to use this API to resolve all CoglPipeline
-textures into low-level textures before drawing.</div>
+responsibility to use this API to resolve all CoglPipeline textures
+into low-level textures before drawing.</div>
 <p>
 </p>
 <p>
@@ -272,6 +273,6 @@ for each low-level texture within the specified region.</td>
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18.1</div>
+          Generated by GTK-Doc V1.19.1</div>
 </body>
 </html>

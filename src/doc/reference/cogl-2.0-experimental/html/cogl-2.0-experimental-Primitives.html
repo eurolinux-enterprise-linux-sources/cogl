@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Primitives</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Cogl 2.0 Reference Manual">
 <link rel="up" href="cogl-primitive-apis.html" title="Geometry">
 <link rel="prev" href="cogl-primitive-apis.html" title="Geometry">
 <link rel="next" href="cogl-2.0-experimental-Path-Primitives.html" title="Path Primitives">
-<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.19.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -102,6 +102,9 @@
 <span class="returnvalue">void</span>                <a class="link" href="cogl-2.0-experimental-Primitives.html#cogl-primitive-foreach-attribute" title="cogl_primitive_foreach_attribute ()">cogl_primitive_foreach_attribute</a>    (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a> *primitive</code></em>,
                                                          <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitiveAttributeCallback" title="CoglPrimitiveAttributeCallback ()"><span class="type">CoglPrimitiveAttributeCallback</span></a> callback</code></em>,
                                                          <em class="parameter"><code><span class="type">void</span> *user_data</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="cogl-2.0-experimental-Primitives.html#cogl-primitive-draw" title="cogl_primitive_draw ()">cogl_primitive_draw</a>                 (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a> *primitive</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> *pipeline</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -149,11 +152,12 @@ the number of vertices to read when drawing.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>...</code></em> :</span></p></td>
-<td>A <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> terminated list of attributes</td>
+<td>A <code class="literal">NULL</code> terminated list of attributes</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a> object</td>
+<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a> object. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -167,6 +171,48 @@ the number of vertices to read when drawing.
                                                          <em class="parameter"><code><span class="type">int</span> n_vertices</code></em>,
                                                          <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Vertex-Attributes.html#CoglAttribute" title="CoglAttribute"><span class="type">CoglAttribute</span></a> **attributes</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> n_attributes</code></em>);</pre>
+<p>
+Combines a set of <a class="link" href="cogl-2.0-experimental-Vertex-Attributes.html#CoglAttribute" title="CoglAttribute"><span class="type">CoglAttribute</span></a>s with a specific draw <em class="parameter"><code>mode</code></em>
+and defines a vertex count so a <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a> object can be retained and
+drawn later with no addition information required.
+</p>
+<p>
+The value passed as <em class="parameter"><code>n_vertices</code></em> will simply update the
+<a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a> <em class="structfield"><code>n_vertices</code></em> property as if
+<a class="link" href="cogl-2.0-experimental-Primitives.html#cogl-primitive-set-n-vertices" title="cogl_primitive_set_n_vertices ()"><code class="function">cogl_primitive_set_n_vertices()</code></a> were called. This property defines
+the number of vertices to read when drawing.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>mode</code></em> :</span></p></td>
+<td>A <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVerticesMode" title="enum CoglVerticesMode"><span class="type">CoglVerticesMode</span></a> defining how to draw the vertices</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>n_vertices</code></em> :</span></p></td>
+<td>The number of vertices to process when drawing</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>attributes</code></em> :</span></p></td>
+<td>An array of CoglAttribute</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>n_attributes</code></em> :</span></p></td>
+<td>The number of attributes</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a> object. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 1.6</p>
+<p class="stability">Stability Level: Unstable</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -196,16 +242,64 @@ For example to draw a convex polygon you can do:
 6
 7
 8
-9</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="usertype">CoglVertexP2</span><span class="normal"> triangle</span><span class="symbol">[]</span><span class="normal"> </span><span class="symbol">=</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal">   </span><span class="number">300</span><span class="normal"> </span><span class="cbracket">}</span><span class="symbol">,</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">150</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal">  </span><span class="cbracket">}</span><span class="symbol">,</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">300</span><span class="symbol">,</span><span class="normal"> </span><span class="number">300</span><span class="normal"> </span><span class="cbracket">}</span>
-<span class="cbracket">}</span><span class="symbol">;</span>
-<span class="normal">prim </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="cogl-2.0-experimental-Primitives.html#cogl-primitive-new-p2">cogl_primitive_new_p2</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="cogl-2.0-experimental-Common-Types.html#COGL-VERTICES-MODE-TRIANGLE-FAN:CAPS">COGL_VERTICES_MODE_TRIANGLE_FAN</a></span><span class="symbol">,</span>
-<span class="normal">                              </span><span class="number">3</span><span class="symbol">,</span><span class="normal"> triangle</span><span class="symbol">);</span>
-<span class="function">cogl_primitive_draw</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">prim</span><span class="symbol">);</span></pre></td>
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
+
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Constant { color: #0000c0; text-decoration: underline; }
+
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+CoglVertexP2 triangle[] =
+{
+  { <span class="number">0</span>,   <span class="number">300</span> },
+  { <span class="number">150</span>, <span class="number">0</span>,  },
+  { <span class="number">300</span>, <span class="number">300</span> }
+};
+prim = cogl_primitive_new_p2 (COGL_VERTICES_MODE_TRIANGLE_FAN,
+                              <span class="number">3</span>, triangle);
+cogl_primitive_draw (prim);</pre></td>
       </tr>
     </tbody>
   </table>
@@ -255,12 +349,15 @@ the number of vertices to read when later drawing.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>data</code></em> :</span></p></td>
-<td>An array of <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVertexP2" title="CoglVertexP2"><span class="type">CoglVertexP2</span></a> vertices</td>
+<td>(type Cogl.VertexP2): An array
+of <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVertexP2" title="CoglVertexP2"><span class="type">CoglVertexP2</span></a> vertices. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=n_vertices]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a> with a reference of
-1. This can be freed using <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-unref" title="cogl_object_unref ()"><code class="function">cogl_object_unref()</code></a>.</td>
+<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a>
+with a reference of 1. This can be freed using <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-unref" title="cogl_object_unref ()"><code class="function">cogl_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -295,16 +392,64 @@ For example to draw a convex polygon you can do:
 6
 7
 8
-9</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="usertype">CoglVertexP3</span><span class="normal"> triangle</span><span class="symbol">[]</span><span class="normal"> </span><span class="symbol">=</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal">   </span><span class="number">300</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="normal"> </span><span class="cbracket">}</span><span class="symbol">,</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">150</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal">   </span><span class="number">0</span><span class="normal"> </span><span class="cbracket">}</span><span class="symbol">,</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">300</span><span class="symbol">,</span><span class="normal"> </span><span class="number">300</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="normal"> </span><span class="cbracket">}</span>
-<span class="cbracket">}</span><span class="symbol">;</span>
-<span class="normal">prim </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="cogl-2.0-experimental-Primitives.html#cogl-primitive-new-p3">cogl_primitive_new_p3</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="cogl-2.0-experimental-Common-Types.html#COGL-VERTICES-MODE-TRIANGLE-FAN:CAPS">COGL_VERTICES_MODE_TRIANGLE_FAN</a></span><span class="symbol">,</span>
-<span class="normal">                              </span><span class="number">3</span><span class="symbol">,</span><span class="normal"> triangle</span><span class="symbol">);</span>
-<span class="function">cogl_primitive_draw</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">prim</span><span class="symbol">);</span></pre></td>
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
+
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Constant { color: #0000c0; text-decoration: underline; }
+
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+CoglVertexP3 triangle[] =
+{
+  { <span class="number">0</span>,   <span class="number">300</span>, <span class="number">0</span> },
+  { <span class="number">150</span>, <span class="number">0</span>,   <span class="number">0</span> },
+  { <span class="number">300</span>, <span class="number">300</span>, <span class="number">0</span> }
+};
+prim = cogl_primitive_new_p3 (COGL_VERTICES_MODE_TRIANGLE_FAN,
+                              <span class="number">3</span>, triangle);
+cogl_primitive_draw (prim);</pre></td>
       </tr>
     </tbody>
   </table>
@@ -354,12 +499,15 @@ the number of vertices to read when later drawing.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>data</code></em> :</span></p></td>
-<td>An array of <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVertexP3" title="CoglVertexP3"><span class="type">CoglVertexP3</span></a> vertices</td>
+<td>(type Cogl.VertexP3): An array of
+<a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVertexP3" title="CoglVertexP3"><span class="type">CoglVertexP3</span></a> vertices. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=n_vertices]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a> with a reference of
-1. This can be freed using <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-unref" title="cogl_object_unref ()"><code class="function">cogl_object_unref()</code></a>.</td>
+<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a>
+with a reference of 1. This can be freed using <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-unref" title="cogl_object_unref ()"><code class="function">cogl_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -396,16 +544,64 @@ can do:
 6
 7
 8
-9</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="usertype">CoglVertexP2C4</span><span class="normal"> triangle</span><span class="symbol">[]</span><span class="normal"> </span><span class="symbol">=</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal">   </span><span class="number">300</span><span class="symbol">,</span><span class="normal">  </span><span class="number">0xff</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0xff</span><span class="normal"> </span><span class="cbracket">}</span><span class="symbol">,</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">150</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal">    </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0xff</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0xff</span><span class="normal"> </span><span class="cbracket">}</span><span class="symbol">,</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">300</span><span class="symbol">,</span><span class="normal"> </span><span class="number">300</span><span class="symbol">,</span><span class="normal">  </span><span class="number">0xff</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0xff</span><span class="normal"> </span><span class="cbracket">}</span>
-<span class="cbracket">}</span><span class="symbol">;</span>
-<span class="normal">prim </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="cogl-2.0-experimental-Primitives.html#cogl-primitive-new-p2c4">cogl_primitive_new_p2c4</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="cogl-2.0-experimental-Common-Types.html#COGL-VERTICES-MODE-TRIANGLE-FAN:CAPS">COGL_VERTICES_MODE_TRIANGLE_FAN</a></span><span class="symbol">,</span>
-<span class="normal">                                </span><span class="number">3</span><span class="symbol">,</span><span class="normal"> triangle</span><span class="symbol">);</span>
-<span class="function">cogl_primitive_draw</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">prim</span><span class="symbol">);</span></pre></td>
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
+
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Constant { color: #0000c0; text-decoration: underline; }
+
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+CoglVertexP2C4 triangle[] =
+{
+  { <span class="number">0</span>,   <span class="number">300</span>,  <span class="number">0xff</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xff</span> },
+  { <span class="number">150</span>, <span class="number">0</span>,    <span class="number">0x00</span>, <span class="number">0xff</span>, <span class="number">0x00</span>, <span class="number">0xff</span> },
+  { <span class="number">300</span>, <span class="number">300</span>,  <span class="number">0xff</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xff</span> }
+};
+prim = cogl_primitive_new_p2c4 (COGL_VERTICES_MODE_TRIANGLE_FAN,
+                                <span class="number">3</span>, triangle);
+cogl_primitive_draw (prim);</pre></td>
       </tr>
     </tbody>
   </table>
@@ -455,12 +651,15 @@ the number of vertices to read when later drawing.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>data</code></em> :</span></p></td>
-<td>An array of <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVertexP2C4" title="CoglVertexP2C4"><span class="type">CoglVertexP2C4</span></a> vertices</td>
+<td>(type Cogl.VertexP2C4): An array
+of <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVertexP2C4" title="CoglVertexP2C4"><span class="type">CoglVertexP2C4</span></a> vertices. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=n_vertices]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a> with a reference of
-1. This can be freed using <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-unref" title="cogl_object_unref ()"><code class="function">cogl_object_unref()</code></a>.</td>
+<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a>
+with a reference of 1. This can be freed using <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-unref" title="cogl_object_unref ()"><code class="function">cogl_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -497,16 +696,64 @@ can do:
 6
 7
 8
-9</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="usertype">CoglVertexP3C4</span><span class="normal"> triangle</span><span class="symbol">[]</span><span class="normal"> </span><span class="symbol">=</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal">   </span><span class="number">300</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal">  </span><span class="number">0xff</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0xff</span><span class="normal"> </span><span class="cbracket">}</span><span class="symbol">,</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">150</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal">   </span><span class="number">0</span><span class="symbol">,</span><span class="normal">  </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0xff</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0xff</span><span class="normal"> </span><span class="cbracket">}</span><span class="symbol">,</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">300</span><span class="symbol">,</span><span class="normal"> </span><span class="number">300</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal">  </span><span class="number">0xff</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0xff</span><span class="normal"> </span><span class="cbracket">}</span>
-<span class="cbracket">}</span><span class="symbol">;</span>
-<span class="normal">prim </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="cogl-2.0-experimental-Primitives.html#cogl-primitive-new-p3c4">cogl_primitive_new_p3c4</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="cogl-2.0-experimental-Common-Types.html#COGL-VERTICES-MODE-TRIANGLE-FAN:CAPS">COGL_VERTICES_MODE_TRIANGLE_FAN</a></span><span class="symbol">,</span>
-<span class="normal">                                </span><span class="number">3</span><span class="symbol">,</span><span class="normal"> triangle</span><span class="symbol">);</span>
-<span class="function">cogl_primitive_draw</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">prim</span><span class="symbol">);</span></pre></td>
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
+
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Constant { color: #0000c0; text-decoration: underline; }
+
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+CoglVertexP3C4 triangle[] =
+{
+  { <span class="number">0</span>,   <span class="number">300</span>, <span class="number">0</span>,  <span class="number">0xff</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xff</span> },
+  { <span class="number">150</span>, <span class="number">0</span>,   <span class="number">0</span>,  <span class="number">0x00</span>, <span class="number">0xff</span>, <span class="number">0x00</span>, <span class="number">0xff</span> },
+  { <span class="number">300</span>, <span class="number">300</span>, <span class="number">0</span>,  <span class="number">0xff</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xff</span> }
+};
+prim = cogl_primitive_new_p3c4 (COGL_VERTICES_MODE_TRIANGLE_FAN,
+                                <span class="number">3</span>, triangle);
+cogl_primitive_draw (prim);</pre></td>
       </tr>
     </tbody>
   </table>
@@ -556,12 +803,15 @@ the number of vertices to read when later drawing.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>data</code></em> :</span></p></td>
-<td>An array of <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVertexP3C4" title="CoglVertexP3C4"><span class="type">CoglVertexP3C4</span></a> vertices</td>
+<td>(type Cogl.VertexP3C4): An array
+of <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVertexP3C4" title="CoglVertexP3C4"><span class="type">CoglVertexP3C4</span></a> vertices. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=n_vertices]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a> with a reference of
-1. This can be freed using <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-unref" title="cogl_object_unref ()"><code class="function">cogl_object_unref()</code></a>.</td>
+<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a>
+with a reference of 1. This can be freed using <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-unref" title="cogl_object_unref ()"><code class="function">cogl_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -598,16 +848,64 @@ do:
 6
 7
 8
-9</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="usertype">CoglVertexP2T2</span><span class="normal"> triangle</span><span class="symbol">[]</span><span class="normal"> </span><span class="symbol">=</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal">   </span><span class="number">300</span><span class="symbol">,</span><span class="normal">  </span><span class="number">0.0</span><span class="symbol">,</span><span class="normal"> </span><span class="number">1.0</span><span class="cbracket">}</span><span class="symbol">,</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">150</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal">    </span><span class="number">0.5</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0.0</span><span class="cbracket">}</span><span class="symbol">,</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">300</span><span class="symbol">,</span><span class="normal"> </span><span class="number">300</span><span class="symbol">,</span><span class="normal">  </span><span class="number">1.0</span><span class="symbol">,</span><span class="normal"> </span><span class="number">1.0</span><span class="cbracket">}</span>
-<span class="cbracket">}</span><span class="symbol">;</span>
-<span class="normal">prim </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="cogl-2.0-experimental-Primitives.html#cogl-primitive-new-p2t2">cogl_primitive_new_p2t2</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="cogl-2.0-experimental-Common-Types.html#COGL-VERTICES-MODE-TRIANGLE-FAN:CAPS">COGL_VERTICES_MODE_TRIANGLE_FAN</a></span><span class="symbol">,</span>
-<span class="normal">                                </span><span class="number">3</span><span class="symbol">,</span><span class="normal"> triangle</span><span class="symbol">);</span>
-<span class="function">cogl_primitive_draw</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">prim</span><span class="symbol">);</span></pre></td>
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
+
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Constant { color: #0000c0; text-decoration: underline; }
+
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+CoglVertexP2T2 triangle[] =
+{
+  { <span class="number">0</span>,   <span class="number">300</span>,  <span class="number">0.0</span>, <span class="number">1.0</span>},
+  { <span class="number">150</span>, <span class="number">0</span>,    <span class="number">0.5</span>, <span class="number">0.0</span>},
+  { <span class="number">300</span>, <span class="number">300</span>,  <span class="number">1.0</span>, <span class="number">1.0</span>}
+};
+prim = cogl_primitive_new_p2t2 (COGL_VERTICES_MODE_TRIANGLE_FAN,
+                                <span class="number">3</span>, triangle);
+cogl_primitive_draw (prim);</pre></td>
       </tr>
     </tbody>
   </table>
@@ -657,12 +955,15 @@ the number of vertices to read when later drawing.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>data</code></em> :</span></p></td>
-<td>An array of <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVertexP2T2" title="CoglVertexP2T2"><span class="type">CoglVertexP2T2</span></a> vertices</td>
+<td>(type Cogl.VertexP2T2): An array
+of <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVertexP2T2" title="CoglVertexP2T2"><span class="type">CoglVertexP2T2</span></a> vertices. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=n_vertices]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a> with a reference of
-1. This can be freed using <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-unref" title="cogl_object_unref ()"><code class="function">cogl_object_unref()</code></a>.</td>
+<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a>
+with a reference of 1. This can be freed using <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-unref" title="cogl_object_unref ()"><code class="function">cogl_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -699,16 +1000,64 @@ do:
 6
 7
 8
-9</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="usertype">CoglVertexP3T2</span><span class="normal"> triangle</span><span class="symbol">[]</span><span class="normal"> </span><span class="symbol">=</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal">   </span><span class="number">300</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal">  </span><span class="number">0.0</span><span class="symbol">,</span><span class="normal"> </span><span class="number">1.0</span><span class="cbracket">}</span><span class="symbol">,</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">150</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal">   </span><span class="number">0</span><span class="symbol">,</span><span class="normal">  </span><span class="number">0.5</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0.0</span><span class="cbracket">}</span><span class="symbol">,</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">300</span><span class="symbol">,</span><span class="normal"> </span><span class="number">300</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal">  </span><span class="number">1.0</span><span class="symbol">,</span><span class="normal"> </span><span class="number">1.0</span><span class="cbracket">}</span>
-<span class="cbracket">}</span><span class="symbol">;</span>
-<span class="normal">prim </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="cogl-2.0-experimental-Primitives.html#cogl-primitive-new-p3t2">cogl_primitive_new_p3t2</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="cogl-2.0-experimental-Common-Types.html#COGL-VERTICES-MODE-TRIANGLE-FAN:CAPS">COGL_VERTICES_MODE_TRIANGLE_FAN</a></span><span class="symbol">,</span>
-<span class="normal">                                </span><span class="number">3</span><span class="symbol">,</span><span class="normal"> triangle</span><span class="symbol">);</span>
-<span class="function">cogl_primitive_draw</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">prim</span><span class="symbol">);</span></pre></td>
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
+
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Constant { color: #0000c0; text-decoration: underline; }
+
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+CoglVertexP3T2 triangle[] =
+{
+  { <span class="number">0</span>,   <span class="number">300</span>, <span class="number">0</span>,  <span class="number">0.0</span>, <span class="number">1.0</span>},
+  { <span class="number">150</span>, <span class="number">0</span>,   <span class="number">0</span>,  <span class="number">0.5</span>, <span class="number">0.0</span>},
+  { <span class="number">300</span>, <span class="number">300</span>, <span class="number">0</span>,  <span class="number">1.0</span>, <span class="number">1.0</span>}
+};
+prim = cogl_primitive_new_p3t2 (COGL_VERTICES_MODE_TRIANGLE_FAN,
+                                <span class="number">3</span>, triangle);
+cogl_primitive_draw (prim);</pre></td>
       </tr>
     </tbody>
   </table>
@@ -758,12 +1107,15 @@ the number of vertices to read when later drawing.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>data</code></em> :</span></p></td>
-<td>An array of <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVertexP3T2" title="CoglVertexP3T2"><span class="type">CoglVertexP3T2</span></a> vertices</td>
+<td>(type Cogl.VertexP3T2): An array
+of <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVertexP3T2" title="CoglVertexP3T2"><span class="type">CoglVertexP3T2</span></a> vertices. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=n_vertices]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a> with a reference of
-1. This can be freed using <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-unref" title="cogl_object_unref ()"><code class="function">cogl_object_unref()</code></a>.</td>
+<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a>
+with a reference of 1. This can be freed using <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-unref" title="cogl_object_unref ()"><code class="function">cogl_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -800,16 +1152,64 @@ linear gradient you can do:
 6
 7
 8
-9</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="usertype">CoglVertexP2T2C4</span><span class="normal"> triangle</span><span class="symbol">[]</span><span class="normal"> </span><span class="symbol">=</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal">   </span><span class="number">300</span><span class="symbol">,</span><span class="normal">  </span><span class="number">0.0</span><span class="symbol">,</span><span class="normal"> </span><span class="number">1.0</span><span class="symbol">,</span><span class="normal">  </span><span class="number">0xff</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0xff</span><span class="cbracket">}</span><span class="symbol">,</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">150</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal">    </span><span class="number">0.5</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0.0</span><span class="symbol">,</span><span class="normal">  </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0xff</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0xff</span><span class="cbracket">}</span><span class="symbol">,</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">300</span><span class="symbol">,</span><span class="normal"> </span><span class="number">300</span><span class="symbol">,</span><span class="normal">  </span><span class="number">1.0</span><span class="symbol">,</span><span class="normal"> </span><span class="number">1.0</span><span class="symbol">,</span><span class="normal">  </span><span class="number">0xff</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0xff</span><span class="cbracket">}</span>
-<span class="cbracket">}</span><span class="symbol">;</span>
-<span class="normal">prim </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="cogl-2.0-experimental-Primitives.html#cogl-primitive-new-p2t2c4">cogl_primitive_new_p2t2c4</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="cogl-2.0-experimental-Common-Types.html#COGL-VERTICES-MODE-TRIANGLE-FAN:CAPS">COGL_VERTICES_MODE_TRIANGLE_FAN</a></span><span class="symbol">,</span>
-<span class="normal">                                  </span><span class="number">3</span><span class="symbol">,</span><span class="normal"> triangle</span><span class="symbol">);</span>
-<span class="function">cogl_primitive_draw</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">prim</span><span class="symbol">);</span></pre></td>
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
+
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Constant { color: #0000c0; text-decoration: underline; }
+
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+CoglVertexP2T2C4 triangle[] =
+{
+  { <span class="number">0</span>,   <span class="number">300</span>,  <span class="number">0.0</span>, <span class="number">1.0</span>,  <span class="number">0xff</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xff</span>},
+  { <span class="number">150</span>, <span class="number">0</span>,    <span class="number">0.5</span>, <span class="number">0.0</span>,  <span class="number">0x00</span>, <span class="number">0xff</span>, <span class="number">0x00</span>, <span class="number">0xff</span>},
+  { <span class="number">300</span>, <span class="number">300</span>,  <span class="number">1.0</span>, <span class="number">1.0</span>,  <span class="number">0xff</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xff</span>}
+};
+prim = cogl_primitive_new_p2t2c4 (COGL_VERTICES_MODE_TRIANGLE_FAN,
+                                  <span class="number">3</span>, triangle);
+cogl_primitive_draw (prim);</pre></td>
       </tr>
     </tbody>
   </table>
@@ -859,12 +1259,15 @@ the number of vertices to read when later drawing.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>data</code></em> :</span></p></td>
-<td>An array of <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVertexP2T2C4" title="CoglVertexP2T2C4"><span class="type">CoglVertexP2T2C4</span></a> vertices</td>
+<td>(type Cogl.VertexP2T2C4): An
+array of <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVertexP2T2C4" title="CoglVertexP2T2C4"><span class="type">CoglVertexP2T2C4</span></a> vertices. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=n_vertices]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a> with a reference of
-1. This can be freed using <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-unref" title="cogl_object_unref ()"><code class="function">cogl_object_unref()</code></a>.</td>
+<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a>
+with a reference of 1. This can be freed using <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-unref" title="cogl_object_unref ()"><code class="function">cogl_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -901,16 +1304,64 @@ linear gradient you can do:
 6
 7
 8
-9</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="usertype">CoglVertexP3T2C4</span><span class="normal"> triangle</span><span class="symbol">[]</span><span class="normal"> </span><span class="symbol">=</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal">   </span><span class="number">300</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal">  </span><span class="number">0.0</span><span class="symbol">,</span><span class="normal"> </span><span class="number">1.0</span><span class="symbol">,</span><span class="normal">  </span><span class="number">0xff</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0xff</span><span class="cbracket">}</span><span class="symbol">,</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">150</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal">   </span><span class="number">0</span><span class="symbol">,</span><span class="normal">  </span><span class="number">0.5</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0.0</span><span class="symbol">,</span><span class="normal">  </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0xff</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0xff</span><span class="cbracket">}</span><span class="symbol">,</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">300</span><span class="symbol">,</span><span class="normal"> </span><span class="number">300</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal">  </span><span class="number">1.0</span><span class="symbol">,</span><span class="normal"> </span><span class="number">1.0</span><span class="symbol">,</span><span class="normal">  </span><span class="number">0xff</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0x00</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0xff</span><span class="cbracket">}</span>
-<span class="cbracket">}</span><span class="symbol">;</span>
-<span class="normal">prim </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="cogl-2.0-experimental-Primitives.html#cogl-primitive-new-p3t2c4">cogl_primitive_new_p3t2c4</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="cogl-2.0-experimental-Common-Types.html#COGL-VERTICES-MODE-TRIANGLE-FAN:CAPS">COGL_VERTICES_MODE_TRIANGLE_FAN</a></span><span class="symbol">,</span>
-<span class="normal">                                  </span><span class="number">3</span><span class="symbol">,</span><span class="normal"> triangle</span><span class="symbol">);</span>
-<span class="function">cogl_primitive_draw</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">prim</span><span class="symbol">);</span></pre></td>
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
+
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Constant { color: #0000c0; text-decoration: underline; }
+
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+CoglVertexP3T2C4 triangle[] =
+{
+  { <span class="number">0</span>,   <span class="number">300</span>, <span class="number">0</span>,  <span class="number">0.0</span>, <span class="number">1.0</span>,  <span class="number">0xff</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xff</span>},
+  { <span class="number">150</span>, <span class="number">0</span>,   <span class="number">0</span>,  <span class="number">0.5</span>, <span class="number">0.0</span>,  <span class="number">0x00</span>, <span class="number">0xff</span>, <span class="number">0x00</span>, <span class="number">0xff</span>},
+  { <span class="number">300</span>, <span class="number">300</span>, <span class="number">0</span>,  <span class="number">1.0</span>, <span class="number">1.0</span>,  <span class="number">0xff</span>, <span class="number">0x00</span>, <span class="number">0x00</span>, <span class="number">0xff</span>}
+};
+prim = cogl_primitive_new_p3t2c4 (COGL_VERTICES_MODE_TRIANGLE_FAN,
+                                  <span class="number">3</span>, triangle);
+cogl_primitive_draw (prim);</pre></td>
       </tr>
     </tbody>
   </table>
@@ -960,12 +1411,15 @@ the number of vertices to read when later drawing.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>data</code></em> :</span></p></td>
-<td>An array of <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVertexP3T2C4" title="CoglVertexP3T2C4"><span class="type">CoglVertexP3T2C4</span></a> vertices</td>
+<td>(type Cogl.VertexP3T2C4): An
+array of <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVertexP3T2C4" title="CoglVertexP3T2C4"><span class="type">CoglVertexP3T2C4</span></a> vertices. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=n_vertices]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a> with a reference of
-1. This can be freed using <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-unref" title="cogl_object_unref ()"><code class="function">cogl_object_unref()</code></a>.</td>
+<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a>
+with a reference of 1. This can be freed using <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-unref" title="cogl_object_unref ()"><code class="function">cogl_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -993,8 +1447,8 @@ Gets whether the given object references a <a class="link" href="cogl-2.0-experi
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the <em class="parameter"><code>object</code></em> references a <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a>,
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise</td>
+<code class="literal">TRUE</code> if the <em class="parameter"><code>object</code></em> references a <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a>,
+<code class="literal">FALSE</code> otherwise</td>
 </tr>
 </tbody>
 </table></div>
@@ -1156,7 +1610,8 @@ Replaces all the attributes of the given <a class="link" href="cogl-2.0-experime
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>the indices that were set with
-<a class="link" href="cogl-2.0-experimental-Primitives.html#cogl-primitive-set-indices" title="cogl_primitive_set_indices ()"><code class="function">cogl_primitive_set_indices()</code></a> or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no indices were set.</td>
+<a class="link" href="cogl-2.0-experimental-Primitives.html#cogl-primitive-set-indices" title="cogl_primitive_set_indices ()"><code class="function">cogl_primitive_set_indices()</code></a> or <code class="literal">NULL</code> if no indices were set. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -1240,7 +1695,8 @@ attribute buffers as the original primitive.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>the new primitive</td>
+<td>the new primitive. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -1307,21 +1763,66 @@ Iterates all the attributes of the given <a class="link" href="cogl-2.0-experime
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>callback</code></em> :</span></p></td>
-<td>A <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitiveAttributeCallback" title="CoglPrimitiveAttributeCallback ()"><span class="type">CoglPrimitiveAttributeCallback</span></a> to be called for each attribute</td>
+<td>A <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitiveAttributeCallback" title="CoglPrimitiveAttributeCallback ()"><span class="type">CoglPrimitiveAttributeCallback</span></a> to be
+called for each attribute. <span class="annotation">[<acronym title="The callback is valid only during the call to the method."><span class="acronym">scope call</span></acronym>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
-<td>Private data that will be passed to the callback</td>
+<td>Private data that will be passed to the
+callback. <span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
 <p class="since">Since 1.10</p>
 <p class="stability">Stability Level: Unstable</p>
 </div>
+<hr>
+<div class="refsect2">
+<a name="cogl-primitive-draw"></a><h3>cogl_primitive_draw ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                cogl_primitive_draw                 (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a> *primitive</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> *pipeline</code></em>);</pre>
+<p>
+Draws the given <em class="parameter"><code>primitive</code></em> geometry to the specified destination
+<em class="parameter"><code>framebuffer</code></em> using the graphics processing state described by <em class="parameter"><code>pipeline</code></em>.
+</p>
+<p>
+This drawing api doesn't support high-level meta texture types such
+as <a class="link" href="cogl-2.0-experimental-Sliced-Textures.html#CoglTexture2DSliced" title="CoglTexture2DSliced"><span class="type">CoglTexture2DSliced</span></a> so it is the user's responsibility to
+ensure that only low-level textures that can be directly sampled by
+a GPU such as <a class="link" href="cogl-2.0-experimental-2D-textures.html#CoglTexture2D" title="CoglTexture2D"><span class="type">CoglTexture2D</span></a>, <a class="link" href="cogl-2.0-experimental-Rectangle-textures-(non-normalized-coordinates).html#CoglTextureRectangle" title="CoglTextureRectangle"><span class="type">CoglTextureRectangle</span></a> or <a class="link" href="cogl-2.0-experimental-3D-textures.html#CoglTexture3D" title="CoglTexture3D"><span class="type">CoglTexture3D</span></a>
+are associated with layers of the given <em class="parameter"><code>pipeline</code></em>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>primitive</code></em> :</span></p></td>
+<td>A <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a> geometry object</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>framebuffer</code></em> :</span></p></td>
+<td>A destination <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>pipeline</code></em> :</span></p></td>
+<td>A <a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> state object</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 1.16</p>
+<p class="stability">Stability Level: Unstable</p>
+</div>
 </div>
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18.1</div>
+          Generated by GTK-Doc V1.19.1</div>
 </body>
 </html>

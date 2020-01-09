@@ -1,24 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2011 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #if !defined(__COGL_H_INSIDE__) && !defined(COGL_COMPILATION)
@@ -44,21 +49,34 @@ COGL_BEGIN_DECLS
  * to work with instead of leaving Cogl to automatically connect to a
  * wayland compositor.
  *
- * <note>If you use this API you must also explicitly set foreign
- * Wayland compositor and shell objects using the
- * cogl_wayland_renderer_set_foreign_compositor() and
- * cogl_wayland_renderer_set_foreign_shell() respectively. This ie
- * because Wayland doesn't currently provide a way to retrospectively
- * query these interfaces so the expectation is that if you have taken
- * ownership of the display then you will also have been notified of
- * the compositor and shell interfaces which Cogl needs to use.</note>
- *
  * Since: 1.8
  * Stability: unstable
  */
 void
 cogl_wayland_renderer_set_foreign_display (CoglRenderer *renderer,
                                            struct wl_display *display);
+
+/**
+ * cogl_wayland_renderer_set_event_dispatch_enabled:
+ * @renderer: A #CoglRenderer
+ * @enable: The new value
+ *
+ * Sets whether Cogl should handle calling wl_display_dispatch() and
+ * wl_display_flush() as part of its main loop integration via
+ * cogl_poll_renderer_get_info() and cogl_poll_renderer_dispatch().
+ * The default value is %TRUE. When it is enabled the application can
+ * register listeners for Wayland interfaces and the callbacks will be
+ * invoked during cogl_poll_renderer_dispatch(). If the application
+ * wants to integrate with its own code that is already handling
+ * reading from the Wayland display socket, it should disable this to
+ * avoid having competing code read from the socket.
+ *
+ * Since: 1.16
+ * Stability: unstable
+ */
+void
+cogl_wayland_renderer_set_event_dispatch_enabled (CoglRenderer *renderer,
+                                                  CoglBool enable);
 
 /**
  * cogl_wayland_renderer_get_display:
@@ -81,82 +99,6 @@ cogl_wayland_renderer_set_foreign_display (CoglRenderer *renderer,
  */
 struct wl_display *
 cogl_wayland_renderer_get_display (CoglRenderer *renderer);
-
-/**
- * cogl_wayland_renderer_set_foreign_compositor:
- * @renderer: A #CoglRenderer
- * @compositor: A Wayland compositor
- *
- * Allows you to explicitly notify Cogl of a Wayland compositor
- * interface to use. This API should be used in conjunction with
- * cogl_wayland_renderer_set_foreign_display() because if you are
- * connecting to a wayland compositor manually that will also mean you
- * will be notified on connection of the available interfaces that
- * can't be queried retrosectively with the current Wayland protocol.
- *
- * Since: 1.8
- * Stability: unstable
- */
-void
-cogl_wayland_renderer_set_foreign_compositor (CoglRenderer *renderer,
-                                              struct wl_compositor *compositor);
-
-/**
- * cogl_wayland_renderer_get_compositor:
- * @renderer: A #CoglRenderer
- *
- * Retrieves the Wayland compositor interface that Cogl is using. If a
- * foreign compositor has been specified using
- * cogl_wayland_renderer_set_foreign_compositor() then that compositor
- * will be returned. If no foreign compositor has been specified then
- * the compositor that Cogl is notified of internally will be returned
- * unless the renderer has not yet been connected (either implicitly
- * or explicitly by calling cogl_renderer_connect()) in which case
- * %NULL is returned.
- *
- * Since: 1.8
- * Stability: unstable
- */
-struct wl_compositor *
-cogl_wayland_renderer_get_compositor (CoglRenderer *renderer);
-
-/**
- * cogl_wayland_renderer_set_foreign_shell:
- * @renderer: A #CoglRenderer
- * @shell: A Wayland shell
- *
- * Allows you to explicitly notify Cogl of a Wayland shell interface
- * to use.  This API should be used in conjunction with
- * cogl_wayland_renderer_set_foreign_display() because if you are
- * connecting to a wayland compositor manually that will also mean you
- * will be notified on connection of the available interfaces that
- * can't be queried retrosectively with the current Wayland protocol.
- *
- * Since: 1.10
- * Stability: unstable
- */
-void
-cogl_wayland_renderer_set_foreign_shell (CoglRenderer *renderer,
-                                         struct wl_shell *shell);
-
-/**
- * cogl_wayland_renderer_get_shell:
- * @renderer: A #CoglRenderer
- *
- * Retrieves the Wayland shell interface that Cogl is using. If a
- * foreign shell has been specified using
- * cogl_wayland_renderer_set_foreign_shell() then that shell
- * will be returned. If no foreign shell has been specified then
- * the shell that Cogl is notified of internally will be returned
- * unless the renderer has not yet been connected (either implicitly
- * or explicitly by calling cogl_renderer_connect()) in which case
- * %NULL is returned.
- *
- * Since: 1.10
- * Stability: unstable
- */
-struct wl_shell *
-cogl_wayland_renderer_get_shell (CoglRenderer *renderer);
 
 COGL_END_DECLS
 

@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2010 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * Authors:
  *  Robert Bragg <robert@linux.intel.com>
@@ -34,6 +40,7 @@
 #include <cogl/cogl-types.h>
 #include <cogl/cogl-texture.h>
 #include <cogl/cogl-framebuffer.h>
+#include <cogl/cogl-macros.h>
 
 COGL_BEGIN_DECLS
 
@@ -47,7 +54,9 @@ COGL_BEGIN_DECLS
  * Return value: a #GOptionGroup
  *
  * Since: 1.0
+ * Deprecated: 1.16: Not replaced
  */
+COGL_DEPRECATED_IN_1_16
 GOptionGroup *
 cogl_get_option_group (void);
 
@@ -60,7 +69,9 @@ cogl_get_option_group (void);
  * Return value: A logical OR of all the supported COGL features.
  *
  * Since: 0.8
+ * Deprecated: 1.10: Use cogl_foreach_feature() instead
  */
+COGL_DEPRECATED_IN_1_10_FOR (cogl_foreach_feature)
 CoglFeatureFlags
 cogl_get_features (void);
 
@@ -74,7 +85,9 @@ cogl_get_features (void);
  * are available.
  *
  * Return value: %TRUE if the features are available, %FALSE otherwise.
+ * Deprecated: 1.10: Use cogl_has_feature() instead
  */
+COGL_DEPRECATED_IN_1_10_FOR (cogl_has_feature)
 CoglBool
 cogl_features_available (CoglFeatureFlags features);
 
@@ -96,8 +109,6 @@ cogl_features_available (CoglFeatureFlags features);
 CoglFuncPtr
 cogl_get_proc_address (const char *name);
 
-#ifndef COGL_DISABLE_DEPRECATED
-
 /**
  * cogl_check_extension:
  * @name: extension to check for
@@ -114,11 +125,10 @@ cogl_get_proc_address (const char *name);
  *   CoglBool retval = (strstr (ext, name) != NULL) ? TRUE : FALSE;
  * ]|
  */
+COGL_DEPRECATED
 CoglBool
 cogl_check_extension (const char *name,
-                      const char *ext) G_GNUC_DEPRECATED;
-
-#endif /* COGL_DISABLE_DEPRECATED */
+                      const char *ext);
 
 /**
  * cogl_get_bitmasks:
@@ -130,7 +140,11 @@ cogl_check_extension (const char *name,
  * Gets the number of bitplanes used for each of the color components
  * in the color buffer. Pass %NULL for any of the arguments if the
  * value is not required.
+ *
+ * Deprecated: 1.8: Use cogl_framebuffer_get_red/green/blue/alpha_bits()
+ *                  instead
  */
+COGL_DEPRECATED_IN_1_8_FOR (cogl_framebuffer_get_red_OR_green_OR_blue_OR_alpha_bits)
 void
 cogl_get_bitmasks (int *red,
                    int *green,
@@ -151,7 +165,10 @@ cogl_get_bitmasks (int *red,
  * ratio since that will reduce the effectiveness of depth testing
  * since there wont be enough precision to identify the depth of
  * objects near to each other.</note>
+ *
+ * Deprecated: 1.10: Use cogl_framebuffer_perspective() instead
  */
+COGL_DEPRECATED_IN_1_10_FOR (cogl_framebuffer_perspective)
 void
 cogl_perspective (float fovy,
                   float aspect,
@@ -176,7 +193,9 @@ cogl_perspective (float fovy,
  * all cross through the origin and 2 near and far clip planes.
  *
  * Since: 0.8.2
+ * Deprecated: 1.10: Use cogl_framebuffer_frustum() instead
  */
+COGL_DEPRECATED_IN_1_10_FOR (cogl_framebuffer_frustum)
 void
 cogl_frustum (float left,
               float right,
@@ -213,7 +232,9 @@ cogl_frustum (float left,
  * left, right bottom and top arguments.</note>
  *
  * Since: 1.0
+ * Deprecated: 1.10: Use cogl_framebuffer_orthographic() instead
  */
+COGL_DEPRECATED_IN_1_10_FOR (cogl_framebuffer_orthographic)
 void
 cogl_ortho (float left,
             float right,
@@ -221,8 +242,6 @@ cogl_ortho (float left,
             float top,
             float near,
             float far);
-
-#ifndef COGL_DISABLE_DEPRECATED
 
 /**
  * cogl_viewport:
@@ -232,14 +251,12 @@ cogl_ortho (float left,
  * Replace the current viewport with the given values.
  *
  * Since: 0.8.2
- *
- * Deprecated: 1.2: Use cogl_set_viewport() instead
+ * Deprecated: 1.8: Use cogl_framebuffer_set_viewport instead
  */
+COGL_DEPRECATED_IN_1_8_FOR (cogl_framebuffer_set_viewport)
 void
 cogl_viewport (unsigned int width,
-	       unsigned int height) G_GNUC_DEPRECATED;
-
-#endif /* COGL_DISABLE_DEPRECATED */
+	       unsigned int height);
 
 /**
  * cogl_set_viewport:
@@ -251,7 +268,9 @@ cogl_viewport (unsigned int width,
  * Replaces the current viewport with the given values.
  *
  * Since: 1.2
+ * Deprecated: 1.8: Use cogl_framebuffer_set_viewport() instead
  */
+COGL_DEPRECATED_IN_1_8_FOR (cogl_framebuffer_set_viewport)
 void
 cogl_set_viewport (int x,
                    int y,
@@ -263,7 +282,10 @@ cogl_set_viewport (int x,
  *
  * Stores the current model-view matrix on the matrix stack. The matrix
  * can later be restored with cogl_pop_matrix().
+ *
+ * Deprecated: 1.10: Use cogl_framebuffer_push_matrix() instead
  */
+COGL_DEPRECATED_IN_1_10_FOR (cogl_framebuffer_push_matrix)
 void
 cogl_push_matrix (void);
 
@@ -271,7 +293,10 @@ cogl_push_matrix (void);
  * cogl_pop_matrix:
  *
  * Restores the current model-view matrix from the matrix stack.
+ *
+ * Deprecated: 1.10: Use cogl_framebuffer_pop_matrix() instead
  */
+COGL_DEPRECATED_IN_1_10_FOR (cogl_framebuffer_push_matrix)
 void
 cogl_pop_matrix (void);
 
@@ -283,7 +308,10 @@ cogl_pop_matrix (void);
  *
  * Multiplies the current model-view matrix by one that scales the x,
  * y and z axes by the given values.
+ *
+ * Deprecated: 1.10: Use cogl_framebuffer_pop_matrix() instead
  */
+COGL_DEPRECATED_IN_1_10_FOR (cogl_framebuffer_scale)
 void
 cogl_scale (float x,
             float y,
@@ -297,7 +325,10 @@ cogl_scale (float x,
  *
  * Multiplies the current model-view matrix by one that translates the
  * model along all three axes according to the given values.
+ *
+ * Deprecated: 1.10: Use cogl_framebuffer_translate() instead
  */
+COGL_DEPRECATED_IN_1_10_FOR (cogl_framebuffer_translate)
 void
 cogl_translate (float x,
                 float y,
@@ -315,7 +346,10 @@ cogl_translate (float x,
  * follows the right-hand thumb rule so for example rotating by 10
  * degrees about the vertex (0, 0, 1) causes a small counter-clockwise
  * rotation.
+ *
+ * Deprecated: 1.10: Use cogl_framebuffer_rotate() instead
  */
+COGL_DEPRECATED_IN_1_10_FOR (cogl_framebuffer_rotate)
 void
 cogl_rotate (float angle,
              float x,
@@ -329,7 +363,9 @@ cogl_rotate (float angle,
  * Multiplies the current model-view matrix by the given matrix.
  *
  * Since: 1.4
+ * Deprecated: 1.10: Use cogl_framebuffer_transform() instead
  */
+COGL_DEPRECATED_IN_1_10_FOR (cogl_framebuffer_transform)
 void
 cogl_transform (const CoglMatrix *matrix);
 
@@ -338,7 +374,11 @@ cogl_transform (const CoglMatrix *matrix);
  * @matrix: (out): return location for the model-view matrix
  *
  * Stores the current model-view matrix in @matrix.
+ *
+ * Deprecated: 1.10: Use cogl_framebuffer_get_modelview_matrix()
+ *                   instead
  */
+COGL_DEPRECATED_IN_1_10_FOR (cogl_framebuffer_get_modelview_matrix)
 void
 cogl_get_modelview_matrix (CoglMatrix *matrix);
 
@@ -347,7 +387,11 @@ cogl_get_modelview_matrix (CoglMatrix *matrix);
  * @matrix: the new model-view matrix
  *
  * Loads @matrix as the new model-view matrix.
+ *
+ * Deprecated: 1.10: Use cogl_framebuffer_set_modelview_matrix()
+ *                   instead
  */
+COGL_DEPRECATED_IN_1_10_FOR (cogl_framebuffer_set_modelview_matrix)
 void
 cogl_set_modelview_matrix (CoglMatrix *matrix);
 
@@ -356,7 +400,11 @@ cogl_set_modelview_matrix (CoglMatrix *matrix);
  * @matrix: (out): return location for the projection matrix
  *
  * Stores the current projection matrix in @matrix.
+ *
+ * Deprecated: 1.10: Use cogl_framebuffer_get_projection_matrix()
+ *                   instead
  */
+COGL_DEPRECATED_IN_1_10_FOR (cogl_framebuffer_get_projection_matrix)
 void
 cogl_get_projection_matrix (CoglMatrix *matrix);
 
@@ -365,7 +413,11 @@ cogl_get_projection_matrix (CoglMatrix *matrix);
  * @matrix: the new projection matrix
  *
  * Loads matrix as the new projection matrix.
+ *
+ * Deprecated: 1.10: Use cogl_framebuffer_set_projection_matrix()
+ *                   instead
  */
+COGL_DEPRECATED_IN_1_10_FOR (cogl_framebuffer_set_projection_matrix)
 void
 cogl_set_projection_matrix (CoglMatrix *matrix);
 
@@ -377,7 +429,11 @@ cogl_set_projection_matrix (CoglMatrix *matrix);
  * Stores the current viewport in @v. @v[0] and @v[1] get the x and y
  * position of the viewport and @v[2] and @v[3] get the width and
  * height.
+ *
+ * Deprecated: 1.10: Use cogl_framebuffer_get_viewport4fv()
+ *                   instead
  */
+COGL_DEPRECATED_IN_1_10_FOR (cogl_framebuffer_get_viewport4fv)
 void
 cogl_get_viewport (float v[4]);
 
@@ -391,9 +447,9 @@ cogl_get_viewport (float v[4]);
  * clutter_actor_lower(), otherwise it will also take into account the
  * actor's depth. Depth testing is disabled by default.
  *
- * Deprecated: 1.4: Use cogl_material_set_depth_test_enabled()
- * instead.
+ * Deprecated: 1.16: Use cogl_pipeline_set_depth_state() instead
  */
+COGL_DEPRECATED_IN_1_16_FOR (cogl_pipeline_set_depth_state)
 void
 cogl_set_depth_test_enabled (CoglBool setting);
 
@@ -404,9 +460,9 @@ cogl_set_depth_test_enabled (CoglBool setting);
  *
  * Return value: %TRUE if depth testing is enabled, and %FALSE otherwise
  *
- * Deprecated: 1.4: Use cogl_material_get_depth_test_enabled()
- * instead.
+ * Deprecated: 1.16: Use cogl_pipeline_set_depth_state() instead
  */
+COGL_DEPRECATED_IN_1_16_FOR (cogl_pipeline_set_depth_state)
 CoglBool
 cogl_get_depth_test_enabled (void);
 
@@ -419,7 +475,10 @@ cogl_get_depth_test_enabled (void);
  * textures or fully closed cubes without enabling depth testing. This
  * only affects calls to the cogl_rectangle* family of functions and
  * cogl_vertex_buffer_draw*. Backface culling is disabled by default.
+ *
+ * Deprecated: 1.16: Use cogl_pipeline_set_cull_face_mode() instead
  */
+COGL_DEPRECATED_IN_1_16_FOR (cogl_pipeline_set_cull_face_mode)
 void
 cogl_set_backface_culling_enabled (CoglBool setting);
 
@@ -430,7 +489,10 @@ cogl_set_backface_culling_enabled (CoglBool setting);
  * cogl_set_backface_culling_enabled()
  *
  * Return value: %TRUE if backface culling is enabled, and %FALSE otherwise
+ *
+ * Deprecated: 1.16: Use cogl_pipeline_get_cull_face_mode() instead
  */
+COGL_DEPRECATED_IN_1_16_FOR (cogl_pipeline_get_cull_face_mode)
 CoglBool
 cogl_get_backface_culling_enabled (void);
 
@@ -458,7 +520,10 @@ cogl_get_backface_culling_enabled (void);
  * and use cogl_material_set_color() you can only use fogging with fully
  * opaque primitives. This might improve in the future when we can depend
  * on fragment shaders.</note>
+ *
+ * Deprecated: 1.16: Use #CoglSnippet shader api for fog
  */
+COGL_DEPRECATED_IN_1_16_FOR (cogl_snippet_API)
 void
 cogl_set_fog (const CoglColor *fog_color,
               CoglFogMode mode,
@@ -471,7 +536,10 @@ cogl_set_fog (const CoglColor *fog_color,
  *
  * This function disables fogging, so primitives drawn afterwards will not be
  * blended with any previously set fog color.
+ *
+ * Deprecated: 1.16: Use #CoglSnippet shader api for fog
  */
+COGL_DEPRECATED_IN_1_16_FOR (cogl_snippet_API)
 void
 cogl_disable_fog (void);
 
@@ -483,7 +551,10 @@ cogl_disable_fog (void);
  *
  * Clears all the auxiliary buffers identified in the @buffers mask, and if
  * that includes the color buffer then the specified @color is used.
+ *
+ * Deprecated: 1.16: Use cogl_framebuffer_clear() api instead
  */
+COGL_DEPRECATED_IN_1_16_FOR (cogl_framebuffer_clear)
 void
 cogl_clear (const CoglColor *color,
             unsigned long buffers);
@@ -498,7 +569,11 @@ cogl_clear (const CoglColor *color,
  * cogl_rectangle() or vertices drawn using cogl_vertex_buffer_draw().
  *
  * Since: 1.0
+ * Deprecated: 1.16: Latest drawing apis all take an explicit
+ *                   #CoglPipeline argument so this stack of
+ *                   #CoglMaterial<!-- -->s shouldn't be used.
  */
+COGL_DEPRECATED_IN_1_16
 void
 cogl_set_source (void *material);
 
@@ -517,7 +592,11 @@ cogl_set_source (void *material);
  * Return value: The current source material.
  *
  * Since: 1.6
+ * Deprecated: 1.16: Latest drawing apis all take an explicit
+ *                   #CoglPipeline argument so this stack of
+ *                   #CoglMaterial<!-- -->s shouldn't be used.
  */
+COGL_DEPRECATED_IN_1_16
 void *
 cogl_get_source (void);
 
@@ -530,7 +609,11 @@ cogl_get_source (void);
  * process later primitives as defined by cogl_set_source().
  *
  * Since: 1.6
+ * Deprecated: 1.16: Latest drawing apis all take an explicit
+ *                   #CoglPipeline argument so this stack of
+ *                   #CoglMaterial<!-- -->s shouldn't be used.
  */
+COGL_DEPRECATED_IN_1_16
 void
 cogl_push_source (void *material);
 
@@ -542,7 +625,11 @@ cogl_push_source (void *material);
  * later primitives as defined by cogl_set_source().
  *
  * Since: 1.6
+ * Deprecated: 1.16: Latest drawing apis all take an explicit
+ *                   #CoglPipeline argument so this stack of
+ *                   #CoglMaterial<!-- -->s shouldn't be used.
  */
+COGL_DEPRECATED_IN_1_16
 void
 cogl_pop_source (void);
 
@@ -562,7 +649,11 @@ cogl_pop_source (void);
  * if you already have the color components.
  *
  * Since: 1.0
+ * Deprecated: 1.16: Latest drawing apis all take an explicit
+ *                   #CoglPipeline argument so this stack of
+ *                   #CoglMaterial<!-- -->s shouldn't be used.
  */
+COGL_DEPRECATED_IN_1_16
 void
 cogl_set_source_color (const CoglColor *color);
 
@@ -581,7 +672,11 @@ cogl_set_source_color (const CoglColor *color);
  * between 0 and 255.
  *
  * Since: 1.0
+ * Deprecated: 1.16: Latest drawing apis all take an explicit
+ *                   #CoglPipeline argument so this stack of
+ *                   #CoglMaterial<!-- -->s shouldn't be used.
  */
+COGL_DEPRECATED_IN_1_16
 void
 cogl_set_source_color4ub (uint8_t red,
                           uint8_t green,
@@ -604,7 +699,11 @@ cogl_set_source_color4ub (uint8_t red,
  * range, they will be clamped.
  *
  * Since: 1.0
+ * Deprecated: 1.16: Latest drawing apis all take an explicit
+ *                   #CoglPipeline argument so this stack of
+ *                   #CoglMaterial<!-- -->s shouldn't be used.
  */
+COGL_DEPRECATED_IN_1_16
 void
 cogl_set_source_color4f (float red,
                          float green,
@@ -630,423 +729,13 @@ cogl_set_source_color4f (float red,
  * </programlisting>
  *
  * Since: 1.0
+ * Deprecated: 1.16: Latest drawing apis all take an explicit
+ *                   #CoglPipeline argument so this stack of
+ *                   #CoglMaterial<!-- -->s shouldn't be used.
  */
+COGL_DEPRECATED_IN_1_16
 void
 cogl_set_source_texture (CoglTexture *texture);
-
-
-/**
- * SECTION:cogl-clipping
- * @short_description: Fuctions for manipulating a stack of clipping regions
- *
- * To support clipping your geometry to rectangles or paths Cogl exposes a
- * stack based API whereby each clip region you push onto the stack is
- * intersected with the previous region.
- */
-
-#ifndef COGL_DISABLE_DEPRECATED
-
-/**
- * cogl_clip_push_window_rect:
- * @x_offset: left edge of the clip rectangle in window coordinates
- * @y_offset: top edge of the clip rectangle in window coordinates
- * @width: width of the clip rectangle
- * @height: height of the clip rectangle
- *
- * Specifies a rectangular clipping area for all subsequent drawing
- * operations. Any drawing commands that extend outside the rectangle
- * will be clipped so that only the portion inside the rectangle will
- * be displayed. The rectangle dimensions are not transformed by the
- * current model-view matrix.
- *
- * The rectangle is intersected with the current clip region. To undo
- * the effect of this function, call cogl_clip_pop().
- *
- * Deprecated: 1.2: Use cogl_clip_push_window_rectangle() instead
- */
-void
-cogl_clip_push_window_rect (float x_offset,
-                            float y_offset,
-                            float width,
-                            float height) G_GNUC_DEPRECATED;
-
-#endif /* COGL_DISABLE_DEPRECATED */
-
-/**
- * cogl_clip_push_window_rectangle:
- * @x_offset: left edge of the clip rectangle in window coordinates
- * @y_offset: top edge of the clip rectangle in window coordinates
- * @width: width of the clip rectangle
- * @height: height of the clip rectangle
- *
- * Specifies a rectangular clipping area for all subsequent drawing
- * operations. Any drawing commands that extend outside the rectangle
- * will be clipped so that only the portion inside the rectangle will
- * be displayed. The rectangle dimensions are not transformed by the
- * current model-view matrix.
- *
- * The rectangle is intersected with the current clip region. To undo
- * the effect of this function, call cogl_clip_pop().
- *
- * Since: 1.2
- */
-void
-cogl_clip_push_window_rectangle (int x_offset,
-                                 int y_offset,
-                                 int width,
-                                 int height);
-
-#ifndef COGL_DISABLE_DEPRECATED
-
-/**
- * cogl_clip_push:
- * @x_offset: left edge of the clip rectangle
- * @y_offset: top edge of the clip rectangle
- * @width: width of the clip rectangle
- * @height: height of the clip rectangle
- *
- * Specifies a rectangular clipping area for all subsequent drawing
- * operations. Any drawing commands that extend outside the rectangle
- * will be clipped so that only the portion inside the rectangle will
- * be displayed. The rectangle dimensions are transformed by the
- * current model-view matrix.
- *
- * The rectangle is intersected with the current clip region. To undo
- * the effect of this function, call cogl_clip_pop().
- *
- * Deprecated: 1.2: The x, y, width, height arguments are inconsistent
- *   with other API that specify rectangles in model space, and when used
- *   with a coordinate space that puts the origin at the center and y+
- *   extending up, it's awkward to use. Please use cogl_clip_push_rectangle()
- *   instead
- */
-void
-cogl_clip_push (float x_offset,
-                float y_offset,
-                float width,
-                float height) G_GNUC_DEPRECATED;
-
-#endif /* COGL_DISABLE_DEPRECATED */
-
-/**
- * cogl_clip_push_rectangle:
- * @x0: x coordinate for top left corner of the clip rectangle
- * @y0: y coordinate for top left corner of the clip rectangle
- * @x1: x coordinate for bottom right corner of the clip rectangle
- * @y1: y coordinate for bottom right corner of the clip rectangle
- *
- * Specifies a rectangular clipping area for all subsequent drawing
- * operations. Any drawing commands that extend outside the rectangle
- * will be clipped so that only the portion inside the rectangle will
- * be displayed. The rectangle dimensions are transformed by the
- * current model-view matrix.
- *
- * The rectangle is intersected with the current clip region. To undo
- * the effect of this function, call cogl_clip_pop().
- *
- * Since: 1.2
- */
-void
-cogl_clip_push_rectangle (float x0,
-                          float y0,
-                          float x1,
-                          float y1);
-
-/**
- * cogl_clip_push_from_path_preserve:
- *
- * Sets a new clipping area using the current path. The current path
- * is then cleared. The clipping area is intersected with the previous
- * clipping area. To restore the previous clipping area, call
- * cogl_clip_pop().
- *
- * Since: 1.0
- */
-void
-cogl_clip_push_from_path_preserve (void);
-
-#ifdef COGL_ENABLE_EXPERIMENTAL_2_0_API
-/**
- * cogl_clip_push_primitive:
- * @primitive: A #CoglPrimitive describing a flat 2D shape
- * @bounds_x1: x coordinate for the top-left corner of the primitives
- *             bounds
- * @bounds_y1: y coordinate for the top-left corner of the primitives
- *             bounds
- * @bounds_x2: x coordinate for the top-left corner of the primitives
- *             bounds
- * @bounds_y2: x coordinate for the bottom-right corner of the
- *             primitives bounds.
- * @bounds_x1: y coordinate for the bottom-right corner of the
- *             primitives bounds.
- *
- * Sets a new clipping area using a 2D shaped described with a
- * #CoglPrimitive. The shape must not contain self overlapping
- * geometry and must lie on a single 2D plane. A bounding box of the
- * 2D shape in local coordinates (the same coordinates used to
- * describe the shape) must be given. It is acceptable for the bounds
- * to be larger than the true bounds but behaviour is undefined if the
- * bounds are smaller than the true bounds.
- *
- * The primitive is transformed by the current model-view matrix and
- * the silhouette is intersected with the previous clipping area.  To
- * restore the previous clipping area, call
- * cogl_clip_pop().
- *
- * Since: 1.10
- * Stability: unstable
- */
-void
-cogl_clip_push_primitive (CoglPrimitive *primitive,
-                          float bounds_x1,
-                          float bounds_y1,
-                          float bounds_x2,
-                          float bounds_y2);
-#endif
-
-/**
- * cogl_clip_pop:
- *
- * Reverts the clipping region to the state before the last call to
- * cogl_clip_push().
- */
-void
-cogl_clip_pop (void);
-
-#ifndef COGL_DISABLE_DEPRECATED
-
-/**
- * cogl_clip_ensure:
- *
- * Ensures that the current clipping region has been set in GL. This
- * will automatically be called before any Cogl primitives but it
- * maybe be neccessary to call if you are using raw GL calls with
- * clipping.
- *
- * Deprecated: 1.2: Calling this function has no effect
- *
- * Since: 1.0
- */
-void
-cogl_clip_ensure (void) G_GNUC_DEPRECATED;
-
-/**
- * cogl_clip_stack_save:
- *
- * Save the entire state of the clipping stack and then clear all
- * clipping. The previous state can be returned to with
- * cogl_clip_stack_restore(). Each call to cogl_clip_push() after this
- * must be matched by a call to cogl_clip_pop() before calling
- * cogl_clip_stack_restore().
- *
- * Deprecated: 1.2: This was originally added to allow us to save the
- *   clip stack when switching to an offscreen framebuffer, but it's
- *   not necessary anymore given that framebuffers now own separate
- *   clip stacks which will be automatically switched between when a
- *   new buffer is set. Calling this function has no effect
- *
- * Since: 0.8.2
- */
-void
-cogl_clip_stack_save (void) G_GNUC_DEPRECATED;
-
-/**
- * cogl_clip_stack_restore:
- *
- * Restore the state of the clipping stack that was previously saved
- * by cogl_clip_stack_save().
- *
- * Deprecated: 1.2: This was originally added to allow us to restore
- *   the clip stack when switching back from an offscreen framebuffer,
- *   but it's not necessary anymore given that framebuffers now own
- *   separate clip stacks which will be automatically switched between
- *   when a new buffer is set. Calling this function has no effect
- *
- * Since: 0.8.2
- */
-void
-cogl_clip_stack_restore (void) G_GNUC_DEPRECATED;
-
-#endif /* COGL_DISABLE_DEPRECATED */
-
-/**
- * cogl_set_framebuffer:
- * @buffer: A #CoglFramebuffer object, either onscreen or offscreen.
- *
- * This redirects all subsequent drawing to the specified framebuffer. This can
- * either be an offscreen buffer created with cogl_offscreen_new_to_texture ()
- * or in the future it may be an onscreen framebuffers too.
- *
- * Since: 1.2
- */
-void
-cogl_set_framebuffer (CoglFramebuffer *buffer);
-
-/**
- * cogl_push_framebuffer:
- * @buffer: A #CoglFramebuffer object, either onscreen or offscreen.
- *
- * Redirects all subsequent drawing to the specified framebuffer. This can
- * either be an offscreen buffer created with cogl_offscreen_new_to_texture ()
- * or in the future it may be an onscreen framebuffer too.
- *
- * You should understand that a framebuffer owns the following state:
- * <itemizedlist>
- *  <listitem><simpara>The projection matrix</simpara></listitem>
- *  <listitem><simpara>The modelview matrix stack</simpara></listitem>
- *  <listitem><simpara>The viewport</simpara></listitem>
- *  <listitem><simpara>The clip stack</simpara></listitem>
- * </itemizedlist>
- * So these items will automatically be saved and restored when you
- * push and pop between different framebuffers.
- *
- * Also remember a newly allocated framebuffer will have an identity matrix for
- * the projection and modelview matrices which gives you a coordinate space
- * like OpenGL with (-1, -1) corresponding to the top left of the viewport,
- * (1, 1) corresponding to the bottom right and +z coming out towards the
- * viewer.
- *
- * If you want to set up a coordinate space like Clutter does with (0, 0)
- * corresponding to the top left and (framebuffer_width, framebuffer_height)
- * corresponding to the bottom right you can do so like this:
- *
- * |[
- * static void
- * setup_viewport (unsigned int width,
- *                 unsigned int height,
- *                 float fovy,
- *                 float aspect,
- *                 float z_near,
- *                 float z_far)
- * {
- *   float z_camera;
- *   CoglMatrix projection_matrix;
- *   CoglMatrix mv_matrix;
- *
- *   cogl_set_viewport (0, 0, width, height);
- *   cogl_perspective (fovy, aspect, z_near, z_far);
- *
- *   cogl_get_projection_matrix (&amp;projection_matrix);
- *   z_camera = 0.5 * projection_matrix.xx;
- *
- *   cogl_matrix_init_identity (&amp;mv_matrix);
- *   cogl_matrix_translate (&amp;mv_matrix, -0.5f, -0.5f, -z_camera);
- *   cogl_matrix_scale (&amp;mv_matrix, 1.0f / width, -1.0f / height, 1.0f / width);
- *   cogl_matrix_translate (&amp;mv_matrix, 0.0f, -1.0 * height, 0.0f);
- *   cogl_set_modelview_matrix (&amp;mv_matrix);
- * }
- *
- * static void
- * my_init_framebuffer (ClutterStage *stage,
- *                      CoglFramebuffer *framebuffer,
- *                      unsigned int framebuffer_width,
- *                      unsigned int framebuffer_height)
- * {
- *   ClutterPerspective perspective;
- *
- *   clutter_stage_get_perspective (stage, &perspective);
- *
- *   cogl_push_framebuffer (framebuffer);
- *   setup_viewport (framebuffer_width,
- *                   framebuffer_height,
- *                   perspective.fovy,
- *                   perspective.aspect,
- *                   perspective.z_near,
- *                   perspective.z_far);
- * }
- * ]|
- *
- * The previous framebuffer can be restored by calling cogl_pop_framebuffer()
- *
- * Since: 1.2
- */
-void
-cogl_push_framebuffer (CoglFramebuffer *buffer);
-
-/**
- * cogl_pop_framebuffer:
- *
- * Restores the framebuffer that was previously at the top of the stack.
- * All subsequent drawing will be redirected to this framebuffer.
- *
- * Since: 1.2
- */
-void
-cogl_pop_framebuffer (void);
-
-#ifndef COGL_DISABLE_DEPRECATED
-
-/**
- * cogl_set_draw_buffer:
- * @target: A #CoglBufferTarget that specifies what kind of framebuffer you
- *          are setting as the render target.
- * @offscreen: If you are setting a framebuffer of type COGL_OFFSCREEN_BUFFER
- *             then this is a CoglHandle for the offscreen buffer.
- *
- * Redirects all subsequent drawing to the specified framebuffer. This
- * can either be an offscreen buffer created with
- * cogl_offscreen_new_to_texture () or you can revert to your original
- * on screen window buffer.
- *
- * Deprecated: 1.2: The target argument was redundant since we could look at
- *    the type of CoglHandle given instead.
- */
-void
-cogl_set_draw_buffer (CoglBufferTarget target,
-                      CoglHandle offscreen) G_GNUC_DEPRECATED;
-
-/**
- * cogl_push_draw_buffer:
- *
- * Save cogl_set_draw_buffer() state.
- *
- * Deprecated: 1.2: The draw buffer API was replaced with a framebuffer API
- */
-void
-cogl_push_draw_buffer (void) COGL_GNUC_DEPRECATED;
-
-/**
- * cogl_pop_draw_buffer:
- *
- * Restore cogl_set_draw_buffer() state.
- *
- * Deprecated: 1.2: The draw buffer API was replaced with a framebuffer API
- */
-void
-cogl_pop_draw_buffer (void) COGL_GNUC_DEPRECATED;
-
-#endif /* COGL_DISABLE_DEPRECATED */
-
-/**
- * cogl_read_pixels:
- * @x: The window x position to start reading from
- * @y: The window y position to start reading from
- * @width: The width of the rectangle you want to read
- * @height: The height of the rectangle you want to read
- * @source: Identifies which auxillary buffer you want to read
- *          (only COGL_READ_PIXELS_COLOR_BUFFER supported currently)
- * @format: The pixel format you want the result in
- *          (only COGL_PIXEL_FORMAT_RGBA_8888 supported currently)
- * @pixels: The location to write the pixel data.
- *
- * This reads a rectangle of pixels from the current framebuffer where
- * position (0, 0) is the top left. The pixel at (x, y) is the first
- * read, and the data is returned with a rowstride of (width * 4).
- *
- * Currently Cogl assumes that the framebuffer is in a premultiplied
- * format so if @format is non-premultiplied it will convert it. To
- * read the pixel values without any conversion you should either
- * specify a format that doesn't use an alpha channel or use one of
- * the formats ending in PRE.
- */
-void
-cogl_read_pixels (int x,
-                  int y,
-                  int width,
-                  int height,
-                  CoglReadPixelsFlags source,
-                  CoglPixelFormat format,
-                  uint8_t *pixels);
 
 /**
  * cogl_flush:
@@ -1149,7 +838,9 @@ cogl_flush (void);
  * OpenGL.
  *
  * Since: 1.0
+ * Deprecated: 1.16: Use the #CoglGLES2Context api instead
  */
+COGL_DEPRECATED_IN_1_16_FOR (CoglGLES2Context_API)
 void
 cogl_begin_gl (void);
 
@@ -1160,7 +851,9 @@ cogl_begin_gl (void);
  * code using raw OpenGL. Please refer to cogl_begin_gl() for full details.
  *
  * Since: 1.0
+ * Deprecated: 1.16: Use the #CoglGLES2Context api instead
  */
+COGL_DEPRECATED_IN_1_16_FOR (CoglGLES2Context_API)
 void
 cogl_end_gl (void);
 

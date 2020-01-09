@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2009,2010 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  */
@@ -27,11 +33,33 @@
 
 #include <cogl/cogl-types.h>
 
+#ifdef COGL_HAS_GTYPE_SUPPORT
+#include <glib-object.h>
+#endif
+
 COGL_BEGIN_DECLS
 
 typedef struct _CoglObject      CoglObject;
 
 #define COGL_OBJECT(X)          ((CoglObject *)X)
+
+/**
+ * CoglObject:
+ *
+ * Ref Func: cogl_object_ref
+ * Unref Func: cogl_object_unref
+ * Set Value Func: cogl_object_value_set_object
+ * Get Value Func: cogl_object_value_get_object
+ */
+
+#ifdef COGL_HAS_GTYPE_SUPPORT
+/**
+ * cogl_object_get_gtype:
+ *
+ * Returns: a #GType that can be used with the GLib type system.
+ */
+GType cogl_object_get_gtype (void);
+#endif
 
 /**
  * cogl_object_ref: (skip)
@@ -103,7 +131,11 @@ typedef struct {
  *
  * Since: 1.4
  */
+#ifdef COGL_HAS_GTYPE_SUPPORT
+typedef GDestroyNotify CoglUserDataDestroyCallback;
+#else
 typedef void (*CoglUserDataDestroyCallback) (void *user_data);
+#endif
 
 /**
  * CoglDebugObjectTypeInfo:
@@ -182,8 +214,8 @@ cogl_object_get_user_data (CoglObject *object,
 
 /**
  * cogl_debug_object_foreach_type:
- * @func: A callback function for each type
- * @user_data: A pointer to pass to @func
+ * @func: (scope call): A callback function for each type
+ * @user_data: (closure): A pointer to pass to @func
  *
  * Invokes @func once for each type of object that Cogl uses and
  * passes a count of the number of objects for that type. This is

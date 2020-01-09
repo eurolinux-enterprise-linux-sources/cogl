@@ -21,6 +21,7 @@
 <ANCHOR id="COGL-PIXEL-FORMAT-RGBA-5551:CAPS" href="cogl/cogl-General-API.html#COGL-PIXEL-FORMAT-RGBA-5551:CAPS">
 <ANCHOR id="COGL-PIXEL-FORMAT-YUV:CAPS" href="cogl/cogl-General-API.html#COGL-PIXEL-FORMAT-YUV:CAPS">
 <ANCHOR id="COGL-PIXEL-FORMAT-G-8:CAPS" href="cogl/cogl-General-API.html#COGL-PIXEL-FORMAT-G-8:CAPS">
+<ANCHOR id="COGL-PIXEL-FORMAT-RG-88:CAPS" href="cogl/cogl-General-API.html#COGL-PIXEL-FORMAT-RG-88:CAPS">
 <ANCHOR id="COGL-PIXEL-FORMAT-RGB-888:CAPS" href="cogl/cogl-General-API.html#COGL-PIXEL-FORMAT-RGB-888:CAPS">
 <ANCHOR id="COGL-PIXEL-FORMAT-BGR-888:CAPS" href="cogl/cogl-General-API.html#COGL-PIXEL-FORMAT-BGR-888:CAPS">
 <ANCHOR id="COGL-PIXEL-FORMAT-RGBA-8888:CAPS" href="cogl/cogl-General-API.html#COGL-PIXEL-FORMAT-RGBA-8888:CAPS">
@@ -164,6 +165,8 @@
 <ANCHOR id="cogl-color-premultiply" href="cogl/cogl-Color-Type.html#cogl-color-premultiply">
 <ANCHOR id="cogl-color-unpremultiply" href="cogl/cogl-Color-Type.html#cogl-color-unpremultiply">
 <ANCHOR id="cogl-color-equal" href="cogl/cogl-Color-Type.html#cogl-color-equal">
+<ANCHOR id="cogl-color-init-from-hsl" href="cogl/cogl-Color-Type.html#cogl-color-init-from-hsl">
+<ANCHOR id="cogl-color-to-hsl" href="cogl/cogl-Color-Type.html#cogl-color-to-hsl">
 <ANCHOR id="cogl-Textures" href="cogl/cogl-Textures.html">
 <ANCHOR id="cogl-Textures.synopsis" href="cogl/cogl-Textures.html#cogl-Textures.synopsis">
 <ANCHOR id="cogl-Textures.description" href="cogl/cogl-Textures.html#cogl-Textures.description">
@@ -289,42 +292,12 @@
 <ANCHOR id="cogl-Path-Primitives.synopsis" href="cogl/cogl-Path-Primitives.html#cogl-Path-Primitives.synopsis">
 <ANCHOR id="cogl-Path-Primitives.description" href="cogl/cogl-Path-Primitives.html#cogl-Path-Primitives.description">
 <ANCHOR id="cogl-Path-Primitives.details" href="cogl/cogl-Path-Primitives.html#cogl-Path-Primitives.details">
-<ANCHOR id="cogl-is-path" href="cogl/cogl-Path-Primitives.html#cogl-is-path">
-<ANCHOR id="cogl-path-new" href="cogl/cogl-Path-Primitives.html#cogl-path-new">
-<ANCHOR id="cogl-get-path" href="cogl/cogl-Path-Primitives.html#cogl-get-path">
-<ANCHOR id="cogl-set-path" href="cogl/cogl-Path-Primitives.html#cogl-set-path">
-<ANCHOR id="cogl-path-copy" href="cogl/cogl-Path-Primitives.html#cogl-path-copy">
-<ANCHOR id="cogl-path-move-to" href="cogl/cogl-Path-Primitives.html#cogl-path-move-to">
-<ANCHOR id="cogl-path-close" href="cogl/cogl-Path-Primitives.html#cogl-path-close">
-<ANCHOR id="cogl-path-line-to" href="cogl/cogl-Path-Primitives.html#cogl-path-line-to">
-<ANCHOR id="cogl-path-curve-to" href="cogl/cogl-Path-Primitives.html#cogl-path-curve-to">
-<ANCHOR id="cogl-path-arc" href="cogl/cogl-Path-Primitives.html#cogl-path-arc">
-<ANCHOR id="cogl-path-rel-move-to" href="cogl/cogl-Path-Primitives.html#cogl-path-rel-move-to">
-<ANCHOR id="cogl-path-rel-line-to" href="cogl/cogl-Path-Primitives.html#cogl-path-rel-line-to">
-<ANCHOR id="cogl-path-rel-curve-to" href="cogl/cogl-Path-Primitives.html#cogl-path-rel-curve-to">
-<ANCHOR id="cogl-path-line" href="cogl/cogl-Path-Primitives.html#cogl-path-line">
-<ANCHOR id="cogl-path-polyline" href="cogl/cogl-Path-Primitives.html#cogl-path-polyline">
-<ANCHOR id="cogl-path-polygon" href="cogl/cogl-Path-Primitives.html#cogl-path-polygon">
-<ANCHOR id="cogl-path-rectangle" href="cogl/cogl-Path-Primitives.html#cogl-path-rectangle">
-<ANCHOR id="cogl-path-round-rectangle" href="cogl/cogl-Path-Primitives.html#cogl-path-round-rectangle">
-<ANCHOR id="cogl-path-ellipse" href="cogl/cogl-Path-Primitives.html#cogl-path-ellipse">
-<ANCHOR id="CoglPathFillRule" href="cogl/cogl-Path-Primitives.html#CoglPathFillRule">
-<ANCHOR id="COGL-PATH-FILL-RULE-NON-ZERO:CAPS" href="cogl/cogl-Path-Primitives.html#COGL-PATH-FILL-RULE-NON-ZERO:CAPS">
-<ANCHOR id="COGL-PATH-FILL-RULE-EVEN-ODD:CAPS" href="cogl/cogl-Path-Primitives.html#COGL-PATH-FILL-RULE-EVEN-ODD:CAPS">
-<ANCHOR id="cogl-path-set-fill-rule" href="cogl/cogl-Path-Primitives.html#cogl-path-set-fill-rule">
-<ANCHOR id="cogl-path-get-fill-rule" href="cogl/cogl-Path-Primitives.html#cogl-path-get-fill-rule">
-<ANCHOR id="cogl-path-fill" href="cogl/cogl-Path-Primitives.html#cogl-path-fill">
-<ANCHOR id="cogl-path-fill-preserve" href="cogl/cogl-Path-Primitives.html#cogl-path-fill-preserve">
-<ANCHOR id="cogl-path-stroke" href="cogl/cogl-Path-Primitives.html#cogl-path-stroke">
-<ANCHOR id="cogl-path-stroke-preserve" href="cogl/cogl-Path-Primitives.html#cogl-path-stroke-preserve">
 <ANCHOR id="cogl-Clipping" href="cogl/cogl-Clipping.html">
 <ANCHOR id="cogl-Clipping.synopsis" href="cogl/cogl-Clipping.html#cogl-Clipping.synopsis">
 <ANCHOR id="cogl-Clipping.description" href="cogl/cogl-Clipping.html#cogl-Clipping.description">
 <ANCHOR id="cogl-Clipping.details" href="cogl/cogl-Clipping.html#cogl-Clipping.details">
 <ANCHOR id="cogl-clip-push-rectangle" href="cogl/cogl-Clipping.html#cogl-clip-push-rectangle">
 <ANCHOR id="cogl-clip-push-window-rectangle" href="cogl/cogl-Clipping.html#cogl-clip-push-window-rectangle">
-<ANCHOR id="cogl-clip-push-from-path" href="cogl/cogl-Clipping.html#cogl-clip-push-from-path">
-<ANCHOR id="cogl-clip-push-from-path-preserve" href="cogl/cogl-Clipping.html#cogl-clip-push-from-path-preserve">
 <ANCHOR id="cogl-clip-pop" href="cogl/cogl-Clipping.html#cogl-clip-pop">
 <ANCHOR id="cogl-Vertex-Buffers" href="cogl/cogl-Vertex-Buffers.html">
 <ANCHOR id="cogl-Vertex-Buffers.synopsis" href="cogl/cogl-Vertex-Buffers.html#cogl-Vertex-Buffers.synopsis">
@@ -407,6 +380,7 @@
 <ANCHOR id="cogl-Offscreen-Buffers.synopsis" href="cogl/cogl-Offscreen-Buffers.html#cogl-Offscreen-Buffers.synopsis">
 <ANCHOR id="cogl-Offscreen-Buffers.description" href="cogl/cogl-Offscreen-Buffers.html#cogl-Offscreen-Buffers.description">
 <ANCHOR id="cogl-Offscreen-Buffers.details" href="cogl/cogl-Offscreen-Buffers.html#cogl-Offscreen-Buffers.details">
+<ANCHOR id="cogl-offscreen-new-with-texture" href="cogl/cogl-Offscreen-Buffers.html#cogl-offscreen-new-with-texture">
 <ANCHOR id="cogl-offscreen-new-to-texture" href="cogl/cogl-Offscreen-Buffers.html#cogl-offscreen-new-to-texture">
 <ANCHOR id="cogl-is-offscreen" href="cogl/cogl-Offscreen-Buffers.html#cogl-is-offscreen">
 <ANCHOR id="cogl-set-framebuffer" href="cogl/cogl-Offscreen-Buffers.html#cogl-set-framebuffer">
@@ -633,11 +607,11 @@
 <ANCHOR id="cogl-Offscreen-Buffers-(Deprecated).details" href="cogl/cogl-Offscreen-Buffers-(Deprecated).html#cogl-Offscreen-Buffers-(Deprecated).details">
 <ANCHOR id="cogl-offscreen-ref" href="cogl/cogl-Offscreen-Buffers-(Deprecated).html#cogl-offscreen-ref">
 <ANCHOR id="cogl-offscreen-unref" href="cogl/cogl-Offscreen-Buffers-(Deprecated).html#cogl-offscreen-unref">
-<ANCHOR id="annotation-glossterm-out" href="cogl/coglglossary.html#annotation-glossterm-out">
-<ANCHOR id="annotation-glossterm-allow-none" href="cogl/coglglossary.html#annotation-glossterm-allow-none">
-<ANCHOR id="annotation-glossterm-inout" href="cogl/coglglossary.html#annotation-glossterm-inout">
-<ANCHOR id="annotation-glossterm-transfer none" href="cogl/coglglossary.html#annotation-glossterm-transfer none">
 <ANCHOR id="annotation-glossterm-array" href="cogl/coglglossary.html#annotation-glossterm-array">
+<ANCHOR id="annotation-glossterm-transfer full" href="cogl/coglglossary.html#annotation-glossterm-transfer full">
+<ANCHOR id="annotation-glossterm-allow-none" href="cogl/coglglossary.html#annotation-glossterm-allow-none">
 <ANCHOR id="annotation-glossterm-element-type" href="cogl/coglglossary.html#annotation-glossterm-element-type">
 <ANCHOR id="annotation-glossterm-in" href="cogl/coglglossary.html#annotation-glossterm-in">
-<ANCHOR id="annotation-glossterm-transfer full" href="cogl/coglglossary.html#annotation-glossterm-transfer full">
+<ANCHOR id="annotation-glossterm-out" href="cogl/coglglossary.html#annotation-glossterm-out">
+<ANCHOR id="annotation-glossterm-inout" href="cogl/coglglossary.html#annotation-glossterm-inout">
+<ANCHOR id="annotation-glossterm-transfer none" href="cogl/coglglossary.html#annotation-glossterm-transfer none">

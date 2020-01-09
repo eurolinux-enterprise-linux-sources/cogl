@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2012, 2013 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  */
@@ -68,16 +74,13 @@ cogl_sdl_context_new (int type, CoglError **error)
 void
 cogl_sdl_handle_event (CoglContext *context, SDL_Event *event)
 {
-  const CoglWinsysVtable *winsys;
+  CoglRenderer *renderer;
 
   _COGL_RETURN_IF_FAIL (cogl_is_context (context));
 
-  winsys = _cogl_context_get_winsys (context);
+  renderer = context->display->renderer;
 
-  _cogl_renderer_handle_native_event (context->display->renderer, event);
-
-  if (winsys->poll_dispatch)
-    winsys->poll_dispatch (context, NULL, 0);
+  _cogl_renderer_handle_native_event (renderer, event);
 }
 
 static void
@@ -93,14 +96,16 @@ _cogl_sdl_push_wakeup_event (CoglContext *context)
 void
 cogl_sdl_idle (CoglContext *context)
 {
-  _cogl_dispatch_onscreen_events (context);
+  CoglRenderer *renderer = context->display->renderer;
+
+  cogl_poll_renderer_dispatch (renderer, NULL, 0);
 
   /* It is expected that this will be called from the application
    * immediately before blocking in SDL_WaitEvent. However,
-   * dispatching the onscreen events may cause more events to be
-   * queued. If that happens we need to make sure the blocking returns
-   * immediately. We'll post our dummy event to make sure that
-   * happens */
-  if (!COGL_TAILQ_EMPTY (&context->onscreen_events_queue))
+   * dispatching cause more work to be queued. If that happens we need
+   * to make sure the blocking returns immediately. We'll post our
+   * dummy event to make sure that happens
+   */
+  if (!_cogl_list_empty (&renderer->idle_closures))
     _cogl_sdl_push_wakeup_event (context);
 }

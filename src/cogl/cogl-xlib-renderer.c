@@ -1,24 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2008,2009,2010 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * Authors:
  *   Robert Bragg <robert@linux.intel.com>
@@ -38,6 +43,7 @@
 #include "cogl-x11-renderer-private.h"
 #include "cogl-winsys-private.h"
 #include "cogl-error-private.h"
+#include "cogl-poll-private.h"
 
 #include <X11/Xlib.h>
 #include <X11/extensions/Xdamage.h>
@@ -238,7 +244,7 @@ update_outputs (CoglRenderer *renderer,
 
   _cogl_xlib_renderer_trap_errors (renderer, &state);
 
-  for (i = 0; i < resources->ncrtc && !error; i++)
+  for (i = 0; resources && i < resources->ncrtc && !error; i++)
     {
       XRRCrtcInfo *crtc_info = NULL;
       XRROutputInfo *output_info = NULL;
@@ -467,6 +473,32 @@ randr_filter (XEvent *event,
   return COGL_FILTER_CONTINUE;
 }
 
+static int64_t
+prepare_xlib_events_timeout (void *user_data)
+{
+  CoglRenderer *renderer = user_data;
+  CoglXlibRenderer *xlib_renderer = _cogl_xlib_renderer_get_data (renderer);
+
+  return XPending (xlib_renderer->xdpy) ? 0 : -1;
+}
+
+static void
+dispatch_xlib_events (void *user_data, int revents)
+{
+  CoglRenderer *renderer = user_data;
+  CoglXlibRenderer *xlib_renderer = _cogl_xlib_renderer_get_data (renderer);
+
+  if (renderer->xlib_enable_event_retrieval)
+    while (XPending (xlib_renderer->xdpy))
+      {
+        XEvent xevent;
+
+        XNextEvent (xlib_renderer->xdpy, &xevent);
+
+        cogl_xlib_renderer_handle_event (renderer, &xevent);
+      }
+}
+
 CoglBool
 _cogl_xlib_renderer_connect (CoglRenderer *renderer, CoglError **error)
 {
@@ -497,8 +529,15 @@ _cogl_xlib_renderer_connect (CoglRenderer *renderer, CoglError **error)
 
   xlib_renderer->trap_state = NULL;
 
-  xlib_renderer->poll_fd.fd = ConnectionNumber (xlib_renderer->xdpy);
-  xlib_renderer->poll_fd.events = COGL_POLL_FD_EVENT_IN;
+  if (renderer->xlib_enable_event_retrieval)
+    {
+      _cogl_poll_renderer_add_fd (renderer,
+                                  ConnectionNumber (xlib_renderer->xdpy),
+                                  COGL_POLL_FD_EVENT_IN,
+                                  prepare_xlib_events_timeout,
+                                  dispatch_xlib_events,
+                                  renderer);
+    }
 
   XRRSelectInput(xlib_renderer->xdpy,
                  DefaultRootWindow (xlib_renderer->xdpy),
@@ -568,47 +607,20 @@ cogl_xlib_renderer_remove_filter (CoglRenderer *renderer,
                                        (CoglNativeFilterFunc)func, data);
 }
 
-void
-_cogl_xlib_renderer_poll_get_info (CoglRenderer *renderer,
-                                   CoglPollFD **poll_fds,
-                                   int *n_poll_fds,
-                                   int64_t *timeout)
+int64_t
+_cogl_xlib_renderer_get_dispatch_timeout (CoglRenderer *renderer)
 {
   CoglXlibRenderer *xlib_renderer = _cogl_xlib_renderer_get_data (renderer);
 
   if (renderer->xlib_enable_event_retrieval)
     {
-      *n_poll_fds = 1;
-      *poll_fds = &xlib_renderer->poll_fd;
       if (XPending (xlib_renderer->xdpy))
-        *timeout = 0;
+        return 0;
       else
-        *timeout = -1;
+        return -1;
     }
   else
-    {
-      *n_poll_fds = 0;
-      *poll_fds = NULL;
-      *timeout = -1;
-    }
-}
-
-void
-_cogl_xlib_renderer_poll_dispatch (CoglRenderer *renderer,
-                                   const CoglPollFD *poll_fds,
-                                   int n_poll_fds)
-{
-  CoglXlibRenderer *xlib_renderer = _cogl_xlib_renderer_get_data (renderer);
-
-  if (renderer->xlib_enable_event_retrieval)
-    while (XPending (xlib_renderer->xdpy))
-      {
-        XEvent xevent;
-
-        XNextEvent (xlib_renderer->xdpy, &xevent);
-
-        cogl_xlib_renderer_handle_event (renderer, &xevent);
-      }
+    return -1;
 }
 
 CoglOutput *

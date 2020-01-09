@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
- * Copyright (C) 2011 Intel Corporation.
+ * Copyright (C) 2011,2013 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  */
@@ -26,7 +33,8 @@
 
 #include "cogl-onscreen.h"
 #include "cogl-framebuffer-private.h"
-#include "cogl-queue.h"
+#include "cogl-closure-list-private.h"
+#include "cogl-list.h"
 
 #include <glib.h>
 
@@ -34,43 +42,22 @@
 #include <windows.h>
 #endif
 
-COGL_TAILQ_HEAD (CoglFrameCallbackList, CoglFrameClosure);
-
-struct _CoglFrameClosure
+typedef struct _CoglOnscreenEvent
 {
-  COGL_TAILQ_ENTRY (CoglFrameClosure) list_node;
-
-  CoglFrameCallback callback;
-
-  void *user_data;
-  CoglUserDataDestroyCallback destroy;
-};
-
-typedef struct _CoglResizeNotifyEntry CoglResizeNotifyEntry;
-
-COGL_TAILQ_HEAD (CoglResizeNotifyList, CoglResizeNotifyEntry);
-
-struct _CoglResizeNotifyEntry
-{
-  COGL_TAILQ_ENTRY (CoglResizeNotifyEntry) list_node;
-
-  CoglOnscreenResizeCallback callback;
-  void *user_data;
-  unsigned int id;
-};
-
-typedef struct _CoglOnscreenEvent CoglOnscreenEvent;
-
-COGL_TAILQ_HEAD (CoglOnscreenEventList, CoglOnscreenEvent);
-
-struct _CoglOnscreenEvent
-{
-  COGL_TAILQ_ENTRY (CoglOnscreenEvent) list_node;
+  CoglList link;
 
   CoglOnscreen *onscreen;
   CoglFrameInfo *info;
   CoglFrameEvent type;
-};
+} CoglOnscreenEvent;
+
+typedef struct _CoglOnscreenQueuedDirty
+{
+  CoglList link;
+
+  CoglOnscreen *onscreen;
+  CoglOnscreenDirtyInfo info;
+} CoglOnscreenQueuedDirty;
 
 struct _CoglOnscreen
 {
@@ -86,12 +73,18 @@ struct _CoglOnscreen
   HWND foreign_hwnd;
 #endif
 
+#ifdef COGL_HAS_EGL_PLATFORM_WAYLAND_SUPPORT
+  struct wl_surface *foreign_surface;
+#endif
+
   CoglBool swap_throttled;
 
-  CoglFrameCallbackList frame_closures;
+  CoglList frame_closures;
 
   CoglBool resizable;
-  CoglResizeNotifyList resize_callbacks;
+  CoglList resize_closures;
+
+  CoglList dirty_closures;
 
   int64_t frame_counter;
   int64_t swap_frame_counter; /* frame counter at last all to
@@ -110,6 +103,11 @@ _cogl_framebuffer_winsys_update_size (CoglFramebuffer *framebuffer,
                                       int width, int height);
 
 void
+_cogl_onscreen_queue_event (CoglOnscreen *onscreen,
+                            CoglFrameEvent type,
+                            CoglFrameInfo *info);
+
+void
 _cogl_onscreen_notify_frame_sync (CoglOnscreen *onscreen, CoglFrameInfo *info);
 
 void
@@ -119,6 +117,11 @@ void
 _cogl_onscreen_notify_resize (CoglOnscreen *onscreen);
 
 void
-_cogl_dispatch_onscreen_events (CoglContext *context);
+_cogl_onscreen_queue_dirty (CoglOnscreen *onscreen,
+                            const CoglOnscreenDirtyInfo *info);
+
+
+void
+_cogl_onscreen_queue_full_dirty (CoglOnscreen *onscreen);
 
 #endif /* __COGL_ONSCREEN_PRIVATE_H */

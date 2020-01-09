@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2008,2009,2010 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * Authors:
  *   Robert Bragg <robert@linux.intel.com>
@@ -51,6 +57,9 @@ typedef void (*CoglUserDataDestroyInternalCallback) (void *user_data,
 
 typedef struct _CoglObjectClass
 {
+#ifdef COGL_HAS_GTYPE_SUPPORT
+  GTypeClass base_class;
+#endif
   const char *name;
   void *virt_free;
   void *virt_unref;
@@ -74,7 +83,7 @@ typedef struct
  */
 struct _CoglObject
 {
-  CoglObjectClass  *klass;
+  CoglObjectClass  *klass; /* equivalent to GTypeInstance */
 
   CoglUserDataEntry user_data_entry[
     COGL_OBJECT_N_PRE_ALLOCATED_USER_DATA_ENTRIES];
@@ -118,6 +127,14 @@ struct _CoglObject
 
 #endif /* COGL_OBJECT_DEBUG */
 
+#ifdef COGL_HAS_GTYPE_SUPPORT
+#define _COGL_GTYPE_INIT_CLASS(type_name) do {                                   \
+  _cogl_##type_name##_class.base_class.g_type = cogl_##type_name##_get_gtype (); \
+} while (0)
+#else
+#define _COGL_GTYPE_INIT_CLASS(type_name)
+#endif
+
 #define COGL_OBJECT_COMMON_DEFINE_WITH_CODE(TypeName, type_name, code)  \
                                                                         \
 CoglObjectClass _cogl_##type_name##_class;                              \
@@ -142,6 +159,28 @@ _cogl_object_##type_name##_indirect_free (CoglObject *obj)              \
   _cogl_object_##type_name##_dec ();                                    \
 }                                                                       \
                                                                         \
+static void                                                             \
+_cogl_object_##type_name##_class_init (void)                            \
+{                                                                       \
+  _cogl_object_##type_name##_count = 0;                                 \
+                                                                        \
+    if (_cogl_debug_instances == NULL)                                  \
+      _cogl_debug_instances =                                           \
+        g_hash_table_new (g_str_hash, g_str_equal);                     \
+                                                                        \
+    _cogl_##type_name##_class.virt_free =                               \
+      _cogl_object_##type_name##_indirect_free;                         \
+    _cogl_##type_name##_class.virt_unref =                              \
+      _cogl_object_default_unref;                                       \
+    _cogl_##type_name##_class.name = "Cogl"#TypeName;                   \
+                                                                        \
+    g_hash_table_insert (_cogl_debug_instances,                         \
+                         (void *) _cogl_##type_name##_class.name,       \
+                         &_cogl_object_##type_name##_count);            \
+                                                                        \
+    { code; }                                                           \
+}                                                                       \
+                                                                        \
 static Cogl##TypeName *                                                 \
 _cogl_##type_name##_object_new (Cogl##TypeName *new_obj)                \
 {                                                                       \
@@ -154,28 +193,30 @@ _cogl_##type_name##_object_new (Cogl##TypeName *new_obj)                \
   obj->klass = &_cogl_##type_name##_class;                              \
   if (!obj->klass->virt_free)                                           \
     {                                                                   \
-      _cogl_object_##type_name##_count = 0;                             \
-                                                                        \
-      if (_cogl_debug_instances == NULL)                                \
-        _cogl_debug_instances =                                         \
-          g_hash_table_new (g_str_hash, g_str_equal);                   \
-                                                                        \
-      obj->klass->virt_free =                                           \
-        _cogl_object_##type_name##_indirect_free;                       \
-      obj->klass->virt_unref =                                          \
-        _cogl_object_default_unref;                                     \
-      obj->klass->name = "Cogl"#TypeName,                               \
-                                                                        \
-      g_hash_table_insert (_cogl_debug_instances,                       \
-                           (void *) obj->klass->name,                   \
-                           &_cogl_object_##type_name##_count);          \
-                                                                        \
-      { code; }                                                         \
+      _cogl_object_##type_name##_class_init ();                         \
     }                                                                   \
                                                                         \
   _cogl_object_##type_name##_inc ();                                    \
   _COGL_OBJECT_DEBUG_NEW (TypeName, obj);                               \
   return new_obj;                                                       \
+}
+
+#define COGL_OBJECT_DEFINE_WITH_CODE_GTYPE(TypeName, type_name, code)   \
+                                                                        \
+COGL_OBJECT_COMMON_DEFINE_WITH_CODE(TypeName,                           \
+                                    type_name,                          \
+                                    do { code; } while (0);             \
+                                    _COGL_GTYPE_INIT_CLASS (type_name)) \
+                                                                        \
+CoglBool                                                                \
+cogl_is_##type_name (void *object)                                      \
+{                                                                       \
+  CoglObject *obj = object;                                             \
+                                                                        \
+  if (object == NULL)                                                   \
+    return FALSE;                                                       \
+                                                                        \
+  return obj->klass == &_cogl_##type_name##_class;                      \
 }
 
 #define COGL_OBJECT_DEFINE_WITH_CODE(TypeName, type_name, code)         \
@@ -240,7 +281,7 @@ cogl_##type_name##_unref (void *object)                         \
 }
 
 #define COGL_OBJECT_DEFINE(TypeName, type_name)                 \
-  COGL_OBJECT_DEFINE_WITH_CODE (TypeName, type_name, (void) 0)
+  COGL_OBJECT_DEFINE_WITH_CODE_GTYPE (TypeName, type_name, (void) 0)
 
 #define COGL_OBJECT_INTERNAL_DEFINE(TypeName, type_name)         \
   COGL_OBJECT_INTERNAL_DEFINE_WITH_CODE (TypeName, type_name, (void) 0)

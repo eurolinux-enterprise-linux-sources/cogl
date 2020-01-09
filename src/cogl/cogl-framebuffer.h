@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2011 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  *
@@ -32,10 +38,17 @@
 #include <windows.h>
 #endif /* COGL_HAS_WIN32_SUPPORT */
 
-#ifdef COGL_ENABLE_EXPERIMENTAL_2_0_API
-#include <cogl/cogl2-path.h>
+/* We forward declare the CoglFramebuffer type here to avoid some circular
+ * dependency issues with the following headers.
+ */
+#ifdef __COGL_H_INSIDE__
+/* For the public C api we typedef interface types as void to avoid needing
+ * lots of casting in code and instead we will rely on runtime type checking
+ * for these objects. */
+typedef void CoglFramebuffer;
 #else
-#include <cogl/cogl-path.h>
+typedef struct _CoglFramebuffer CoglFramebuffer;
+#define COGL_FRAMEBUFFER(X) ((CoglFramebuffer *)(X))
 #endif
 
 #include <cogl/cogl-pipeline.h>
@@ -45,6 +58,9 @@
 #include <cogl/cogl-quaternion.h>
 #include <cogl/cogl-euler.h>
 #include <cogl/cogl-texture.h>
+#endif
+#ifdef COGL_HAS_GTYPE_SUPPORT
+#include <glib-object.h>
 #endif
 
 COGL_BEGIN_DECLS
@@ -71,7 +87,7 @@ COGL_BEGIN_DECLS
  *
  * If you want to create a new framebuffer then you should start by
  * looking at the #CoglOnscreen and #CoglOffscreen constructor
- * functions, such as cogl_offscreen_new_to_texture() or
+ * functions, such as cogl_offscreen_new_with_texture() or
  * cogl_onscreen_new(). The #CoglFramebuffer interface deals with
  * all aspects that are common between those two types of framebuffer.
  *
@@ -87,11 +103,16 @@ COGL_BEGIN_DECLS
  * configuration.
  */
 
-typedef struct _CoglFramebuffer CoglFramebuffer;
-
 #ifdef COGL_ENABLE_EXPERIMENTAL_API
 
-#define COGL_FRAMEBUFFER(X) ((CoglFramebuffer *)(X))
+#ifdef COGL_HAS_GTYPE_SUPPORT
+/**
+ * cogl_framebuffer_get_gtype:
+ *
+ * Returns: a #GType that can be used with the GLib type system.
+ */
+GType cogl_framebuffer_get_gtype (void);
+#endif
 
 /**
  * cogl_framebuffer_allocate:
@@ -596,23 +617,6 @@ cogl_framebuffer_push_rectangle_clip (CoglFramebuffer *framebuffer,
                                       float y_2);
 
 /**
- * cogl_framebuffer_push_path_clip:
- * @framebuffer: A #CoglFramebuffer pointer
- * @path: The path to clip with.
- *
- * Sets a new clipping area using the silhouette of the specified,
- * filled @path.  The clipping area is intersected with the previous
- * clipping area. To restore the previous clipping area, call
- * cogl_framebuffer_pop_clip().
- *
- * Since: 1.0
- * Stability: unstable
- */
-void
-cogl_framebuffer_push_path_clip (CoglFramebuffer *framebuffer,
-                                 CoglPath *path);
-
-/**
  * cogl_framebuffer_push_primitive_clip:
  * @framebuffer: A #CoglFramebuffer pointer
  * @primitive: A #CoglPrimitive describing a flat 2D shape
@@ -778,6 +782,39 @@ cogl_framebuffer_set_dither_enabled (CoglFramebuffer *framebuffer,
                                      CoglBool dither_enabled);
 
 /**
+ * cogl_framebuffer_get_depth_write_enabled:
+ * @framebuffer: a pointer to a #CoglFramebuffer
+ *
+ * Queries whether depth buffer writing is enabled for @framebuffer. This
+ * can be controlled via cogl_framebuffer_set_depth_write_enabled().
+ *
+ * Return value: %TRUE if depth writing is enabled or %FALSE if not.
+ * Since: 1.18
+ * Stability: unstable
+ */
+CoglBool
+cogl_framebuffer_get_depth_write_enabled (CoglFramebuffer *framebuffer);
+
+/**
+ * cogl_framebuffer_set_depth_write_enabled:
+ * @framebuffer: a pointer to a #CoglFramebuffer
+ * @depth_write_enabled: %TRUE to enable depth writing or %FALSE to disable
+ *
+ * Enables or disables depth buffer writing when rendering to @framebuffer.
+ * If depth writing is enabled for both the framebuffer and the rendering
+ * pipeline, and the framebuffer has an associated depth buffer, depth
+ * information will be written to this buffer during rendering.
+ *
+ * Depth buffer writing is enabled by default.
+ *
+ * Since: 1.18
+ * Stability: unstable
+ */
+void
+cogl_framebuffer_set_depth_write_enabled (CoglFramebuffer *framebuffer,
+                                          CoglBool depth_write_enabled);
+
+/**
  * cogl_framebuffer_get_color_mask:
  * @framebuffer: a pointer to a #CoglFramebuffer
  *
@@ -808,21 +845,6 @@ cogl_framebuffer_get_color_mask (CoglFramebuffer *framebuffer);
 void
 cogl_framebuffer_set_color_mask (CoglFramebuffer *framebuffer,
                                  CoglColorMask color_mask);
-
-/**
- * cogl_framebuffer_get_color_format:
- * @framebuffer: A #CoglFramebuffer framebuffer
- *
- * Queries the common #CoglPixelFormat of all color buffers attached
- * to this framebuffer. For an offscreen framebuffer created with
- * cogl_offscreen_new_to_texture() this will correspond to the format
- * of the texture.
- *
- * Since: 1.8
- * Stability: unstable
- */
-CoglPixelFormat
-cogl_framebuffer_get_color_format (CoglFramebuffer *framebuffer);
 
 /**
  * cogl_framebuffer_set_depth_texture_enabled:
@@ -1035,8 +1057,8 @@ cogl_framebuffer_resolve_samples_region (CoglFramebuffer *framebuffer,
  * instantiated within. This is the #CoglContext that was passed to
  * cogl_onscreen_new() for example.
  *
- * Return value: The #CoglContext that the given @framebuffer was
- *               instantiated within.
+ * Return value: (transfer none): The #CoglContext that the given
+ *               @framebuffer was instantiated within.
  * Since: 1.8
  * Stability: unstable
  */
@@ -1111,7 +1133,10 @@ cogl_framebuffer_clear4f (CoglFramebuffer *framebuffer,
  *
  * Stability: unstable
  * Since: 1.10
+ * Deprecated: 1.16: Use #CoglPrimitive<!-- -->s and
+ *                   cogl_primitive_draw() instead
  */
+COGL_DEPRECATED_IN_1_16_FOR (cogl_primitive_draw)
 void
 cogl_framebuffer_draw_primitive (CoglFramebuffer *framebuffer,
                                  CoglPipeline *pipeline,
@@ -1146,7 +1171,10 @@ cogl_framebuffer_draw_primitive (CoglFramebuffer *framebuffer,
  *
  * Stability: unstable
  * Since: 1.10
+ * Deprecated: 1.16: Use #CoglPrimitive<!-- -->s and
+ *                   cogl_primitive_draw() instead
  */
+COGL_DEPRECATED_IN_1_16_FOR (cogl_primitive_draw)
 void
 cogl_framebuffer_vdraw_attributes (CoglFramebuffer *framebuffer,
                                    CoglPipeline *pipeline,
@@ -1190,7 +1218,10 @@ cogl_framebuffer_vdraw_attributes (CoglFramebuffer *framebuffer,
  *
  * Stability: unstable
  * Since: 1.10
+ * Deprecated: 1.16: Use #CoglPrimitive<!-- -->s and
+ *                   cogl_primitive_draw() instead
  */
+COGL_DEPRECATED_IN_1_16_FOR (cogl_primitive_draw)
 void
 cogl_framebuffer_draw_attributes (CoglFramebuffer *framebuffer,
                                   CoglPipeline *pipeline,
@@ -1253,7 +1284,10 @@ cogl_framebuffer_draw_attributes (CoglFramebuffer *framebuffer,
  *
  * Stability: unstable
  * Since: 1.10
+ * Deprecated: 1.16: Use #CoglPrimitive<!-- -->s and
+ *                   cogl_primitive_draw() instead
  */
+COGL_DEPRECATED_IN_1_16_FOR (cogl_primitive_draw)
 void
 cogl_framebuffer_vdraw_indexed_attributes (CoglFramebuffer *framebuffer,
                                            CoglPipeline *pipeline,
@@ -1318,7 +1352,10 @@ cogl_framebuffer_vdraw_indexed_attributes (CoglFramebuffer *framebuffer,
  *
  * Stability: unstable
  * Since: 1.10
+ * Deprecated: 1.16: Use #CoglPrimitive<!-- -->s and
+ *                   cogl_primitive_draw() instead
  */
+COGL_DEPRECATED_IN_1_16_FOR (cogl_primitive_draw)
 void
 cogl_framebuffer_draw_indexed_attributes (CoglFramebuffer *framebuffer,
                                           CoglPipeline *pipeline,
@@ -1387,11 +1424,9 @@ cogl_framebuffer_draw_rectangle (CoglFramebuffer *framebuffer,
  * This is a high level drawing api that can handle any kind of
  * #CoglMetaTexture texture such as #CoglTexture2DSliced textures
  * which may internally be comprised of multiple low-level textures.
- * This is unlike low-level drawing apis such as
- * cogl_framebuffer_draw_primitive() or
- * cogl_framebuffer_draw_attributes() which only support low level
- * texture types that are directly supported by GPUs such as
- * #CoglTexture2D.
+ * This is unlike low-level drawing apis such as cogl_primitive_draw()
+ * which only support low level texture types that are directly
+ * supported by GPUs such as #CoglTexture2D.
  *
  * <note>The given texture coordinates will only be used for the first
  * texture layer of the pipeline and if your pipeline has more than
@@ -1454,10 +1489,8 @@ cogl_framebuffer_draw_textured_rectangle (CoglFramebuffer *framebuffer,
  * #CoglMetaTexture texture for the first layer such as
  * #CoglTexture2DSliced textures which may internally be comprised of
  * multiple low-level textures.  This is unlike low-level drawing apis
- * such as cogl_framebuffer_draw_primitive() or
- * cogl_framebuffer_draw_attributes() which only support low level
- * texture types that are directly supported by GPUs such as
- * #CoglTexture2D.
+ * such as cogl_primitive_draw() which only support low level texture
+ * types that are directly supported by GPUs such as #CoglTexture2D.
  *
  * <note>This api can not currently handle multiple high-level meta
  * texture layers. The first layer may be a high level meta texture
@@ -1562,11 +1595,9 @@ cogl_framebuffer_draw_rectangles (CoglFramebuffer *framebuffer,
  * This is a high level drawing api that can handle any kind of
  * #CoglMetaTexture texture such as #CoglTexture2DSliced textures
  * which may internally be comprised of multiple low-level textures.
- * This is unlike low-level drawing apis such as
- * cogl_framebuffer_draw_primitive() or
- * cogl_framebuffer_draw_attributes() which only support low level
- * texture types that are directly supported by GPUs such as
- * #CoglTexture2D.
+ * This is unlike low-level drawing apis such as cogl_primitive_draw()
+ * which only support low level texture types that are directly
+ * supported by GPUs such as #CoglTexture2D.
  *
  * The top left corner of the first rectangle is positioned at
  * (coordinates[0], coordinates[1]) and the bottom right corner is
@@ -1601,47 +1632,6 @@ cogl_framebuffer_draw_textured_rectangles (CoglFramebuffer *framebuffer,
                                            CoglPipeline *pipeline,
                                            const float *coordinates,
                                            unsigned int n_rectangles);
-
-/**
- * cogl_framebuffer_fill_path:
- * @framebuffer: A #CoglFramebuffer
- * @pipeline: A #CoglPipeline to render with
- * @path: The #CoglPath to fill
- *
- * Fills the interior of the path using the fragment operations
- * defined by the pipeline.
- *
- * The interior of the shape is determined using the fill rule of the
- * path. See %CoglPathFillRule for details.
- *
- * <note>The result of referencing sliced textures in your current
- * pipeline when filling a path are undefined. You should pass
- * the %COGL_TEXTURE_NO_SLICING flag when loading any texture you will
- * use while filling a path.</note>
- *
- * Since: 2.0
- */
-void
-cogl_framebuffer_fill_path (CoglFramebuffer *framebuffer,
-                            CoglPipeline *pipeline,
-                            CoglPath *path);
-
-/**
- * cogl_framebuffer_stroke_path:
- * @framebuffer: A #CoglFramebuffer
- * @pipeline: A #CoglPipeline to render with
- * @path: The #CoglPath to stroke
- *
- * Strokes the edge of the path using the fragment operations defined
- * by the pipeline. The stroke line will have a width of 1 pixel
- * regardless of the current transformation matrix.
- *
- * Since: 2.0
- */
-void
-cogl_framebuffer_stroke_path (CoglFramebuffer *framebuffer,
-                              CoglPipeline *pipeline,
-                              CoglPath *path);
 
 /* XXX: Should we take an n_buffers + buffer id array instead of using
  * the CoglBufferBits type which doesn't seem future proof? */
@@ -1783,7 +1773,7 @@ cogl_framebuffer_read_pixels (CoglFramebuffer *framebuffer,
  * Gets the current #CoglFramebuffer as set using
  * cogl_push_framebuffer()
  *
- * Return value: The current #CoglFramebuffer
+ * Return value: (transfer none): The current #CoglFramebuffer
  * Stability: unstable
  * Since: 1.8
  */
@@ -1826,4 +1816,3 @@ cogl_is_framebuffer (void *object);
 COGL_END_DECLS
 
 #endif /* __COGL_FRAMEBUFFER_H */
-

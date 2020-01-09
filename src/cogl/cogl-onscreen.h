@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
- * Copyright (C) 2011,2012 Intel Corporation.
+ * Copyright (C) 2011,2012,2013 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  *
@@ -37,13 +43,26 @@
 #include <cogl/cogl-frame-info.h>
 #include <cogl/cogl-object.h>
 
+#ifdef COGL_HAS_GTYPE_SUPPORT
+#include <glib-object.h>
+#endif
+
 COGL_BEGIN_DECLS
 
 typedef struct _CoglOnscreen CoglOnscreen;
 #define COGL_ONSCREEN(X) ((CoglOnscreen *)(X))
 
+#ifdef COGL_HAS_GTYPE_SUPPORT
 /**
- * cogl_onscreen_new:
+ * cogl_onscreen_get_gtype:
+ *
+ * Returns: a #GType that can be used with the GLib type system.
+ */
+GType cogl_onscreen_get_gtype (void);
+#endif
+
+/**
+ * cogl_onscreen_new: (constructor)
  * @context: A #CoglContext
  * @width: The desired framebuffer width
  * @height: The desired framebuffer height
@@ -52,7 +71,7 @@ typedef struct _CoglOnscreen CoglOnscreen;
  * configured before later being allocated, either implicitly when
  * it is first used or explicitly via cogl_framebuffer_allocate().
  *
- * Return value: A newly instantiated #CoglOnscreen framebuffer
+ * Return value: (transfer full): A newly instantiated #CoglOnscreen framebuffer
  * Since: 1.8
  * Stability: unstable
  */
@@ -188,17 +207,36 @@ struct wl_shell_surface *
 cogl_wayland_onscreen_get_shell_surface (CoglOnscreen *onscreen);
 
 /**
+ * cogl_wayland_onscreen_set_foreign_surface:
+ * @onscreen: An unallocated framebuffer.
+ * @surface A Wayland surface to associate with the @onscreen.
+ *
+ * Allows you to explicitly notify Cogl of an existing Wayland surface to use,
+ * which prevents Cogl from allocating a surface and shell surface for the
+ * @onscreen. An allocated surface will not be destroyed when the @onscreen is
+ * freed.
+ *
+ * This function must be called before @onscreen is allocated.
+ *
+ * Since: 1.16
+ * Stability: unstable
+ */
+void
+cogl_wayland_onscreen_set_foreign_surface (CoglOnscreen *onscreen,
+                                           struct wl_surface *surface);
+
+/**
  * cogl_wayland_onscreen_resize:
  * @onscreen: A #CoglOnscreen framebuffer
  * @width: The desired width of the framebuffer
  * @height: The desired height of the framebuffer
  * @offset_x: A relative x offset for the new framebuffer
- * @offset_y: A relative x offset for the new framebuffer
+ * @offset_y: A relative y offset for the new framebuffer
  *
- * Queues a resize of the given @onscreen framebuffer which will be applied
- * during the next swap buffers request. Since a buffer is usually conceptually
- * scaled with a center point the @offset_x and @offset_y arguments allow the
- * newly allocated buffer to be positioned relative to the old buffer size.
+ * Resizes the backbuffer of the given @onscreen framebuffer to the
+ * given size. Since a buffer is usually conceptually scaled with a
+ * center point the @offset_x and @offset_y arguments allow the newly
+ * allocated buffer to be positioned relative to the old buffer size.
  *
  * For example a buffer that is being resized by moving the bottom right
  * corner, and the top left corner is remaining static would use x and y
@@ -209,9 +247,14 @@ cogl_wayland_onscreen_get_shell_surface (CoglOnscreen *onscreen);
  * x/y_size_increase is how many pixels bigger the buffer is on the x and y
  * axis.
  *
- * If cogl_wayland_onscreen_resize() is called multiple times before the next
- * swap buffers request then the relative x and y offsets accumulate instead of
- * being replaced. The @width and @height values superseed the old values.
+ * Note that if some drawing commands have been applied to the
+ * framebuffer since the last swap buffers then the resize will be
+ * queued and will only take effect in the next swap buffers.
+ *
+ * If multiple calls to cogl_wayland_onscreen_resize() get queued
+ * before the next swap buffers request then the relative x and y
+ * offsets accumulate instead of being replaced. The @width and
+ * @height values superseed the old values.
  *
  * Since: 1.10
  * Stability: unstable
@@ -253,6 +296,12 @@ cogl_onscreen_set_swap_throttled (CoglOnscreen *onscreen,
  *
  * This function will implicitly allocate the given @onscreen
  * framebuffer before showing it if it hasn't already been allocated.
+ *
+ * When using the Wayland winsys calling this will set the surface to
+ * a toplevel type which will make it appear. If the application wants
+ * to set a different type for the surface, it can avoid calling
+ * cogl_onscreen_show() and set its own type directly with the Wayland
+ * client API via cogl_wayland_onscreen_get_surface().
  *
  * <note>Since Cogl doesn't explicitly track the visibility status of
  * onscreen framebuffers it wont try to avoid redundant window system
@@ -303,6 +352,12 @@ cogl_onscreen_hide (CoglOnscreen *onscreen);
  * start a new frame that incrementally builds on the contents of the previous
  * frame.
  *
+ * <note>It is highly recommended that applications use
+ * cogl_onscreen_swap_buffers_with_damage() instead whenever possible
+ * and also use the cogl_onscreen_get_buffer_age() api so they can
+ * perform incremental updates to older buffers instead of having to
+ * render a full buffer for every frame.</note>
+ *
  * Since: 1.10
  * Stability: unstable
  */
@@ -348,6 +403,11 @@ cogl_onscreen_swap_buffers (CoglOnscreen *onscreen);
  * of back buffers then this function will always return 0 which
  * implies that the contents are undefined.</note>
  *
+ * <note>The %COGL_FEATURE_ID_BUFFER_AGE feature can optionally be
+ * explicitly checked to determine if Cogl is currently tracking the
+ * age of #CoglOnscreen back buffer contents. If this feature is
+ * missing then this function will always return 0.</note>
+ *
  * Return value: The age of the buffer contents or 0 when the buffer
  *               contents are undefined.
  *
@@ -356,6 +416,59 @@ cogl_onscreen_swap_buffers (CoglOnscreen *onscreen);
  */
 int
 cogl_onscreen_get_buffer_age (CoglOnscreen *onscreen);
+
+/**
+ * cogl_onscreen_swap_buffers_with_damage:
+ * @onscreen: A #CoglOnscreen framebuffer
+ * @rectangles: An array of integer 4-tuples representing damaged
+ *              rectangles as (x, y, width, height) tuples.
+ * @n_rectangles: The number of 4-tuples to be read from @rectangles
+ *
+ * Swaps the current back buffer being rendered too, to the front for
+ * display and provides information to any system compositor about
+ * what regions of the buffer have changed (damage) with respect to
+ * the last swapped buffer.
+ *
+ * This function has the same semantics as
+ * cogl_framebuffer_swap_buffers() except that it additionally allows
+ * applications to pass a list of damaged rectangles which may be
+ * passed on to a compositor so that it can minimize how much of the
+ * screen is redrawn in response to this applications newly swapped
+ * front buffer.
+ *
+ * For example if your application is only animating a small object in
+ * the corner of the screen and everything else is remaining static
+ * then it can help the compositor to know that only the bottom right
+ * corner of your newly swapped buffer has really changed with respect
+ * to your previously swapped front buffer.
+ *
+ * If @n_rectangles is 0 then the whole buffer will implicitly be
+ * reported as damaged as if cogl_onscreen_swap_buffers() had been
+ * called.
+ *
+ * This function also implicitly discards the contents of the color,
+ * depth and stencil buffers as if cogl_framebuffer_discard_buffers()
+ * were used. The significance of the discard is that you should not
+ * expect to be able to start a new frame that incrementally builds on
+ * the contents of the previous frame. If you want to perform
+ * incremental updates to older back buffers then please refer to the
+ * cogl_onscreen_get_buffer_age() api.
+ *
+ * Whenever possible it is recommended that applications use this
+ * function instead of cogl_onscreen_swap_buffers() to improve
+ * performance when running under a compositor.
+ *
+ * <note>It is highly recommended to use this API in conjunction with
+ * the cogl_onscreen_get_buffer_age() api so that your application can
+ * perform incremental rendering based on old back buffers.</note>
+ *
+ * Since: 1.16
+ * Stability: unstable
+ */
+void
+cogl_onscreen_swap_buffers_with_damage (CoglOnscreen *onscreen,
+                                        const int *rectangles,
+                                        int n_rectangles);
 
 /**
  * cogl_onscreen_swap_region:
@@ -455,15 +568,24 @@ typedef void (*CoglFrameCallback) (CoglOnscreen *onscreen,
  * Since: 1.14
  * Stability: unstable
  */
-typedef struct _CoglFrameClosure CoglFrameClosure;
+typedef struct _CoglClosure CoglFrameClosure;
+
+#ifdef COGL_HAS_GTYPE_SUPPORT
+/**
+ * cogl_frame_closure_get_gtype:
+ *
+ * Returns: a #GType that can be used with the GLib type system.
+ */
+GType cogl_frame_closure_get_gtype (void);
+#endif
 
 /**
  * cogl_onscreen_add_frame_callback:
  * @onscreen: A #CoglOnscreen framebuffer
- * @callback: A callback function to call for frame events
- * @user_data: A private pointer to be passed to @callback
- * @destroy: An optional callback to destroy @user_data when the
- *           @callback is removed or @onscreen is freed.
+ * @callback: (scope notified): A callback function to call for frame events
+ * @user_data: (closure): A private pointer to be passed to @callback
+ * @destroy: (allow-none): An optional callback to destroy @user_data
+ *           when the @callback is removed or @onscreen is freed.
  *
  * Installs a @callback function that will be called for significant
  * events relating to the given @onscreen framebuffer.
@@ -526,8 +648,9 @@ typedef void (*CoglSwapBuffersNotify) (CoglFramebuffer *framebuffer,
 /**
  * cogl_onscreen_add_swap_buffers_callback:
  * @onscreen: A #CoglOnscreen framebuffer
- * @callback: A callback function to call when a swap has completed
- * @user_data: A private pointer to be passed to @callback
+ * @callback: (scope notified): A callback function to call when a swap
+ *            has completed
+ * @user_data: (closure): A private pointer to be passed to @callback
  *
  * Installs a @callback function that should be called whenever a swap buffers
  * request (made using cogl_onscreen_swap_buffers()) for the given
@@ -546,8 +669,9 @@ typedef void (*CoglSwapBuffersNotify) (CoglFramebuffer *framebuffer,
  *               the callback later.
  * Since: 1.10
  * Stability: unstable
- * Deprecated: 1.14: Use cogl_onscreen_add_swap_complete_callback
+ * Deprecated: 1.14: Use cogl_onscreen_add_frame_callback() instead
  */
+COGL_DEPRECATED_IN_1_14_FOR (cogl_onscreen_add_frame_callback)
 unsigned int
 cogl_onscreen_add_swap_buffers_callback (CoglOnscreen *onscreen,
                                          CoglSwapBuffersNotify callback,
@@ -563,8 +687,10 @@ cogl_onscreen_add_swap_buffers_callback (CoglOnscreen *onscreen,
  *
  * Since: 1.10
  * Stability: unstable
- * Deprecated: 1.14: Use cogl_onscreen_remove_swap_complete_callback
+ * Deprecated: 1.14: Use cogl_onscreen_remove_frame_callback() instead
  */
+
+COGL_DEPRECATED_IN_1_14_FOR (cogl_onscreen_remove_frame_callback)
 void
 cogl_onscreen_remove_swap_buffers_callback (CoglOnscreen *onscreen,
                                             unsigned int id);
@@ -593,7 +719,7 @@ cogl_onscreen_remove_swap_buffers_callback (CoglOnscreen *onscreen,
  * will be automatically updated to match the new size of the
  * framebuffer with an origin of (0,0). If your application needs more
  * specialized control of the viewport it will need to register a
- * resize handler using cogl_onscreen_add_resize_handler() so that it
+ * resize handler using cogl_onscreen_add_resize_callback() so that it
  * can track when the viewport has been changed automatically.</note>
  *
  * Since: 2.0
@@ -634,10 +760,10 @@ cogl_onscreen_get_resizable (CoglOnscreen *onscreen);
  * @width: The new width of @onscreen
  * @height: The new height of @onscreen
  * @user_data: The private passed to
- *             cogl_onscreen_add_resize_handler()
+ *             cogl_onscreen_add_resize_callback()
  *
  * Is a callback type used with the
- * cogl_onscreen_add_resize_handler() allowing applications to be
+ * cogl_onscreen_add_resize_callback() allowing applications to be
  * notified whenever an @onscreen framebuffer is resized.
  *
  * <note>Cogl automatically updates the viewport of an @onscreen
@@ -646,8 +772,8 @@ cogl_onscreen_get_resizable (CoglOnscreen *onscreen);
  *
  * <note>A resize callback will only ever be called while dispatching
  * Cogl events from the system mainloop; so for example during
- * cogl_poll_dispatch(). This is so that callbacks shouldn't occur
- * while an application might have arbitrary locks held for
+ * cogl_poll_renderer_dispatch(). This is so that callbacks shouldn't
+ * occur while an application might have arbitrary locks held for
  * example.</note>
  *
  * Since: 2.0
@@ -658,18 +784,43 @@ typedef void (*CoglOnscreenResizeCallback) (CoglOnscreen *onscreen,
                                             void *user_data);
 
 /**
- * cogl_onscreen_add_resize_handler:
+ * CoglOnscreenResizeClosure:
+ *
+ * An opaque type that tracks a #CoglOnscreenResizeCallback and
+ * associated user data. A #CoglOnscreenResizeClosure pointer will be
+ * returned from cogl_onscreen_add_resize_callback() and it allows you
+ * to remove a callback later using
+ * cogl_onscreen_remove_resize_callback().
+ *
+ * Since: 2.0
+ * Stability: unstable
+ */
+typedef struct _CoglClosure CoglOnscreenResizeClosure;
+
+#ifdef COGL_HAS_GTYPE_SUPPORT
+/**
+ * cogl_onscreen_resize_closure_get_gtype:
+ *
+ * Returns: a #GType that can be used with the GLib type system.
+ */
+GType cogl_onscreen_resize_closure_get_gtype (void);
+#endif
+
+/**
+ * cogl_onscreen_add_resize_callback:
  * @onscreen: A #CoglOnscreen framebuffer
- * @callback: A #CoglOnscreenResizeCallback to call when the @onscreen
- *            changes size.
- * @user_data: Private data to be passed to @callback.
+ * @callback: (scope notified): A #CoglOnscreenResizeCallback to call when
+ *            the @onscreen changes size.
+ * @user_data: (closure): Private data to be passed to @callback.
+ * @destroy: (allow-none): An optional callback to destroy @user_data
+ *           when the @callback is removed or @onscreen is freed.
  *
  * Registers a @callback with @onscreen that will be called whenever
  * the @onscreen framebuffer changes size.
  *
  * The @callback can be removed using
- * cogl_onscreen_remove_resize_handler() passing the same @callback
- * and @user_data pair.
+ * cogl_onscreen_remove_resize_callback() passing the returned closure
+ * pointer.
  *
  * <note>Since Cogl automatically updates the viewport of an @onscreen
  * framebuffer that is resized, a resize callback can also be used to
@@ -679,33 +830,153 @@ typedef void (*CoglOnscreenResizeCallback) (CoglOnscreen *onscreen,
  *
  * <note>A resize callback will only ever be called while dispatching
  * Cogl events from the system mainloop; so for example during
- * cogl_poll_dispatch(). This is so that callbacks shouldn't occur
- * while an application might have arbitrary locks held for
+ * cogl_poll_renderer_dispatch(). This is so that callbacks shouldn't
+ * occur while an application might have arbitrary locks held for
  * example.</note>
  *
- * Return value: a unique identifier that can be used to remove to remove
- *               the callback later.
- *
+ * Return value: a #CoglOnscreenResizeClosure pointer that can be used to
+ *               remove the callback and associated @user_data later.
  * Since: 2.0
  */
-unsigned int
-cogl_onscreen_add_resize_handler (CoglOnscreen *onscreen,
-                                  CoglOnscreenResizeCallback callback,
-                                  void *user_data);
+CoglOnscreenResizeClosure *
+cogl_onscreen_add_resize_callback (CoglOnscreen *onscreen,
+                                   CoglOnscreenResizeCallback callback,
+                                   void *user_data,
+                                   CoglUserDataDestroyCallback destroy);
 
 /**
- * cogl_onscreen_remove_resize_handler:
+ * cogl_onscreen_remove_resize_callback:
  * @onscreen: A #CoglOnscreen framebuffer
- * @id: An identifier returned from cogl_onscreen_add_resize_handler()
+ * @closure: An identifier returned from cogl_onscreen_add_resize_callback()
  *
  * Removes a resize @callback and @user_data pair that were previously
- * associated with @onscreen via cogl_onscreen_add_resize_handler().
+ * associated with @onscreen via cogl_onscreen_add_resize_callback().
  *
  * Since: 2.0
  */
 void
-cogl_onscreen_remove_resize_handler (CoglOnscreen *onscreen,
-                                     unsigned int id);
+cogl_onscreen_remove_resize_callback (CoglOnscreen *onscreen,
+                                      CoglOnscreenResizeClosure *closure);
+
+/**
+ * CoglOnscreenDirtyInfo:
+ * @x: Left edge of the dirty rectangle
+ * @y: Top edge of the dirty rectangle, measured from the top of the window
+ * @width: Width of the dirty rectangle
+ * @height: Height of the dirty rectangle
+ *
+ * A structure passed to callbacks registered using
+ * cogl_onscreen_add_dirty_callback(). The members describe a
+ * rectangle within the onscreen buffer that should be redrawn.
+ *
+ * Since: 1.16
+ * Stability: unstable
+ */
+typedef struct _CoglOnscreenDirtyInfo CoglOnscreenDirtyInfo;
+
+struct _CoglOnscreenDirtyInfo
+{
+  int x, y;
+  int width, height;
+};
+
+/**
+ * CoglOnscreenDirtyCallback:
+ * @onscreen: The onscreen that the frame is associated with
+ * @info: A #CoglOnscreenDirtyInfo struct containing the details of the
+ *   dirty area
+ * @user_data: The user pointer passed to
+ *             cogl_onscreen_add_frame_callback()
+ *
+ * Is a callback that can be registered via
+ * cogl_onscreen_add_dirty_callback() to be called when the windowing
+ * system determines that a region of the onscreen window has been
+ * lost and the application should redraw it.
+ *
+ * Since: 1.16
+ * Stability: unstable
+ */
+typedef void (*CoglOnscreenDirtyCallback) (CoglOnscreen *onscreen,
+                                           const CoglOnscreenDirtyInfo *info,
+                                           void *user_data);
+
+/**
+ * CoglOnscreenDirtyClosure:
+ *
+ * An opaque type that tracks a #CoglOnscreenDirtyCallback and associated
+ * user data. A #CoglOnscreenDirtyClosure pointer will be returned from
+ * cogl_onscreen_add_dirty_callback() and it allows you to remove a
+ * callback later using cogl_onscreen_remove_dirty_callback().
+ *
+ * Since: 1.16
+ * Stability: unstable
+ */
+typedef struct _CoglClosure CoglOnscreenDirtyClosure;
+
+#ifdef COGL_HAS_GTYPE_SUPPORT
+/**
+ * cogl_onscreen_dirty_closure_get_gtype:
+ *
+ * Returns: a #GType that can be used with the GLib type system.
+ */
+GType cogl_onscreen_dirty_closure_get_gtype (void);
+#endif
+
+/**
+ * cogl_onscreen_add_dirty_callback:
+ * @onscreen: A #CoglOnscreen framebuffer
+ * @callback: (scope notified): A callback function to call for dirty events
+ * @user_data: (closure): A private pointer to be passed to @callback
+ * @destroy: (allow-none): An optional callback to destroy @user_data when the
+ *           @callback is removed or @onscreen is freed.
+ *
+ * Installs a @callback function that will be called whenever the
+ * window system has lost the contents of a region of the onscreen
+ * buffer and the application should redraw it to repair the buffer.
+ * For example this may happen in a window system without a compositor
+ * if a window that was previously covering up the onscreen window has
+ * been moved causing a region of the onscreen to be exposed.
+ *
+ * The @callback will be passed a #CoglOnscreenDirtyInfo struct which
+ * decribes a rectangle containing the newly dirtied region. Note that
+ * this may be called multiple times to describe a non-rectangular
+ * region composed of multiple smaller rectangles.
+ *
+ * The dirty events are separate from %COGL_FRAME_EVENT_SYNC events so
+ * the application should also listen for this event before rendering
+ * the dirty region to ensure that the framebuffer is actually ready
+ * for rendering.
+ *
+ * Return value: a #CoglOnscreenDirtyClosure pointer that can be used to
+ *               remove the callback and associated @user_data later.
+ * Since: 1.16
+ * Stability: unstable
+ */
+CoglOnscreenDirtyClosure *
+cogl_onscreen_add_dirty_callback (CoglOnscreen *onscreen,
+                                  CoglOnscreenDirtyCallback callback,
+                                  void *user_data,
+                                  CoglUserDataDestroyCallback destroy);
+
+/**
+ * cogl_onscreen_remove_dirty_callback:
+ * @onscreen: A #CoglOnscreen
+ * @closure: A #CoglOnscreenDirtyClosure returned from
+ *           cogl_onscreen_add_dirty_callback()
+ *
+ * Removes a callback and associated user data that were previously
+ * registered using cogl_onscreen_add_dirty_callback().
+ *
+ * If a destroy callback was passed to
+ * cogl_onscreen_add_dirty_callback() to destroy the user data then
+ * this will also get called.
+ *
+ * Since: 1.16
+ * Stability: unstable
+ */
+void
+cogl_onscreen_remove_dirty_callback (CoglOnscreen *onscreen,
+                                     CoglOnscreenDirtyClosure *closure);
 
 /**
  * cogl_is_onscreen:

@@ -3,18 +3,18 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Versioning utility macros</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Cogl 2.0 Reference Manual">
 <link rel="up" href="cogl-utilities.html" title="Utilities">
-<link rel="prev" href="cogl-2.0-experimental-Quaternions-(Rotations).html" title="Quaternions (Rotations)">
+<link rel="prev" href="cogl-2.0-experimental-GPU-synchronisation-fences.html" title="GPU synchronisation fences">
 <link rel="next" href="cogl-integration.html" title="Binding and Integrating">
-<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.19.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
 <tr valign="middle">
-<td><a accesskey="p" href="cogl-2.0-experimental-Quaternions-(Rotations).html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="p" href="cogl-2.0-experimental-GPU-synchronisation-fences.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
 <td><a accesskey="u" href="cogl-utilities.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
 <th width="100%" align="center">Cogl 2.0 Reference Manual</th>
@@ -58,6 +58,226 @@
 <p>
 Cogl offers a set of macros for checking the version of the library
 at compile time.
+</p>
+<p>
+Cogl adds version information to both API deprecations and additions;
+by definining the macros <code class="literal">COGL_VERSION_MIN_REQUIRED</code> and
+<code class="literal">COGL_VERSION_MAX_ALLOWED</code>, you can specify the range of Cogl versions
+whose API you want to use. Functions that were deprecated before, or
+introduced after, this range will trigger compiler warnings. For instance,
+if we define the following symbols:
+</p>
+<p>
+</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
+
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+COGL_VERSION_MIN_REQUIRED = COGL_VERSION_1_6
+  COGL_VERSION_MAX_ALLOWED  = COGL_VERSION_1_8</pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p>
+</p>
+<p>
+and we have the following functions annotated in the Cogl headers:
+</p>
+<p>
+</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
+
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Type { color: #008000; text-decoration: underline; }
+
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+COGL_DEPRECATED_IN_1_4 <span class="type">void</span> cogl_function_A (<span class="type">void</span>);
+  COGL_DEPRECATED_IN_1_6 <span class="type">void</span> cogl_function_B (<span class="type">void</span>);
+  COGL_AVAILABLE_IN_1_8 <span class="type">void</span> cogl_function_C (<span class="type">void</span>);
+  COGL_AVAILABLE_IN_1_10 <span class="type">void</span> cogl_function_D (<span class="type">void</span>);</pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p>
+</p>
+<p>
+then any application code using the functions above will get the output:
+</p>
+<p>
+</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
+
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Statement { color: #008080; font-weight: bold; }
+
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+<span class="keyword">cogl_function_A</span>: deprecation warning
+  <span class="keyword">cogl_function_B</span>: no warning
+  <span class="keyword">cogl_function_C</span>: no warning
+  <span class="keyword">cogl_function_D</span>: symbol <span class="keyword">not</span> available warning</pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p>
+</p>
+<p>
+It is possible to disable the compiler warnings by defining the macro
+<code class="literal">COGL_DISABLE_DEPRECATION_WARNINGS</code> before including the cogl.h
+header.
 </p>
 </div>
 <div class="refsect1">
@@ -132,10 +352,62 @@ following code to provide a workaround:
         <td class="listing_lines" align="right"><pre>1
 2
 3
-4</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="preproc">#if</span><span class="normal"> <a href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION:CAPS">COGL_VERSION</a> </span><span class="symbol">&gt;=</span><span class="normal"> </span><span class="function"><a href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION-ENCODE:CAPS">COGL_VERSION_ENCODE</a></span><span class="normal"> </span><span class="symbol">(</span><span class="number">1</span><span class="symbol">,</span><span class="normal"> </span><span class="number">3</span><span class="symbol">,</span><span class="normal"> </span><span class="number">2</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">&amp;&amp;</span><span class="normal"> </span><span class="symbol">\</span>
-<span class="normal">    <a href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION:CAPS">COGL_VERSION</a> </span><span class="symbol">&lt;=</span><span class="normal"> </span><span class="function"><a href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION-ENCODE:CAPS">COGL_VERSION_ENCODE</a></span><span class="normal"> </span><span class="symbol">(</span><span class="number">1</span><span class="symbol">,</span><span class="normal"> </span><span class="number">3</span><span class="symbol">,</span><span class="normal"> </span><span class="number">4</span><span class="symbol">)</span>
-<span class="normal">  </span><span class="comment">/* Do the workaround */</span>
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
+
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.PreProc { color: #c000c0; text-decoration: underline; }
+.Constant { color: #0000c0; text-decoration: underline; }
+.Comment { color: #c00000; font-weight: bold; }
+
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+<span class="preproc">#if COGL_VERSION &gt;= COGL_VERSION_ENCODE (</span><span class="number">1</span><span class="preproc">, </span><span class="number">3</span><span class="preproc">, </span><span class="number">2</span><span class="preproc">) &amp;&amp; \</span>
+<span class="preproc">    COGL_VERSION &lt;= COGL_VERSION_ENCODE (</span><span class="number">1</span><span class="preproc">, </span><span class="number">3</span><span class="preproc">, </span><span class="number">4</span><span class="preproc">)</span>
+  <span class="comment">/*</span><span class="comment"> Do the workaround </span><span class="comment">*/</span>
 <span class="preproc">#endif</span></pre></td>
       </tr>
     </tbody>
@@ -188,12 +460,64 @@ you could write the following:
 3
 4
 5
-6</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="preproc">#if</span><span class="normal"> </span><span class="function"><a href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION-CHECK:CAPS">COGL_VERSION_CHECK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="number">2</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal"> </span><span class="number">1</span><span class="symbol">)</span>
-<span class="function">cogl_pipeline_frobnicate</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">pipeline</span><span class="symbol">);</span>
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
+
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.PreProc { color: #c000c0; text-decoration: underline; }
+.Constant { color: #0000c0; text-decoration: underline; }
+.Comment { color: #c00000; font-weight: bold; }
+
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+<span class="preproc">#if COGL_VERSION_CHECK (</span><span class="number">2</span><span class="preproc">, </span><span class="number">0</span><span class="preproc">, </span><span class="number">1</span><span class="preproc">)</span>
+cogl_pipeline_frobnicate (pipeline);
 <span class="preproc">#else</span>
-<span class="comment">/* Frobnication is not supported. Use a red color instead */</span>
-<span class="function">cogl_pipeline_set_color_4f</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">pipeline</span><span class="symbol">,</span><span class="normal"> </span><span class="number">1</span><span class="symbol">.</span><span class="normal">0f</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">.</span><span class="normal">0f</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">.</span><span class="normal">0f</span><span class="symbol">,</span><span class="normal"> </span><span class="number">1</span><span class="symbol">.</span><span class="normal">0f</span><span class="symbol">);</span>
+<span class="comment">/*</span><span class="comment"> Frobnication is not supported. Use a red color instead </span><span class="comment">*/</span>
+cogl_pipeline_set_color_4f (pipeline, <span class="number">1.0f</span>, <span class="number">0.0f</span>, <span class="number">0.0f</span>, <span class="number">1.0f</span>);
 <span class="preproc">#endif</span></pre></td>
       </tr>
     </tbody>
@@ -223,7 +547,7 @@ you could write the following:
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the Cogl version being compiled against is
+<code class="literal">TRUE</code> if the Cogl version being compiled against is
 greater than or equal to the given three part version number.</td>
 </tr>
 </tbody>
@@ -291,6 +615,6 @@ Extracts the micro part of an encoded version number.
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18.1</div>
+          Generated by GTK-Doc V1.19.1</div>
 </body>
 </html>

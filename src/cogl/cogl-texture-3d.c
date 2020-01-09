@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2010 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * Authors:
  *  Neil Roberts   <neil@linux.intel.com>
@@ -40,6 +47,7 @@
 #include "cogl-pipeline-opengl-private.h"
 #include "cogl-error-private.h"
 #include "cogl-util-gl-private.h"
+#include "cogl-gtype-private.h"
 
 #include <string.h>
 #include <math.h>
@@ -55,6 +63,8 @@
 static void _cogl_texture_3d_free (CoglTexture3D *tex_3d);
 
 COGL_TEXTURE_DEFINE (Texture3D, texture_3d);
+COGL_GTYPE_DEFINE_CLASS (Texture3D, texture_3d,
+                         COGL_GTYPE_IMPLEMENT_INTERFACE (texture));
 
 static const CoglTextureVtable cogl_texture_3d_vtable;
 
@@ -116,12 +126,14 @@ _cogl_texture_3d_create_base (CoglContext *ctx,
                               int width,
                               int height,
                               int depth,
-                              CoglPixelFormat internal_format)
+                              CoglPixelFormat internal_format,
+                              CoglTextureLoader *loader)
 {
   CoglTexture3D *tex_3d = g_new (CoglTexture3D, 1);
   CoglTexture *tex = COGL_TEXTURE (tex_3d);
 
-  _cogl_texture_init (tex, ctx, width, height, &cogl_texture_3d_vtable);
+  _cogl_texture_init (tex, ctx, width, height,
+                      internal_format, loader, &cogl_texture_3d_vtable);
 
   tex_3d->gl_texture = 0;
 
@@ -138,9 +150,140 @@ _cogl_texture_3d_create_base (CoglContext *ctx,
   tex_3d->gl_legacy_texobj_wrap_mode_t = GL_FALSE;
   tex_3d->gl_legacy_texobj_wrap_mode_p = GL_FALSE;
 
-  tex_3d->internal_format = internal_format;
-
   return _cogl_texture_3d_object_new (tex_3d);
+}
+
+CoglTexture3D *
+cogl_texture_3d_new_with_size (CoglContext *ctx,
+                               int width,
+                               int height,
+                               int depth)
+{
+  CoglTextureLoader *loader = _cogl_texture_create_loader ();
+  loader->src_type = COGL_TEXTURE_SOURCE_TYPE_SIZED;
+  loader->src.sized.width = width;
+  loader->src.sized.height = height;
+  loader->src.sized.depth = depth;
+
+  return _cogl_texture_3d_create_base (ctx, width, height, depth,
+                                       COGL_PIXEL_FORMAT_RGBA_8888_PRE,
+                                       loader);
+}
+
+CoglTexture3D *
+cogl_texture_3d_new_from_bitmap (CoglBitmap *bmp,
+                                 int height,
+                                 int depth)
+{
+  CoglTextureLoader *loader;
+
+  _COGL_RETURN_VAL_IF_FAIL (bmp, NULL);
+
+  loader = _cogl_texture_create_loader ();
+  loader->src_type = COGL_TEXTURE_SOURCE_TYPE_BITMAP;
+  loader->src.bitmap.bitmap = cogl_object_ref (bmp);
+  loader->src.bitmap.height = height;
+  loader->src.bitmap.depth = depth;
+  loader->src.bitmap.can_convert_in_place = FALSE; /* TODO add api for this */
+
+  return _cogl_texture_3d_create_base (_cogl_bitmap_get_context (bmp),
+                                       cogl_bitmap_get_width (bmp),
+                                       height,
+                                       depth,
+                                       cogl_bitmap_get_format (bmp),
+                                       loader);
+}
+
+CoglTexture3D *
+cogl_texture_3d_new_from_data (CoglContext *context,
+                               int width,
+                               int height,
+                               int depth,
+                               CoglPixelFormat format,
+                               int rowstride,
+                               int image_stride,
+                               const uint8_t *data,
+                               CoglError **error)
+{
+  CoglBitmap *bitmap;
+  CoglTexture3D *ret;
+
+  _COGL_RETURN_VAL_IF_FAIL (data, NULL);
+  _COGL_RETURN_VAL_IF_FAIL (format != COGL_PIXEL_FORMAT_ANY, NULL);
+
+  /* Rowstride from width if not given */
+  if (rowstride == 0)
+    rowstride = width * _cogl_pixel_format_get_bytes_per_pixel (format);
+  /* Image stride from height and rowstride if not given */
+  if (image_stride == 0)
+    image_stride = height * rowstride;
+
+  if (image_stride < rowstride * height)
+    return NULL;
+
+  /* GL doesn't support uploading when the image_stride isn't a
+     multiple of the rowstride. If this happens we'll just pack the
+     image into a new bitmap. The documentation for this function
+     recommends avoiding this situation. */
+  if (image_stride % rowstride != 0)
+    {
+      uint8_t *bmp_data;
+      int bmp_rowstride;
+      int z, y;
+
+      bitmap = _cogl_bitmap_new_with_malloc_buffer (context,
+                                                    width,
+                                                    depth * height,
+                                                    format,
+                                                    error);
+      if (!bitmap)
+        return NULL;
+
+      bmp_data = _cogl_bitmap_map (bitmap,
+                                   COGL_BUFFER_ACCESS_WRITE,
+                                   COGL_BUFFER_MAP_HINT_DISCARD,
+                                   error);
+
+      if (bmp_data == NULL)
+        {
+          cogl_object_unref (bitmap);
+          return NULL;
+        }
+
+      bmp_rowstride = cogl_bitmap_get_rowstride (bitmap);
+
+      /* Copy all of the images in */
+      for (z = 0; z < depth; z++)
+        for (y = 0; y < height; y++)
+          memcpy (bmp_data + (z * bmp_rowstride * height +
+                              bmp_rowstride * y),
+                  data + z * image_stride + rowstride * y,
+                  bmp_rowstride);
+
+      _cogl_bitmap_unmap (bitmap);
+    }
+  else
+    bitmap = cogl_bitmap_new_for_data (context,
+                                       width,
+                                       image_stride / rowstride * depth,
+                                       format,
+                                       rowstride,
+                                       (uint8_t *) data);
+
+  ret = cogl_texture_3d_new_from_bitmap (bitmap,
+                                         height,
+                                         depth);
+
+  cogl_object_unref (bitmap);
+
+  if (ret &&
+      !cogl_texture_allocate (COGL_TEXTURE (ret), error))
+    {
+      cogl_object_unref (ret);
+      return NULL;
+    }
+
+  return ret;
 }
 
 static CoglBool
@@ -204,50 +347,42 @@ _cogl_texture_3d_can_create (CoglContext *ctx,
   return TRUE;
 }
 
-CoglTexture3D *
-cogl_texture_3d_new_with_size (CoglContext *ctx,
-                               int width,
-                               int height,
-                               int depth,
-                               CoglPixelFormat internal_format)
-{
-  /* Since no data, we need some internal format */
-  if (internal_format == COGL_PIXEL_FORMAT_ANY)
-    internal_format = COGL_PIXEL_FORMAT_RGBA_8888_PRE;
-
-  return _cogl_texture_3d_create_base (ctx,
-                                       width, height, depth,
-                                       internal_format);
-}
-
 static CoglBool
-_cogl_texture_3d_allocate (CoglTexture *tex,
-                           CoglError **error)
+allocate_with_size (CoglTexture3D *tex_3d,
+                    CoglTextureLoader *loader,
+                    CoglError **error)
 {
+  CoglTexture *tex = COGL_TEXTURE (tex_3d);
   CoglContext *ctx = tex->context;
-  CoglTexture3D *tex_3d = COGL_TEXTURE_3D (tex);
+  CoglPixelFormat internal_format;
+  int width = loader->src.sized.width;
+  int height = loader->src.sized.height;
+  int depth = loader->src.sized.depth;
   GLenum gl_intformat;
   GLenum gl_format;
   GLenum gl_type;
   GLenum gl_error;
   GLenum gl_texture;
 
+  internal_format =
+    _cogl_texture_determine_internal_format (tex, COGL_PIXEL_FORMAT_ANY);
+
   if (!_cogl_texture_3d_can_create (ctx,
-                                    tex->width,
-                                    tex->height,
-                                    tex_3d->depth,
-                                    tex_3d->internal_format,
+                                    width,
+                                    height,
+                                    depth,
+                                    internal_format,
                                     error))
     return FALSE;
 
   ctx->driver_vtable->pixel_format_to_gl (ctx,
-                                          tex_3d->internal_format,
+                                          internal_format,
                                           &gl_intformat,
                                           &gl_format,
                                           &gl_type);
 
   gl_texture =
-    ctx->texture_driver->gen (ctx, GL_TEXTURE_3D, tex_3d->internal_format);
+    ctx->texture_driver->gen (ctx, GL_TEXTURE_3D, internal_format);
   _cogl_bind_gl_texture_transient (GL_TEXTURE_3D,
                                    gl_texture,
                                    FALSE);
@@ -256,7 +391,7 @@ _cogl_texture_3d_allocate (CoglTexture *tex,
     ;
 
   ctx->glTexImage3D (GL_TEXTURE_3D, 0, gl_intformat,
-                     tex->width, tex->height, tex_3d->depth,
+                     width, height, depth,
                      0, gl_format, gl_type, NULL);
 
   if (_cogl_gl_util_catch_out_of_memory (ctx, error))
@@ -268,63 +403,71 @@ _cogl_texture_3d_allocate (CoglTexture *tex,
   tex_3d->gl_texture = gl_texture;
   tex_3d->gl_format = gl_intformat;
 
+  tex_3d->depth = depth;
+
+  tex_3d->internal_format = internal_format;
+
+  _cogl_texture_set_allocated (tex, internal_format, width, height);
+
   return TRUE;
 }
 
-CoglTexture3D *
-cogl_texture_3d_new_from_bitmap (CoglBitmap *bmp,
-                                 unsigned int height,
-                                 unsigned int depth,
-                                 CoglPixelFormat internal_format,
-                                 CoglError **error)
+static CoglBool
+allocate_from_bitmap (CoglTexture3D *tex_3d,
+                      CoglTextureLoader *loader,
+                      CoglError **error)
 {
-  CoglTexture3D *tex_3d;
-  CoglBitmap *dst_bmp;
-  CoglPixelFormat bmp_format;
-  unsigned int bmp_width;
+  CoglTexture *tex = COGL_TEXTURE (tex_3d);
+  CoglContext *ctx = tex->context;
+  CoglPixelFormat internal_format;
+  CoglBitmap *bmp = loader->src.bitmap.bitmap;
+  int bmp_width = cogl_bitmap_get_width (bmp);
+  int height = loader->src.bitmap.height;
+  int depth = loader->src.bitmap.depth;
+  CoglPixelFormat bmp_format = cogl_bitmap_get_format (bmp);
+  CoglBool can_convert_in_place = loader->src.bitmap.can_convert_in_place;
+  CoglBitmap *upload_bmp;
+  CoglPixelFormat upload_format;
   GLenum gl_intformat;
   GLenum gl_format;
   GLenum gl_type;
-  CoglContext *ctx;
 
-  ctx = _cogl_bitmap_get_context (bmp);
-
-  bmp_width = cogl_bitmap_get_width (bmp);
-  bmp_format = cogl_bitmap_get_format (bmp);
-
-  internal_format = _cogl_texture_determine_internal_format (bmp_format,
-                                                             internal_format);
+  internal_format = _cogl_texture_determine_internal_format (tex, bmp_format);
 
   if (!_cogl_texture_3d_can_create (ctx,
                                     bmp_width, height, depth,
                                     internal_format,
                                     error))
-    return NULL;
+    return FALSE;
 
-  dst_bmp = _cogl_texture_prepare_for_upload (bmp,
-                                              internal_format,
-                                              &internal_format,
-                                              &gl_intformat,
-                                              &gl_format,
-                                              &gl_type,
-                                              error);
-  if (dst_bmp == NULL)
-    return NULL;
+  upload_bmp = _cogl_bitmap_convert_for_upload (bmp,
+                                                internal_format,
+                                                can_convert_in_place,
+                                                error);
+  if (upload_bmp == NULL)
+    return FALSE;
 
-  tex_3d = _cogl_texture_3d_create_base (ctx,
-                                         bmp_width, height, depth,
-                                         internal_format);
+  upload_format = cogl_bitmap_get_format (upload_bmp);
+
+  ctx->driver_vtable->pixel_format_to_gl (ctx,
+                                          upload_format,
+                                          NULL, /* internal format */
+                                          &gl_format,
+                                          &gl_type);
+  ctx->driver_vtable->pixel_format_to_gl (ctx,
+                                          internal_format,
+                                          &gl_intformat,
+                                          NULL,
+                                          NULL);
 
   /* Keep a copy of the first pixel so that if glGenerateMipmap isn't
      supported we can fallback to using GL_GENERATE_MIPMAP */
   if (!cogl_has_feature (ctx, COGL_FEATURE_ID_OFFSCREEN))
     {
       CoglError *ignore = NULL;
-      uint8_t *data = _cogl_bitmap_map (dst_bmp,
+      uint8_t *data = _cogl_bitmap_map (upload_bmp,
                                         COGL_BUFFER_ACCESS_READ, 0,
                                         &ignore);
-
-      CoglPixelFormat format = cogl_bitmap_get_format (dst_bmp);
 
       tex_3d->first_pixel.gl_format = gl_format;
       tex_3d->first_pixel.gl_type = gl_type;
@@ -332,8 +475,8 @@ cogl_texture_3d_new_from_bitmap (CoglBitmap *bmp,
       if (data)
         {
           memcpy (tex_3d->first_pixel.data, data,
-                  _cogl_pixel_format_get_bytes_per_pixel (format));
-          _cogl_bitmap_unmap (dst_bmp);
+                  _cogl_pixel_format_get_bytes_per_pixel (upload_format));
+          _cogl_bitmap_unmap (upload_bmp);
         }
       else
         {
@@ -341,7 +484,7 @@ cogl_texture_3d_new_from_bitmap (CoglBitmap *bmp,
                      "glGenerateMipmap fallback");
           cogl_error_free (ignore);
           memset (tex_3d->first_pixel.data, 0,
-                  _cogl_pixel_format_get_bytes_per_pixel (format));
+                  _cogl_pixel_format_get_bytes_per_pixel (upload_format));
         }
     }
 
@@ -354,118 +497,50 @@ cogl_texture_3d_new_from_bitmap (CoglBitmap *bmp,
                                              FALSE, /* is_foreign */
                                              height,
                                              depth,
-                                             dst_bmp,
+                                             upload_bmp,
                                              gl_intformat,
                                              gl_format,
                                              gl_type,
                                              error))
     {
-      cogl_object_unref (dst_bmp);
-      cogl_object_unref (tex_3d);
-      return NULL;
+      cogl_object_unref (upload_bmp);
+      return FALSE;
     }
 
   tex_3d->gl_format = gl_intformat;
 
-  cogl_object_unref (dst_bmp);
+  cogl_object_unref (upload_bmp);
 
-  _cogl_texture_set_allocated (COGL_TEXTURE (tex_3d), TRUE);
+  tex_3d->depth = loader->src.bitmap.depth;
 
-  return tex_3d;
+  tex_3d->internal_format = internal_format;
+
+  _cogl_texture_set_allocated (tex, internal_format,
+                               bmp_width, loader->src.bitmap.height);
+
+  return TRUE;
 }
 
-CoglTexture3D *
-cogl_texture_3d_new_from_data (CoglContext *context,
-                               int width,
-                               int height,
-                               int depth,
-                               CoglPixelFormat format,
-                               CoglPixelFormat internal_format,
-                               int rowstride,
-                               int image_stride,
-                               const uint8_t *data,
-                               CoglError **error)
+static CoglBool
+_cogl_texture_3d_allocate (CoglTexture *tex,
+                           CoglError **error)
 {
-  CoglBitmap *bitmap;
-  CoglTexture3D *ret;
+  CoglTexture3D *tex_3d = COGL_TEXTURE_3D (tex);
+  CoglTextureLoader *loader = tex->loader;
 
-  /* These are considered a programmer errors so we won't set a
-     CoglError. It would be nice if this was a _COGL_RETURN_IF_FAIL but the
-     rest of Cogl isn't using that */
-  if (format == COGL_PIXEL_FORMAT_ANY)
-    return NULL;
+  _COGL_RETURN_VAL_IF_FAIL (loader, FALSE);
 
-  if (data == NULL)
-    return NULL;
-
-  /* Rowstride from width if not given */
-  if (rowstride == 0)
-    rowstride = width * _cogl_pixel_format_get_bytes_per_pixel (format);
-  /* Image stride from height and rowstride if not given */
-  if (image_stride == 0)
-    image_stride = height * rowstride;
-
-  if (image_stride < rowstride * height)
-    return NULL;
-
-  /* GL doesn't support uploading when the image_stride isn't a
-     multiple of the rowstride. If this happens we'll just pack the
-     image into a new bitmap. The documentation for this function
-     recommends avoiding this situation. */
-  if (image_stride % rowstride != 0)
+  switch (loader->src_type)
     {
-      uint8_t *bmp_data;
-      int bmp_rowstride;
-      int z, y;
-
-      bitmap = _cogl_bitmap_new_with_malloc_buffer (context,
-                                                    width,
-                                                    depth * height,
-                                                    format,
-                                                    error);
-      if (!bitmap)
-        return NULL;
-
-      bmp_data = _cogl_bitmap_map (bitmap,
-                                   COGL_BUFFER_ACCESS_WRITE,
-                                   COGL_BUFFER_MAP_HINT_DISCARD,
-                                   error);
-
-      if (bmp_data == NULL)
-        {
-          cogl_object_unref (bitmap);
-          return NULL;
-        }
-
-      bmp_rowstride = cogl_bitmap_get_rowstride (bitmap);
-
-      /* Copy all of the images in */
-      for (z = 0; z < depth; z++)
-        for (y = 0; y < height; y++)
-          memcpy (bmp_data + (z * bmp_rowstride * height +
-                              bmp_rowstride * y),
-                  data + z * image_stride + rowstride * y,
-                  bmp_rowstride);
-
-      _cogl_bitmap_unmap (bitmap);
+    case COGL_TEXTURE_SOURCE_TYPE_SIZED:
+      return allocate_with_size (tex_3d, loader, error);
+    case COGL_TEXTURE_SOURCE_TYPE_BITMAP:
+      return allocate_from_bitmap (tex_3d, loader, error);
+    default:
+      break;
     }
-  else
-    bitmap = cogl_bitmap_new_for_data (context,
-                                       width,
-                                       image_stride / rowstride * depth,
-                                       format,
-                                       rowstride,
-                                       (uint8_t *) data);
 
-  ret = cogl_texture_3d_new_from_bitmap (bitmap,
-                                         height,
-                                         depth,
-                                         internal_format,
-                                         error);
-
-  cogl_object_unref (bitmap);
-
-  return ret;
+  g_return_val_if_reached (FALSE);
 }
 
 static int
@@ -569,7 +644,7 @@ _cogl_texture_3d_pre_paint (CoglTexture *tex, CoglTexturePrePaintFlags flags)
       if (cogl_has_feature (ctx, COGL_FEATURE_ID_OFFSCREEN))
         _cogl_texture_gl_generate_mipmaps (tex);
 #if defined (HAVE_COGL_GL) || defined (HAVE_COGL_GLES)
-      else if (ctx->driver != COGL_DRIVER_GLES2)
+      else if (_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_GL_FIXED))
         {
           _cogl_bind_gl_texture_transient (GL_TEXTURE_3D,
                                            tex_3d->gl_texture,

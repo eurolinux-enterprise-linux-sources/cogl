@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2010 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * Authors:
  *  Robert Bragg <robert@linux.intel.com>
@@ -33,6 +39,10 @@
 
 #include <cogl/cogl-renderer.h>
 #include <cogl/cogl-onscreen-template.h>
+
+#ifdef COGL_HAS_GTYPE_SUPPORT
+#include <glib-object.h>
+#endif
 
 COGL_BEGIN_DECLS
 
@@ -66,6 +76,15 @@ typedef struct _CoglDisplay	      CoglDisplay;
 
 #define COGL_DISPLAY(OBJECT) ((CoglDisplay *)OBJECT)
 
+#ifdef COGL_HAS_GTYPE_SUPPORT
+/**
+ * cogl_display_get_gtype:
+ *
+ * Returns: a #GType that can be used with the GLib type system.
+ */
+GType cogl_display_get_gtype (void);
+#endif
+
 /**
  * cogl_display_new:
  * @renderer: A #CoglRenderer
@@ -85,7 +104,8 @@ typedef struct _CoglDisplay	      CoglDisplay;
  *
  * A common use for explicitly allocating a display object is to
  * define a template for allocating onscreen framebuffers which is
- * what the @onscreen_template argument is for.
+ * what the @onscreen_template argument is for, or alternatively
+ * you can use cogl_display_set_onscreen_template().
  *
  * When a display is first allocated via cogl_display_new() it is in a
  * mutable configuration mode. It's designed this way so we can
@@ -100,8 +120,8 @@ typedef struct _CoglDisplay	      CoglDisplay;
  * abort with a message. For simple applications with no fallback
  * options then relying on the implicit setup can be fine.
  *
- * Return value: A newly allocated #CoglDisplay object in a mutable
- *               configuration mode.
+ * Return value: (transfer full): A newly allocated #CoglDisplay
+ *               object in a mutable configuration mode.
  * Since: 1.10
  * Stability: unstable
  */
@@ -115,11 +135,33 @@ cogl_display_new (CoglRenderer *renderer,
  *
  * Queries the #CoglRenderer associated with the given @display.
  *
+ * Return value: (transfer none): The associated #CoglRenderer
+ *
  * Since: 1.10
  * Stability: unstable
  */
 CoglRenderer *
 cogl_display_get_renderer (CoglDisplay *display);
+
+/**
+ * cogl_display_set_onscreen_template:
+ * @display: a #CoglDisplay
+ * @onscreen_template: A template for creating #CoglOnscreen framebuffers
+ *
+ * Specifies a template for creating #CoglOnscreen framebuffers.
+ *
+ * Depending on the system, the constraints for creating #CoglOnscreen
+ * framebuffers need to be known before setting up a #CoglDisplay because the
+ * final setup of the display may constrain how onscreen framebuffers may be
+ * allocated. If Cogl knows how an application wants to allocate onscreen
+ * framebuffers then it can try to make sure to setup the display accordingly.
+ *
+ * Since: 1.16
+ * Stability: unstable
+ */
+void
+cogl_display_set_onscreen_template (CoglDisplay *display,
+                                    CoglOnscreenTemplate *onscreen_template);
 
 /**
  * cogl_display_setup:

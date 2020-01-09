@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2007,2008,2009,2010,2011,2013 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  * Authors:
@@ -28,6 +34,7 @@
 #include "config.h"
 #endif
 
+#include "cogl-i18n-private.h"
 #include "cogl-util.h"
 #include "cogl-winsys-private.h"
 #include "cogl-feature-private.h"
@@ -50,6 +57,9 @@
 #include "cogl-util.h"
 #include "cogl-winsys-glx-private.h"
 #include "cogl-error-private.h"
+#include "cogl-poll-private.h"
+#include "cogl-version.h"
+#include "cogl-glx.h"
 
 #include <stdlib.h>
 #include <sys/types.h>
@@ -58,12 +68,10 @@
 #include <fcntl.h>
 #include <time.h>
 
-#include <glib/gi18n-lib.h>
-
 #include <GL/glx.h>
 #include <X11/Xlib.h>
 
-#define COGL_ONSCREEN_X11_EVENT_MASK StructureNotifyMask
+#define COGL_ONSCREEN_X11_EVENT_MASK (StructureNotifyMask | ExposureMask)
 #define MAX_GLX_CONFIG_ATTRIBS 30
 
 typedef struct _CoglContextGLX
@@ -304,13 +312,85 @@ _cogl_winsys_get_clock_time (CoglContext *context)
 }
 
 static void
+flush_pending_notifications_cb (void *data,
+                                void *user_data)
+{
+  CoglFramebuffer *framebuffer = data;
+
+  if (framebuffer->type == COGL_FRAMEBUFFER_TYPE_ONSCREEN)
+    {
+      CoglOnscreen *onscreen = COGL_ONSCREEN (framebuffer);
+      CoglOnscreenGLX *glx_onscreen = onscreen->winsys;
+      CoglBool pending_sync_notify = glx_onscreen->pending_sync_notify;
+      CoglBool pending_complete_notify = glx_onscreen->pending_complete_notify;
+
+      /* If swap_region is called then notifying the sync event could
+       * potentially immediately queue a subsequent pending notify so
+       * we need to clear the flag before invoking the callback */
+      glx_onscreen->pending_sync_notify = FALSE;
+      glx_onscreen->pending_complete_notify = FALSE;
+
+      if (pending_sync_notify)
+        {
+          CoglFrameInfo *info = g_queue_peek_head (&onscreen->pending_frame_infos);
+
+          _cogl_onscreen_notify_frame_sync (onscreen, info);
+        }
+
+      if (pending_complete_notify)
+        {
+          CoglFrameInfo *info = g_queue_pop_head (&onscreen->pending_frame_infos);
+
+          _cogl_onscreen_notify_complete (onscreen, info);
+
+          cogl_object_unref (info);
+        }
+
+      if (glx_onscreen->pending_resize_notify)
+        {
+          _cogl_onscreen_notify_resize (onscreen);
+          glx_onscreen->pending_resize_notify = FALSE;
+        }
+    }
+}
+
+static void
+flush_pending_notifications_idle (void *user_data)
+{
+  CoglContext *context = user_data;
+  CoglRenderer *renderer = context->display->renderer;
+  CoglGLXRenderer *glx_renderer = renderer->winsys;
+
+  /* This needs to be disconnected before invoking the callbacks in
+   * case the callbacks cause it to be queued again */
+  _cogl_closure_disconnect (glx_renderer->flush_notifications_idle);
+  glx_renderer->flush_notifications_idle = NULL;
+
+  g_list_foreach (context->framebuffers,
+                  flush_pending_notifications_cb,
+                  NULL);
+}
+
+static void
 set_sync_pending (CoglOnscreen *onscreen)
 {
   CoglOnscreenGLX *glx_onscreen = onscreen->winsys;
   CoglContext *context = COGL_FRAMEBUFFER (onscreen)->context;
-  CoglGLXDisplay *glx_display = context->display->winsys;
+  CoglRenderer *renderer = context->display->renderer;
+  CoglGLXRenderer *glx_renderer = renderer->winsys;
 
-  glx_display->pending_sync_notify = TRUE;
+  /* We only want to dispatch sync events when the application calls
+   * cogl_context_dispatch so instead of immediately notifying we
+   * queue an idle callback */
+  if (!glx_renderer->flush_notifications_idle)
+    {
+      glx_renderer->flush_notifications_idle =
+        _cogl_poll_renderer_add_idle (renderer,
+                                      flush_pending_notifications_idle,
+                                      context,
+                                      NULL);
+    }
+
   glx_onscreen->pending_sync_notify = TRUE;
 }
 
@@ -319,9 +399,21 @@ set_complete_pending (CoglOnscreen *onscreen)
 {
   CoglOnscreenGLX *glx_onscreen = onscreen->winsys;
   CoglContext *context = COGL_FRAMEBUFFER (onscreen)->context;
-  CoglGLXDisplay *glx_display = context->display->winsys;
+  CoglRenderer *renderer = context->display->renderer;
+  CoglGLXRenderer *glx_renderer = renderer->winsys;
 
-  glx_display->pending_complete_notify = TRUE;
+  /* We only want to notify swap completion when the application calls
+   * cogl_context_dispatch so instead of immediately notifying we
+   * queue an idle callback */
+  if (!glx_renderer->flush_notifications_idle)
+    {
+      glx_renderer->flush_notifications_idle =
+        _cogl_poll_renderer_add_idle (renderer,
+                                      flush_pending_notifications_idle,
+                                      context,
+                                      NULL);
+    }
+
   glx_onscreen->pending_complete_notify = TRUE;
 }
 
@@ -388,8 +480,8 @@ notify_resize (CoglContext *context,
   CoglOnscreen *onscreen = find_onscreen_for_xid (context,
                                                   configure_event->window);
   CoglFramebuffer *framebuffer = COGL_FRAMEBUFFER (onscreen);
-  CoglDisplay *display = context->display;
-  CoglGLXDisplay *glx_display = display->winsys;
+  CoglRenderer *renderer = context->display->renderer;
+  CoglGLXRenderer *glx_renderer = renderer->winsys;
   CoglOnscreenGLX *glx_onscreen;
   CoglOnscreenXlib *xlib_onscreen;
 
@@ -404,9 +496,17 @@ notify_resize (CoglContext *context,
                                         configure_event->height);
 
   /* We only want to notify that a resize happened when the
-     application calls cogl_context_dispatch so instead of immediately
-     notifying we'll set a flag to remember to notify later */
-  glx_display->pending_resize_notify = TRUE;
+   * application calls cogl_context_dispatch so instead of immediately
+   * notifying we queue an idle callback */
+  if (!glx_renderer->flush_notifications_idle)
+    {
+      glx_renderer->flush_notifications_idle =
+        _cogl_poll_renderer_add_idle (renderer,
+                                      flush_pending_notifications_idle,
+                                      context,
+                                      NULL);
+    }
+
   glx_onscreen->pending_resize_notify = TRUE;
 
   if (!xlib_onscreen->is_foreign_xwin)
@@ -464,6 +564,26 @@ glx_event_filter_cb (XEvent *xevent, void *data)
       return COGL_FILTER_REMOVE;
     }
 #endif /* GLX_INTEL_swap_event */
+
+  if (xevent->type == Expose)
+    {
+      CoglOnscreen *onscreen =
+        find_onscreen_for_xid (context, xevent->xexpose.window);
+
+      if (onscreen)
+        {
+          CoglOnscreenDirtyInfo info;
+
+          info.x = xevent->xexpose.x;
+          info.y = xevent->xexpose.y;
+          info.width = xevent->xexpose.width;
+          info.height = xevent->xexpose.height;
+
+          _cogl_onscreen_queue_dirty (onscreen, &info);
+        }
+
+      return COGL_FILTER_CONTINUE;
+    }
 
   return COGL_FILTER_CONTINUE;
 }
@@ -700,27 +820,30 @@ update_winsys_features (CoglContext *context, CoglError **error)
 
   if (glx_renderer->glXCopySubBuffer || context->glBlitFramebuffer)
     {
-      CoglGpuInfoArchitecture arch;
+      CoglGpuInfo *info = &context->gpu;
+      CoglGpuInfoArchitecture arch = info->architecture;
 
-      /* XXX: ONGOING BUG:
-       * (Don't change the line above since we use this to grep for
-       * un-resolved bug workarounds as part of the release process.)
-       *
+      COGL_FLAGS_SET (context->winsys_features, COGL_WINSYS_FEATURE_SWAP_REGION, TRUE);
+
+      /*
        * "The "drisw" binding in Mesa for loading sofware renderers is
        * broken, and neither glBlitFramebuffer nor glXCopySubBuffer
        * work correctly."
        * - ajax
        * - https://bugzilla.gnome.org/show_bug.cgi?id=674208
        *
-       * This is broken in software Mesa at least as of 7.10
+       * This is broken in software Mesa at least as of 7.10 and got
+       * fixed in Mesa 10.1
        */
-      arch = context->gpu.architecture;
-      if (arch != COGL_GPU_INFO_ARCHITECTURE_LLVMPIPE &&
-          arch != COGL_GPU_INFO_ARCHITECTURE_SOFTPIPE &&
-          arch != COGL_GPU_INFO_ARCHITECTURE_SWRAST)
+
+      if (info->driver_package == COGL_GPU_INFO_DRIVER_PACKAGE_MESA &&
+          info->driver_package_version < COGL_VERSION_ENCODE (10, 1, 0) &&
+          (arch == COGL_GPU_INFO_ARCHITECTURE_LLVMPIPE ||
+           arch == COGL_GPU_INFO_ARCHITECTURE_SOFTPIPE ||
+           arch == COGL_GPU_INFO_ARCHITECTURE_SWRAST))
 	{
 	  COGL_FLAGS_SET (context->winsys_features,
-			  COGL_WINSYS_FEATURE_SWAP_REGION, TRUE);
+			  COGL_WINSYS_FEATURE_SWAP_REGION, FALSE);
 	}
     }
 
@@ -734,6 +857,8 @@ update_winsys_features (CoglContext *context, CoglError **error)
 
   if (_cogl_winsys_has_feature (COGL_WINSYS_FEATURE_SYNC_AND_COMPLETE_EVENT))
     {
+      COGL_FLAGS_SET (context->winsys_features,
+		      COGL_WINSYS_FEATURE_SWAP_BUFFERS_EVENT, TRUE);
       /* TODO: remove this deprecated feature */
       COGL_FLAGS_SET (context->features,
                       COGL_FEATURE_ID_SWAP_BUFFERS_EVENT,
@@ -742,6 +867,15 @@ update_winsys_features (CoglContext *context, CoglError **error)
                       COGL_FEATURE_ID_PRESENTATION_TIME,
                       TRUE);
     }
+
+  /* We'll manually handle queueing dirty events in response to
+   * Expose events from X */
+  COGL_FLAGS_SET (context->private_features,
+                  COGL_PRIVATE_FEATURE_DIRTY_EVENTS,
+                  TRUE);
+
+  if (_cogl_winsys_has_feature (COGL_WINSYS_FEATURE_BUFFER_AGE))
+    COGL_FLAGS_SET (context->features, COGL_FEATURE_ID_BUFFER_AGE, TRUE);
 
   return TRUE;
 }
@@ -1776,7 +1910,9 @@ _cogl_winsys_onscreen_swap_region (CoglOnscreen *onscreen,
 }
 
 static void
-_cogl_winsys_onscreen_swap_buffers (CoglOnscreen *onscreen)
+_cogl_winsys_onscreen_swap_buffers_with_damage (CoglOnscreen *onscreen,
+                                                const int *rectangles,
+                                                int n_rectangles)
 {
   CoglFramebuffer *framebuffer = COGL_FRAMEBUFFER (onscreen);
   CoglContext *context = framebuffer->context;
@@ -2380,11 +2516,11 @@ _cogl_winsys_texture_pixmap_x11_update (CoglTexturePixmapX11 *tex_pixmap,
           glx_tex_pixmap->glx_tex = COGL_TEXTURE (
             cogl_texture_rectangle_new_with_size (ctx,
                                                   tex->width,
-                                                  tex->height,
-                                                  texture_format,
-                                                  &error));
+                                                  tex->height));
 
-          if (glx_tex_pixmap->glx_tex)
+          _cogl_texture_set_internal_format (tex, texture_format);
+
+          if (cogl_texture_allocate (glx_tex_pixmap->glx_tex, &error))
             COGL_NOTE (TEXTURE_PIXMAP, "Created a texture rectangle for %p",
                        tex_pixmap);
           else
@@ -2402,8 +2538,9 @@ _cogl_winsys_texture_pixmap_x11_update (CoglTexturePixmapX11 *tex_pixmap,
           glx_tex_pixmap->glx_tex = COGL_TEXTURE (
             cogl_texture_2d_new_with_size (ctx,
                                            tex->width,
-                                           tex->height,
-                                           texture_format));
+                                           tex->height));
+
+          _cogl_texture_set_internal_format (tex, texture_format);
 
           if (cogl_texture_allocate (glx_tex_pixmap->glx_tex, &error))
             COGL_NOTE (TEXTURE_PIXMAP, "Created a texture 2d for %p",
@@ -2510,99 +2647,6 @@ _cogl_winsys_texture_pixmap_x11_get_texture (CoglTexturePixmapX11 *tex_pixmap)
   return glx_tex_pixmap->glx_tex;
 }
 
-static void
-_cogl_winsys_poll_get_info (CoglContext *context,
-                            CoglPollFD **poll_fds,
-                            int *n_poll_fds,
-                            int64_t *timeout)
-{
-  CoglDisplay *display = context->display;
-  CoglGLXDisplay *glx_display = display->winsys;
-
-  _cogl_xlib_renderer_poll_get_info (context->display->renderer,
-                                     poll_fds,
-                                     n_poll_fds,
-                                     timeout);
-
-  /* If we've already got a pending swap notify then we'll dispatch
-     immediately */
-  if (glx_display->pending_sync_notify ||
-      glx_display->pending_resize_notify ||
-      glx_display->pending_complete_notify)
-    *timeout = 0;
-}
-
-static void
-flush_pending_notifications_cb (void *data,
-                                void *user_data)
-{
-  CoglFramebuffer *framebuffer = data;
-
-  if (framebuffer->type == COGL_FRAMEBUFFER_TYPE_ONSCREEN)
-    {
-      CoglOnscreen *onscreen = COGL_ONSCREEN (framebuffer);
-      CoglOnscreenGLX *glx_onscreen = onscreen->winsys;
-      CoglBool pending_sync_notify = glx_onscreen->pending_sync_notify;
-      CoglBool pending_complete_notify = glx_onscreen->pending_complete_notify;
-
-      /* If swap_region is called then notifying the sync event could
-       * potentially immediately queue a subsequent pending notify so
-       * we need to clear the flag before invoking the callback */
-      glx_onscreen->pending_sync_notify = FALSE;
-      glx_onscreen->pending_complete_notify = FALSE;
-
-      if (pending_sync_notify)
-        {
-          CoglFrameInfo *info = g_queue_peek_head (&onscreen->pending_frame_infos);
-
-          _cogl_onscreen_notify_frame_sync (onscreen, info);
-        }
-
-      if (pending_complete_notify)
-        {
-          CoglFrameInfo *info = g_queue_pop_head (&onscreen->pending_frame_infos);
-
-          _cogl_onscreen_notify_complete (onscreen, info);
-
-          cogl_object_unref (info);
-        }
-
-      if (glx_onscreen->pending_resize_notify)
-        {
-          _cogl_onscreen_notify_resize (onscreen);
-          glx_onscreen->pending_resize_notify = FALSE;
-        }
-    }
-}
-
-static void
-_cogl_winsys_poll_dispatch (CoglContext *context,
-                            const CoglPollFD *poll_fds,
-                            int n_poll_fds)
-{
-  CoglDisplay *display = context->display;
-  CoglGLXDisplay *glx_display = display->winsys;
-
-  _cogl_xlib_renderer_poll_dispatch (context->display->renderer,
-                                     poll_fds,
-                                     n_poll_fds);
-
-  if (glx_display->pending_sync_notify ||
-      glx_display->pending_resize_notify ||
-      glx_display->pending_complete_notify)
-    {
-      /* These need to be cleared before invoking the callbacks in
-       * case the callbacks cause them to be set again */
-      glx_display->pending_sync_notify = FALSE;
-      glx_display->pending_resize_notify = FALSE;
-      glx_display->pending_complete_notify = FALSE;
-
-      g_list_foreach (context->framebuffers,
-                      flush_pending_notifications_cb,
-                      NULL);
-    }
-}
-
 static CoglWinsysVtable _cogl_winsys_vtable =
   {
     .id = COGL_WINSYS_ID_GLX,
@@ -2623,7 +2667,8 @@ static CoglWinsysVtable _cogl_winsys_vtable =
     .onscreen_init = _cogl_winsys_onscreen_init,
     .onscreen_deinit = _cogl_winsys_onscreen_deinit,
     .onscreen_bind = _cogl_winsys_onscreen_bind,
-    .onscreen_swap_buffers = _cogl_winsys_onscreen_swap_buffers,
+    .onscreen_swap_buffers_with_damage =
+      _cogl_winsys_onscreen_swap_buffers_with_damage,
     .onscreen_swap_region = _cogl_winsys_onscreen_swap_region,
     .onscreen_get_buffer_age = _cogl_winsys_onscreen_get_buffer_age,
     .onscreen_update_swap_throttled =
@@ -2633,9 +2678,6 @@ static CoglWinsysVtable _cogl_winsys_vtable =
     .onscreen_set_visibility = _cogl_winsys_onscreen_set_visibility,
     .onscreen_set_resizable =
       _cogl_winsys_onscreen_set_resizable,
-
-    .poll_get_info = _cogl_winsys_poll_get_info,
-    .poll_dispatch = _cogl_winsys_poll_dispatch,
 
     /* X11 tfp support... */
     /* XXX: instead of having a rather monolithic winsys vtable we could
@@ -2665,4 +2707,12 @@ const CoglWinsysVtable *
 _cogl_winsys_glx_get_vtable (void)
 {
   return &_cogl_winsys_vtable;
+}
+
+GLXContext
+cogl_glx_context_get_glx_context (CoglContext *context)
+{
+  CoglGLXDisplay *glx_display = context->display->winsys;
+
+  return glx_display->glx_context;
 }

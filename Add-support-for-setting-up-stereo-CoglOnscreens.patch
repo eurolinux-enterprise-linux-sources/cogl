@@ -1,7 +1,7 @@
-From 0c547943ce2e7daae80bfbe72aa3e8ea88e1ba0b Mon Sep 17 00:00:00 2001
+From d16df5a5aab126d8114b932ba8abab05ff242026 Mon Sep 17 00:00:00 2001
 From: "Owen W. Taylor" <otaylor@fishsoup.net>
 Date: Mon, 28 Apr 2014 12:37:32 -0400
-Subject: [PATCH 4/8] Add support for setting up stereo CoglOnscreens
+Subject: [PATCH] Add support for setting up stereo CoglOnscreens
 
 If we want to show quad-buffer stereo with Cogl, we need to pick an
 appropriate fbconfig for creating the CoglOnscreen objects. Add
@@ -13,6 +13,8 @@ created with stereo support.
 
 Add cogl_framebuffer_get_stereo_mode() to pick whether to draw to
 the left, right, or both buffers.
+
+Reviewed-by: Robert Bragg <robert.bragg@intel.com>
 ---
  cogl/cogl-context-private.h                     |  1 +
  cogl/cogl-framebuffer-private.h                 |  8 +++-
@@ -21,16 +23,16 @@ the left, right, or both buffers.
  cogl/cogl-onscreen-template.c                   |  8 ++++
  cogl/cogl-onscreen-template.h                   | 18 +++++++++
  cogl/cogl-types.h                               | 15 +++++++
- cogl/driver/gl/cogl-framebuffer-gl.c            | 32 +++++++++++++++
+ cogl/driver/gl/cogl-framebuffer-gl.c            | 36 +++++++++++++++++
  cogl/winsys/cogl-winsys-glx-feature-functions.h |  1 +
  cogl/winsys/cogl-winsys-glx.c                   |  8 +++-
- 10 files changed, 181 insertions(+), 3 deletions(-)
+ 10 files changed, 185 insertions(+), 3 deletions(-)
 
 diff --git a/cogl/cogl-context-private.h b/cogl/cogl-context-private.h
-index 31033d0..f725993 100644
+index 1000ee5..9e66207 100644
 --- a/cogl/cogl-context-private.h
 +++ b/cogl/cogl-context-private.h
-@@ -242,6 +242,7 @@ struct _CoglContext
+@@ -270,6 +270,7 @@ struct _CoglContext
  
    CoglBool current_gl_dither_enabled;
    CoglColorMask current_gl_color_mask;
@@ -39,51 +41,51 @@ index 31033d0..f725993 100644
    /* Clipping */
    /* TRUE if we have a valid clipping stack flushed. In that case
 diff --git a/cogl/cogl-framebuffer-private.h b/cogl/cogl-framebuffer-private.h
-index 267dbf6..747a699 100644
+index 4891d53..99ac2fb 100644
 --- a/cogl/cogl-framebuffer-private.h
 +++ b/cogl/cogl-framebuffer-private.h
-@@ -54,6 +54,7 @@ typedef struct
+@@ -61,6 +61,7 @@ typedef struct
    int samples_per_pixel;
    CoglBool swap_throttled;
    CoglBool depth_texture_enabled;
 +  CoglBool stereo_enabled;
  } CoglFramebufferConfig;
  
- /* Flags to pass to _cogl_offscreen_new_to_texture_full */
-@@ -78,7 +79,8 @@ typedef enum _CoglFramebufferStateIndex
-   COGL_FRAMEBUFFER_STATE_INDEX_PROJECTION         = 5,
+ /* Flags to pass to _cogl_offscreen_new_with_texture_full */
+@@ -86,7 +87,8 @@ typedef enum _CoglFramebufferStateIndex
    COGL_FRAMEBUFFER_STATE_INDEX_COLOR_MASK         = 6,
    COGL_FRAMEBUFFER_STATE_INDEX_FRONT_FACE_WINDING = 7,
--  COGL_FRAMEBUFFER_STATE_INDEX_MAX                = 8
-+  COGL_FRAMEBUFFER_STATE_INDEX_STEREO_MODE        = 8,
-+  COGL_FRAMEBUFFER_STATE_INDEX_MAX                = 9
+   COGL_FRAMEBUFFER_STATE_INDEX_DEPTH_WRITE        = 8,
+-  COGL_FRAMEBUFFER_STATE_INDEX_MAX                = 9
++  COGL_FRAMEBUFFER_STATE_INDEX_STEREO_MODE        = 9,
++  COGL_FRAMEBUFFER_STATE_INDEX_MAX                = 10
  } CoglFramebufferStateIndex;
  
  typedef enum _CoglFramebufferState
-@@ -90,7 +92,8 @@ typedef enum _CoglFramebufferState
-   COGL_FRAMEBUFFER_STATE_MODELVIEW          = 1<<4,
+@@ -99,7 +101,8 @@ typedef enum _CoglFramebufferState
    COGL_FRAMEBUFFER_STATE_PROJECTION         = 1<<5,
    COGL_FRAMEBUFFER_STATE_COLOR_MASK         = 1<<6,
--  COGL_FRAMEBUFFER_STATE_FRONT_FACE_WINDING = 1<<7
-+  COGL_FRAMEBUFFER_STATE_FRONT_FACE_WINDING = 1<<7,
-+  COGL_FRAMEBUFFER_STATE_STEREO_MODE        = 1<<8
+   COGL_FRAMEBUFFER_STATE_FRONT_FACE_WINDING = 1<<7,
+-  COGL_FRAMEBUFFER_STATE_DEPTH_WRITE        = 1<<8
++  COGL_FRAMEBUFFER_STATE_DEPTH_WRITE        = 1<<8,
++  COGL_FRAMEBUFFER_STATE_STEREO_MODE        = 1<<9
  } CoglFramebufferState;
  
  #define COGL_FRAMEBUFFER_STATE_ALL ((1<<COGL_FRAMEBUFFER_STATE_INDEX_MAX) - 1)
-@@ -144,6 +147,7 @@ struct _CoglFramebuffer
- 
+@@ -154,6 +157,7 @@ struct _CoglFramebuffer
    CoglBool            dither_enabled;
+   CoglBool            depth_writing_enabled;
    CoglColorMask       color_mask;
 +  CoglStereoMode      stereo_mode;
  
    /* We journal the textured rectangles we want to submit to OpenGL so
     * we have an oppertunity to batch them together into less draw
 diff --git a/cogl/cogl-framebuffer.c b/cogl/cogl-framebuffer.c
-index 136ae86..05981b5 100644
+index 135b873..1f70d3d 100644
 --- a/cogl/cogl-framebuffer.c
 +++ b/cogl/cogl-framebuffer.c
-@@ -1077,6 +1077,14 @@ _cogl_framebuffer_compare_front_face_winding_state (CoglFramebuffer *a,
-     return 0;
+@@ -907,6 +907,14 @@ _cogl_framebuffer_compare_depth_write_state (CoglFramebuffer *a,
+     COGL_FRAMEBUFFER_STATE_DEPTH_WRITE : 0;
  }
  
 +static unsigned long
@@ -97,9 +99,9 @@ index 136ae86..05981b5 100644
  unsigned long
  _cogl_framebuffer_compare (CoglFramebuffer *a,
                             CoglFramebuffer *b,
-@@ -1125,6 +1133,10 @@ _cogl_framebuffer_compare (CoglFramebuffer *a,
+@@ -959,6 +967,10 @@ _cogl_framebuffer_compare (CoglFramebuffer *a,
            differences |=
-             _cogl_framebuffer_compare_front_face_winding_state (a, b);
+             _cogl_framebuffer_compare_depth_write_state (a, b);
            break;
 +        case COGL_FRAMEBUFFER_STATE_INDEX_STEREO_MODE:
 +          differences |=
@@ -108,7 +110,7 @@ index 136ae86..05981b5 100644
          default:
            g_warn_if_reached ();
          }
-@@ -1212,6 +1224,12 @@ _cogl_framebuffer_get_stencil_bits (CoglFramebuffer *framebuffer)
+@@ -1046,6 +1058,12 @@ _cogl_framebuffer_get_stencil_bits (CoglFramebuffer *framebuffer)
    return bits.stencil;
  }
  
@@ -121,7 +123,7 @@ index 136ae86..05981b5 100644
  CoglColorMask
  cogl_framebuffer_get_color_mask (CoglFramebuffer *framebuffer)
  {
-@@ -1232,6 +1250,29 @@ cogl_framebuffer_set_color_mask (CoglFramebuffer *framebuffer,
+@@ -1069,6 +1087,29 @@ cogl_framebuffer_set_color_mask (CoglFramebuffer *framebuffer,
        COGL_FRAMEBUFFER_STATE_COLOR_MASK;
  }
  
@@ -149,13 +151,13 @@ index 136ae86..05981b5 100644
 +}
 +
  CoglBool
- cogl_framebuffer_get_dither_enabled (CoglFramebuffer *framebuffer)
+ cogl_framebuffer_get_depth_write_enabled (CoglFramebuffer *framebuffer)
  {
 diff --git a/cogl/cogl-framebuffer.h b/cogl/cogl-framebuffer.h
-index e3fdb12..595a374 100644
+index 347284f..58d65a8 100644
 --- a/cogl/cogl-framebuffer.h
 +++ b/cogl/cogl-framebuffer.h
-@@ -733,6 +733,23 @@ cogl_framebuffer_get_alpha_bits (CoglFramebuffer *framebuffer);
+@@ -737,6 +737,23 @@ cogl_framebuffer_get_alpha_bits (CoglFramebuffer *framebuffer);
  int
  cogl_framebuffer_get_depth_bits (CoglFramebuffer *framebuffer);
  
@@ -179,8 +181,8 @@ index e3fdb12..595a374 100644
  /**
   * cogl_framebuffer_get_dither_enabled:
   * @framebuffer: a pointer to a #CoglFramebuffer
-@@ -825,6 +842,41 @@ CoglPixelFormat
- cogl_framebuffer_get_color_format (CoglFramebuffer *framebuffer);
+@@ -847,6 +864,41 @@ cogl_framebuffer_set_color_mask (CoglFramebuffer *framebuffer,
+                                  CoglColorMask color_mask);
  
  /**
 + * cogl_framebuffer_get_stereo_mode:
@@ -222,10 +224,10 @@ index e3fdb12..595a374 100644
   * @framebuffer: A #CoglFramebuffer
   * @enabled: TRUE or FALSE
 diff --git a/cogl/cogl-onscreen-template.c b/cogl/cogl-onscreen-template.c
-index 5fa5b99..8854069 100644
+index 5a5e54c..3940627 100644
 --- a/cogl/cogl-onscreen-template.c
 +++ b/cogl/cogl-onscreen-template.c
-@@ -88,3 +88,11 @@ cogl_onscreen_template_set_swap_throttled (
+@@ -95,3 +95,11 @@ cogl_onscreen_template_set_swap_throttled (
  {
    onscreen_template->config.swap_throttled = throttled;
  }
@@ -238,10 +240,10 @@ index 5fa5b99..8854069 100644
 +  onscreen_template->config.stereo_enabled = enabled;
 +}
 diff --git a/cogl/cogl-onscreen-template.h b/cogl/cogl-onscreen-template.h
-index 58d88d4..f4645bb 100644
+index cd1d853..d8714fa 100644
 --- a/cogl/cogl-onscreen-template.h
 +++ b/cogl/cogl-onscreen-template.h
-@@ -88,6 +88,24 @@ cogl_onscreen_template_set_swap_throttled (
+@@ -107,6 +107,24 @@ cogl_onscreen_template_set_swap_throttled (
                                            CoglBool throttled);
  
  /**
@@ -267,10 +269,10 @@ index 58d88d4..f4645bb 100644
   * @object: A #CoglObject pointer
   *
 diff --git a/cogl/cogl-types.h b/cogl/cogl-types.h
-index 227b7ec..0a9b20c 100644
+index b4d79c7..6accf8d 100644
 --- a/cogl/cogl-types.h
 +++ b/cogl/cogl-types.h
-@@ -907,6 +907,21 @@ typedef enum { /*< prefix=COGL_READ_PIXELS >*/
+@@ -920,6 +920,21 @@ typedef enum { /*< prefix=COGL_READ_PIXELS >*/
    COGL_READ_PIXELS_COLOR_BUFFER = 1L << 0
  } CoglReadPixelsFlags;
  
@@ -293,10 +295,10 @@ index 227b7ec..0a9b20c 100644
  
  #endif /* __COGL_TYPES_H__ */
 diff --git a/cogl/driver/gl/cogl-framebuffer-gl.c b/cogl/driver/gl/cogl-framebuffer-gl.c
-index 660098e..86b693b 100644
+index c0f094d..793b10b 100644
 --- a/cogl/driver/gl/cogl-framebuffer-gl.c
 +++ b/cogl/driver/gl/cogl-framebuffer-gl.c
-@@ -228,6 +228,35 @@ _cogl_framebuffer_gl_flush_front_face_winding_state (CoglFramebuffer *framebuffe
+@@ -236,6 +236,39 @@ _cogl_framebuffer_gl_flush_front_face_winding_state (CoglFramebuffer *framebuffe
    context->current_pipeline_age--;
  }
  
@@ -308,6 +310,10 @@ index 660098e..86b693b 100644
 +
 +  if (framebuffer->type == COGL_FRAMEBUFFER_TYPE_OFFSCREEN)
 +    return;
++
++  /* The one-shot default draw buffer setting in _cogl_framebuffer_gl_bind
++   * must have already happened. If not it would override what we set here. */
++  g_assert (ctx->was_bound_to_onscreen);
 +
 +  switch (framebuffer->stereo_mode)
 +    {
@@ -332,9 +338,9 @@ index 660098e..86b693b 100644
  void
  _cogl_framebuffer_gl_bind (CoglFramebuffer *framebuffer, GLenum target)
  {
-@@ -365,6 +394,9 @@ _cogl_framebuffer_gl_flush_state (CoglFramebuffer *draw_buffer,
-         case COGL_FRAMEBUFFER_STATE_INDEX_FRONT_FACE_WINDING:
-           _cogl_framebuffer_gl_flush_front_face_winding_state (draw_buffer);
+@@ -406,6 +439,9 @@ _cogl_framebuffer_gl_flush_state (CoglFramebuffer *draw_buffer,
+           /* Nothing to do for depth write state change; the state will always
+            * be taken into account when flushing the pipeline's depth state. */
            break;
 +        case COGL_FRAMEBUFFER_STATE_INDEX_STEREO_MODE:
 +          _cogl_framebuffer_gl_flush_stereo_mode_state (draw_buffer);
@@ -343,22 +349,22 @@ index 660098e..86b693b 100644
            g_warn_if_reached ();
          }
 diff --git a/cogl/winsys/cogl-winsys-glx-feature-functions.h b/cogl/winsys/cogl-winsys-glx-feature-functions.h
-index 9e7b49d..1e56c66 100644
+index 1e2cec1..ed9df70 100644
 --- a/cogl/winsys/cogl-winsys-glx-feature-functions.h
 +++ b/cogl/winsys/cogl-winsys-glx-feature-functions.h
-@@ -179,6 +179,7 @@ COGL_WINSYS_FEATURE_BEGIN (255, 255,
+@@ -184,6 +184,7 @@ COGL_WINSYS_FEATURE_BEGIN (255, 255,
+                            "swap_event\0",
                             0,
-                            COGL_WINSYS_FEATURE_SWAP_BUFFERS_EVENT |
                             COGL_WINSYS_FEATURE_SYNC_AND_COMPLETE_EVENT)
 +
  COGL_WINSYS_FEATURE_END ()
  
  COGL_WINSYS_FEATURE_BEGIN (255, 255,
 diff --git a/cogl/winsys/cogl-winsys-glx.c b/cogl/winsys/cogl-winsys-glx.c
-index a58a6ce..bff5178 100644
+index 3095acf..bf2b5be 100644
 --- a/cogl/winsys/cogl-winsys-glx.c
 +++ b/cogl/winsys/cogl-winsys-glx.c
-@@ -775,6 +775,11 @@ glx_attributes_from_framebuffer_config (CoglDisplay *display,
+@@ -909,6 +909,11 @@ glx_attributes_from_framebuffer_config (CoglDisplay *display,
    attributes[i++] = 1;
    attributes[i++] = GLX_STENCIL_SIZE;
    attributes[i++] = config->need_stencil ? 1: GLX_DONT_CARE;
@@ -370,7 +376,7 @@ index a58a6ce..bff5178 100644
  
    if (glx_renderer->glx_major == 1 && glx_renderer->glx_minor >= 4 &&
        config->samples_per_pixel)
-@@ -814,6 +819,7 @@ find_fbconfig (CoglDisplay *display,
+@@ -948,6 +953,7 @@ find_fbconfig (CoglDisplay *display,
                                               xscreen_num,
                                               attributes,
                                               &n_configs);
@@ -378,7 +384,7 @@ index a58a6ce..bff5178 100644
    if (!configs || n_configs == 0)
      {
        _cogl_set_error (error, COGL_WINSYS_ERROR,
-@@ -1722,7 +1728,7 @@ _cogl_winsys_onscreen_swap_region (CoglOnscreen *onscreen,
+@@ -1856,7 +1862,7 @@ _cogl_winsys_onscreen_swap_region (CoglOnscreen *onscreen,
                                        rect[0], rect[1], x2, y2,
                                        GL_COLOR_BUFFER_BIT, GL_NEAREST);
          }
@@ -388,5 +394,5 @@ index a58a6ce..bff5178 100644
  
    /* NB: unlike glXSwapBuffers, glXCopySubBuffer and
 -- 
-1.9.3
+2.1.0
 

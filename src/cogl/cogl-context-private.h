@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
- * Copyright (C) 2007,2008,2009 Intel Corporation.
+ * Copyright (C) 2007,2008,2009,2013 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  */
@@ -51,6 +58,10 @@
 #include "cogl-gl-header.h"
 #include "cogl-framebuffer-private.h"
 #include "cogl-onscreen-private.h"
+#include "cogl-fence-private.h"
+#include "cogl-poll-private.h"
+#include "cogl-path/cogl-path-types.h"
+#include "cogl-private.h"
 
 typedef struct
 {
@@ -78,10 +89,19 @@ struct _CoglContext
   int glsl_major;
   int glsl_minor;
 
+  /* This is the GLSL version that we will claim that snippets are
+   * written against using the #version pragma. This will be the
+   * largest version that is less than or equal to the version
+   * provided by the driver without massively altering the syntax. Eg,
+   * we wouldn't use version 1.3 even if it is available because that
+   * removes the ‘attribute’ and ‘varying’ keywords. */
+  int glsl_version_to_use;
+
   /* Features cache */
   unsigned long features[COGL_FLAGS_N_LONGS_FOR_SIZE (_COGL_N_FEATURE_IDS)];
   CoglFeatureFlags feature_flags; /* legacy/deprecated feature flags */
-  CoglPrivateFeatureFlags private_feature_flags;
+  unsigned long private_features
+    [COGL_FLAGS_N_LONGS_FOR_SIZE (COGL_N_PRIVATE_FEATURES)];
 
   CoglBool needs_viewport_scissor_workaround;
   CoglFramebuffer *viewport_scissor_workaround_framebuffer;
@@ -165,7 +185,8 @@ struct _CoglContext
   /* Some simple caching, to minimize state changes... */
   CoglPipeline     *current_pipeline;
   unsigned long     current_pipeline_changes_since_flush;
-  CoglBool          current_pipeline_skip_gl_color;
+  CoglBool          current_pipeline_with_color_attrib;
+  CoglBool          current_pipeline_unknown_color_alpha;
   unsigned long     current_pipeline_age;
 
   CoglBool          gl_blend_enable_cache;
@@ -194,10 +215,17 @@ struct _CoglContext
   GHashTable *swap_callback_closures;
   int next_swap_callback_id;
 
-  CoglOnscreenEventList onscreen_events_queue;
+  CoglList onscreen_events_queue;
+  CoglList onscreen_dirty_queue;
+  CoglClosure *onscreen_dispatch_idle;
 
   CoglGLES2Context *current_gles2_context;
   GQueue gles2_context_stack;
+
+  /* This becomes TRUE the first time the context is bound to an
+   * onscreen buffer. This is used by cogl-framebuffer-gl to determine
+   * when to initialise the glDrawBuffer state */
+  CoglBool was_bound_to_onscreen;
 
   /* Primitives */
   CoglPath         *current_path;
@@ -304,6 +332,9 @@ struct _CoglContext
      the uniform location cast to a pointer. */
   GHashTable *uniform_name_hash;
   int n_uniform_names;
+
+  CoglPollSource *fences_poll_source;
+  CoglList fences;
 
   /* This defines a list of function pointers that Cogl uses from
      either GL or GLES. All functions are accessed indirectly through

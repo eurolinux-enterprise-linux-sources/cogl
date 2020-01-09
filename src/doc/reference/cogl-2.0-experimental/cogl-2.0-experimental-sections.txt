@@ -85,14 +85,12 @@ CoglWin32FilterFunc
 cogl_win32_renderer_add_filter
 cogl_win32_renderer_remove_filter
 cogl_win32_renderer_handle_event
+cogl_win32_renderer_set_event_retrieval_enabled
 
 <SUBSECTION>
 cogl_wayland_renderer_set_foreign_display
+cogl_wayland_renderer_set_event_dispatch_enabled
 cogl_wayland_renderer_get_display
-cogl_wayland_renderer_set_foreign_compositor
-cogl_wayland_renderer_get_compositor
-cogl_wayland_renderer_set_foreign_shell
-cogl_wayland_renderer_get_shell
 </SECTION>
 
 <SECTION>
@@ -236,12 +234,13 @@ COGL_PREMULT_BIT
 
 <SECTION>
 <FILE>cogl-poll</FILE>
-<TITLE>Main loop integeration</TITLE>
+<TITLE>Main loop integration</TITLE>
 CoglPollFDEvent
 CoglPollFD
-cogl_poll_get_info
-cogl_poll_dispatch
+cogl_poll_renderer_get_info
+cogl_poll_renderer_dispatch
 cogl_glib_source_new
+cogl_glib_renderer_source_new
 </SECTION>
 
 <SECTION>
@@ -299,6 +298,7 @@ cogl_primitive_set_indices
 cogl_primitive_copy
 CoglPrimitiveAttributeCallback
 cogl_primitive_foreach_attribute
+cogl_primitive_draw
 </SECTION>
 
 <SECTION>
@@ -400,14 +400,23 @@ CoglTexture
 cogl_is_texture
 
 <SUBSECTION>
+COGL_TEXTURE_ERROR
+CoglTextureError
+
+<SUBSECTION>
+cogl_texture_allocate
 cogl_texture_get_width
 cogl_texture_get_height
-cogl_texture_get_format
 cogl_texture_is_sliced
 cogl_texture_get_data
 cogl_texture_set_data
 cogl_texture_set_region
 CoglTextureType
+CoglTextureComponents
+cogl_texture_set_components
+cogl_texture_get_components
+cogl_texture_set_premultiplied
+cogl_texture_get_premultiplied
 
 <SUBSECTION Private>
 COGL_TEXTURE_MAX_WASTE
@@ -418,9 +427,10 @@ COGL_TEXTURE_MAX_WASTE
 <TITLE>2D textures</TITLE>
 CoglTexture2D
 cogl_texture_2d_new_with_size
+cogl_texture_2d_new_from_file
 cogl_texture_2d_new_from_bitmap
 cogl_texture_2d_new_from_data
-cogl_texture_2d_new_from_foreign
+cogl_texture_2d_gl_new_from_foreign
 cogl_is_texture_rectangle
 </SECTION>
 
@@ -468,10 +478,24 @@ cogl_is_sub_texture
 </SECTION>
 
 <SECTION>
+<FILE>cogl-atlas-texture</FILE>
+<TITLE>Atlas Textures</TITLE>
+CoglAtlasTexture
+cogl_atlas_texture_new_with_size
+cogl_atlas_texture_new_from_file
+cogl_atlas_texture_new_from_data
+cogl_atlas_texture_new_from_bitmap
+cogl_is_atlas_texture
+</SECTION>
+
+<SECTION>
 <FILE>cogl-texture-2d-sliced</FILE>
 <TITLE>Sliced Textures</TITLE>
 CoglTexture2DSliced
 cogl_texture_2d_sliced_new_with_size
+cogl_texture_2d_sliced_new_from_file
+cogl_texture_2d_sliced_new_from_data
+cogl_texture_2d_sliced_new_from_bitmap
 cogl_is_texture_2d_sliced
 </SECTION>
 
@@ -506,7 +530,6 @@ cogl_framebuffer_get_viewport_y
 cogl_framebuffer_get_viewport_width
 cogl_framebuffer_get_viewport_height
 cogl_framebuffer_get_viewport4fv
-cogl_framebuffer_get_color_format
 cogl_framebuffer_get_red_bits
 cogl_framebuffer_get_green_bits
 cogl_framebuffer_get_blue_bits
@@ -527,11 +550,6 @@ cogl_framebuffer_set_dither_enabled
 cogl_framebuffer_get_dither_enabled
 
 <SUBSECTION>
-cogl_framebuffer_draw_primitive
-cogl_framebuffer_draw_attributes
-cogl_framebuffer_vdraw_attributes
-cogl_framebuffer_draw_indexed_attributes
-cogl_framebuffer_vdraw_indexed_attributes
 cogl_framebuffer_draw_rectangle
 cogl_framebuffer_draw_textured_rectangle
 cogl_framebuffer_draw_multitextured_rectangle
@@ -610,7 +628,21 @@ cogl_onscreen_add_frame_callback
 cogl_onscreen_remove_frame_callback
 
 <SUBSECTION>
+CoglOnscreenDirtyInfo
+CoglOnscreenDirtyCallback
+CoglOnscreenDirtyClosure
+cogl_onscreen_add_dirty_callback
+cogl_onscreen_remove_dirty_callback
+
+<SUBSECTION>
+CoglOnscreenResizeCallback
+CoglOnscreenResizeClosure
+cogl_onscreen_add_resize_callback
+cogl_onscreen_remove_resize_callback
+
+<SUBSECTION>
 cogl_onscreen_swap_buffers
+cogl_onscreen_swap_buffers_with_damage
 cogl_onscreen_swap_region
 cogl_onscreen_set_swap_throttled
 CoglSwapBuffersNotify
@@ -626,7 +658,7 @@ CoglOffscreen
 cogl_is_offscreen
 
 <SUBSECTION>
-cogl_offscreen_new_to_texture
+cogl_offscreen_new_with_texture
 </SECTION>
 
 <SECTION>
@@ -679,6 +711,10 @@ cogl_color_set_alpha_float
 cogl_color_premultiply
 cogl_color_unpremultiply
 cogl_color_equal
+
+<SUBSECTION>
+cogl_color_init_from_hsl
+cogl_color_to_hsl
 </SECTION>
 
 <SECTION>
@@ -818,6 +854,8 @@ cogl_pipeline_set_blend
 cogl_pipeline_set_blend_constant
 cogl_pipeline_set_point_size
 cogl_pipeline_get_point_size
+cogl_pipeline_set_per_vertex_point_size
+cogl_pipeline_get_per_vertex_point_size
 
 cogl_pipeline_get_color_mask
 cogl_pipeline_set_color_mask
@@ -951,6 +989,17 @@ cogl_vector3_magnitude
 cogl_vector3_cross_product
 cogl_vector3_dot_product
 cogl_vector3_distance
+</SECTION>
+
+<SECTION>
+<FILE>cogl-fence</FILE>
+<TITLE>GPU synchronisation fences</TITLE>
+CoglFence
+CoglFenceCallback
+CoglFenceClosure
+cogl_fence_closure_get_user_data
+cogl_framebuffer_add_fence_callback
+cogl_framebuffer_cancel_fence_callback
 </SECTION>
 
 <SECTION>

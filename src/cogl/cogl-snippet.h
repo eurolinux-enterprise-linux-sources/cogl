@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2011, 2013 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  *
@@ -173,17 +179,17 @@ COGL_BEGIN_DECLS
  *   <glossterm>attribute vec4
  *         <emphasis>cogl_tex_coord_in</emphasis></glossterm>
  *   <glossdef><para>
- *    The texture coordinate for the first texture unit. This is
- *    equivalent to #gl_MultiTexCoord0.
+ *    The texture coordinate for layer 0. This is an alternative name
+ *    for #cogl_tex_coord0_in.
  *   </para></glossdef>
  *  </glossentry>
  *  <glossentry>
  *   <glossterm>attribute vec4
  *         <emphasis>cogl_tex_coord0_in</emphasis></glossterm>
  *   <glossdef><para>
- *    The texture coordinate for the first texture unit. This is
- *    equivalent to #gl_MultiTexCoord0. There is also
- *    #cogl_tex_coord1_in and so on.
+ *    The texture coordinate for the layer 0. This is equivalent to
+ *    #gl_MultiTexCoord0. There will also be #cogl_tex_coord1_in and
+ *    so on if more layers are added to the pipeline.
  *   </para></glossdef>
  *  </glossentry>
  *  <glossentry>
@@ -203,6 +209,16 @@ COGL_BEGIN_DECLS
  *  </glossentry>
  *  <glossentry>
  *   <glossterm>float
+ *         <emphasis>cogl_point_size_in</emphasis></glossterm>
+ *   <glossdef><para>
+ *    The incoming point size from the cogl_point_size_in attribute.
+ *    This is only available if
+ *    cogl_pipeline_set_per_vertex_point_size() is set on the
+ *    pipeline.
+ *   </para></glossdef>
+ *  </glossentry>
+ *  <glossentry>
+ *   <glossterm>float
  *         <emphasis>cogl_point_size_out</emphasis></glossterm>
  *   <glossdef><para>
  *    The calculated size of a point. This is equivalent to #gl_PointSize.
@@ -217,10 +233,13 @@ COGL_BEGIN_DECLS
  *  </glossentry>
  *  <glossentry>
  *   <glossterm>varying vec4
- *         <emphasis>cogl_tex_coord_out</emphasis>[]</glossterm>
+ *         <emphasis>cogl_tex_coord0_out</emphasis></glossterm>
  *   <glossdef><para>
- *    An array of calculated texture coordinates for a vertex. This is
- *    equivalent to #gl_TexCoord.
+ *    The calculated texture coordinate for layer 0 of the pipeline.
+ *    This is equivalent to #gl_TexCoord[0]. There will also be
+ *    #cogl_tex_coord1_out and so on if more layers are added to the
+ *    pipeline. In the fragment shader, this varying is called
+ *    #cogl_tex_coord0_in.
  *   </para></glossdef>
  *  </glossentry>
  * </glosslist>
@@ -236,10 +255,11 @@ COGL_BEGIN_DECLS
  *  </glossentry>
  *  <glossentry>
  *   <glossterm>varying vec4
- *              <emphasis>cogl_tex_coord_in</emphasis>[]</glossterm>
+ *              <emphasis>cogl_tex_coord0_in</emphasis></glossterm>
  *   <glossdef><para>
- *    An array of calculated texture coordinates for a vertex. This is
- *    equivalent to #gl_TexCoord.
+ *    The texture coordinate for layer 0. This is equivalent to
+ *    #gl_TexCoord[0]. There will also be #cogl_tex_coord1_in and so
+ *    on if more layers are added to the pipeline.
  *   </para></glossdef>
  *  </glossentry>
  *  <glossentry>
@@ -263,6 +283,19 @@ COGL_BEGIN_DECLS
  *    A readonly variable that will be true if the current primitive
  *    is front facing. This can be used to implement two-sided
  *    coloring algorithms. This is equivalent to #gl_FrontFacing.
+ *   </para></glossdef>
+ *  </glossentry>
+ *  <glossentry>
+ *   <glossterm>vec2 <emphasis>cogl_point_coord</emphasis></glossterm>
+ *   <glossdef><para>
+ *    When rendering points, this will contain a vec2 which represents
+ *    the position within the point of the current fragment.
+ *    vec2(0.0,0.0) will be the topleft of the point and vec2(1.0,1.0)
+ *    will be the bottom right. Note that there is currently a bug in
+ *    Cogl where when rendering to an offscreen buffer these
+ *    coordinates will be upside-down. The value is undefined when not
+ *    rendering points. This builtin can only be used if the
+ *    %COGL_FEATURE_ID_POINT_SPRITE feature is available.
  *   </para></glossdef>
  *  </glossentry>
  * </glosslist>
@@ -308,6 +341,15 @@ typedef struct _CoglSnippet CoglSnippet;
 
 #define COGL_SNIPPET(OBJECT) ((CoglSnippet *)OBJECT)
 
+#ifdef COGL_HAS_GTYPE_SUPPORT
+/**
+ * cogl_snippet_get_gtype:
+ *
+ * Returns: a #GType that can be used with the GLib type system.
+ */
+GType cogl_snippet_get_gtype (void);
+#endif
+
 /* Enumeration of all the hook points that a snippet can be attached
    to within a pipeline. */
 /**
@@ -321,6 +363,10 @@ typedef struct _CoglSnippet CoglSnippet;
  * @COGL_SNIPPET_HOOK_VERTEX: A hook for the entire vertex processing
  *   stage of the pipeline.
  * @COGL_SNIPPET_HOOK_VERTEX_TRANSFORM: A hook for the vertex transformation.
+ * @COGL_SNIPPET_HOOK_POINT_SIZE: A hook for manipulating the point
+ *   size of a vertex. This is only used if
+ *   cogl_pipeline_set_per_vertex_point_size() is enabled on the
+ *   pipeline.
  * @COGL_SNIPPET_HOOK_FRAGMENT: A hook for the entire fragment
  *   processing stage of the pipeline.
  * @COGL_SNIPPET_HOOK_TEXTURE_COORD_TRANSFORM: A hook for applying the
@@ -418,6 +464,39 @@ typedef struct _CoglSnippet CoglSnippet;
  * The ‘post’ string in @snippet will be inserted after all of the
  * standard vertex transformation is done. This can be used to modify the
  * cogl_position_out in addition to the default processing.
+ * </para>
+ *   </glossdef>
+ *  </glossentry>
+ *  <glossentry>
+ *   <glossterm>%COGL_SNIPPET_HOOK_POINT_SIZE</glossterm>
+ *   <glossdef>
+ * <para>
+ * Adds a shader snippet that will hook on to the point size
+ * calculation step within the vertex shader stage. The snippet should
+ * write to the builtin cogl_point_size_out with the new point size.
+ * The snippet can either read cogl_point_size_in directly and write a
+ * new value or first read an existing value in cogl_point_size_out
+ * that would be set by a previous snippet. Note that this hook is
+ * only used if cogl_pipeline_set_per_vertex_point_size() is enabled
+ * on the pipeline.
+ * </para>
+ * <para>
+ * The ‘declarations’ string in @snippet will be inserted in the
+ * global scope of the shader. Use this to declare any uniforms,
+ * attributes or functions that the snippet requires.
+ * </para>
+ * <para>
+ * The ‘pre’ string in @snippet will be inserted just before
+ * calculating the point size.
+ * </para>
+ * <para>
+ * The ‘replace’ string in @snippet will be used instead of the
+ * generated point size calculation if it is present.
+ * </para>
+ * <para>
+ * The ‘post’ string in @snippet will be inserted after the
+ * standard point size calculation is done. This can be used to modify
+ * cogl_point_size_out in addition to the default processing.
  * </para>
  *   </glossdef>
  *  </glossentry>
@@ -583,6 +662,7 @@ typedef enum {
   COGL_SNIPPET_HOOK_VERTEX = 0,
   COGL_SNIPPET_HOOK_VERTEX_TRANSFORM,
   COGL_SNIPPET_HOOK_VERTEX_GLOBALS,
+  COGL_SNIPPET_HOOK_POINT_SIZE,
 
   /* Per pipeline fragment hooks */
   COGL_SNIPPET_HOOK_FRAGMENT = 2048,

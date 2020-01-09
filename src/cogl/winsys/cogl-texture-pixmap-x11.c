@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2010 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  *
@@ -38,6 +45,7 @@
 #include "cogl-texture-private.h"
 #include "cogl-texture-driver.h"
 #include "cogl-texture-2d-private.h"
+#include "cogl-texture-2d-sliced.h"
 #include "cogl-texture-rectangle-private.h"
 #include "cogl-context-private.h"
 #include "cogl-display-private.h"
@@ -49,6 +57,7 @@
 #include "cogl-error-private.h"
 #include "cogl-texture-gl-private.h"
 #include "cogl-private.h"
+#include "cogl-gtype-private.h"
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -63,6 +72,7 @@
 static void _cogl_texture_pixmap_x11_free (CoglTexturePixmapX11 *tex_pixmap);
 
 COGL_TEXTURE_DEFINE (TexturePixmapX11, texture_pixmap_x11);
+COGL_GTYPE_DEFINE_CLASS (TexturePixmapX11, texture_pixmap_x11);
 
 static const CoglTextureVtable cogl_texture_pixmap_x11_vtable;
 
@@ -286,6 +296,7 @@ cogl_texture_pixmap_x11_new (CoglContext *ctxt,
   int pixmap_x, pixmap_y;
   unsigned int pixmap_width, pixmap_height;
   unsigned int pixmap_border_width;
+  CoglPixelFormat internal_format;
   CoglTexture *tex = COGL_TEXTURE (tex_pixmap);
   XWindowAttributes window_attributes;
   int damage_base;
@@ -304,7 +315,15 @@ cogl_texture_pixmap_x11_new (CoglContext *ctxt,
       return NULL;
     }
 
+  /* Note: the detailed pixel layout doesn't matter here, we are just
+   * interested in RGB vs RGBA... */
+  internal_format = (tex_pixmap->depth >= 32
+                     ? COGL_PIXEL_FORMAT_RGBA_8888_PRE
+                     : COGL_PIXEL_FORMAT_RGB_888);
+
   _cogl_texture_init (tex, ctxt, pixmap_width, pixmap_height,
+                      internal_format,
+                      NULL, /* no loader */
                       &cogl_texture_pixmap_x11_vtable);
 
   tex_pixmap->pixmap = pixmap;
@@ -325,6 +344,7 @@ cogl_texture_pixmap_x11_new (CoglContext *ctxt,
                    "Unable to query root window attributes");
       return NULL;
     }
+
   tex_pixmap->visual = window_attributes.visual;
 
   /* If automatic updates are requested and the Xlib connection
@@ -345,9 +365,9 @@ cogl_texture_pixmap_x11_new (CoglContext *ctxt,
 
   /* Assume the entire pixmap is damaged to begin with */
   tex_pixmap->damage_rect.x1 = 0;
-  tex_pixmap->damage_rect.x2 = tex->width;
+  tex_pixmap->damage_rect.x2 = pixmap_width;
   tex_pixmap->damage_rect.y1 = 0;
-  tex_pixmap->damage_rect.y2 = tex->height;
+  tex_pixmap->damage_rect.y2 = pixmap_height;
 
   winsys = _cogl_texture_pixmap_x11_get_winsys (tex_pixmap);
   if (winsys->texture_pixmap_x11_create)
@@ -361,7 +381,8 @@ cogl_texture_pixmap_x11_new (CoglContext *ctxt,
   if (!tex_pixmap->use_winsys_texture)
     tex_pixmap->winsys = NULL;
 
-  _cogl_texture_set_allocated (tex, TRUE);
+  _cogl_texture_set_allocated (tex, internal_format,
+                               pixmap_width, pixmap_height);
 
   return _cogl_texture_pixmap_x11_object_new (tex_pixmap);
 }
@@ -489,6 +510,54 @@ cogl_texture_pixmap_x11_set_damage_object (CoglTexturePixmapX11 *tex_pixmap,
     set_damage_object_internal (ctxt, tex_pixmap, damage, report_level);
 }
 
+static CoglTexture *
+create_fallback_texture (CoglContext *ctx,
+                         int width,
+                         int height,
+                         CoglPixelFormat internal_format)
+{
+  CoglTexture *tex;
+  CoglError *skip_error = NULL;
+
+  if ((_cogl_util_is_pot (width) && _cogl_util_is_pot (height)) ||
+      (cogl_has_feature (ctx, COGL_FEATURE_ID_TEXTURE_NPOT_BASIC) &&
+       cogl_has_feature (ctx, COGL_FEATURE_ID_TEXTURE_NPOT_MIPMAP)))
+    {
+      /* First try creating a fast-path non-sliced texture */
+      tex = COGL_TEXTURE (cogl_texture_2d_new_with_size (ctx,
+                                                         width, height));
+
+      _cogl_texture_set_internal_format (tex, internal_format);
+
+      /* TODO: instead of allocating storage here it would be better
+       * if we had some api that let us just check that the size is
+       * supported by the hardware so storage could be allocated
+       * lazily when uploading data. */
+      if (!cogl_texture_allocate (tex, &skip_error))
+        {
+          cogl_error_free (skip_error);
+          cogl_object_unref (tex);
+          tex = NULL;
+        }
+    }
+  else
+    tex = NULL;
+
+  if (!tex)
+    {
+      CoglTexture2DSliced *tex_2ds =
+        cogl_texture_2d_sliced_new_with_size (ctx,
+                                              width,
+                                              height,
+                                              COGL_TEXTURE_MAX_WASTE);
+      tex = COGL_TEXTURE (tex_2ds);
+
+      _cogl_texture_set_internal_format (tex, internal_format);
+    }
+
+  return tex;
+}
+
 static void
 _cogl_texture_pixmap_x11_update_image_texture (CoglTexturePixmapX11 *tex_pixmap)
 {
@@ -528,10 +597,10 @@ _cogl_texture_pixmap_x11_update_image_texture (CoglTexturePixmapX11 *tex_pixmap)
                         ? COGL_PIXEL_FORMAT_RGBA_8888_PRE
                         : COGL_PIXEL_FORMAT_RGB_888);
 
-      tex_pixmap->tex = cogl_texture_new_with_size (tex->width,
-                                                    tex->height,
-                                                    COGL_TEXTURE_NONE,
-                                                    texture_format);
+      tex_pixmap->tex = create_fallback_texture (ctx,
+                                                 tex->width,
+                                                 tex->height,
+                                                 texture_format);
     }
 
   if (tex_pixmap->image == NULL)
@@ -947,7 +1016,7 @@ _cogl_texture_pixmap_x11_get_format (CoglTexture *tex)
   CoglTexture *child_tex = _cogl_texture_pixmap_x11_get_texture (tex_pixmap);
 
   /* Forward on to the child texture */
-  return cogl_texture_get_format (child_tex);
+  return _cogl_texture_get_format (child_tex);
 }
 
 static GLenum

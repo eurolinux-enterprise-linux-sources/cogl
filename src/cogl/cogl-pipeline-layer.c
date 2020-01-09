@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2008,2009,2010 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  *
@@ -41,6 +47,8 @@
 #include "cogl-pipeline-opengl-private.h"
 #include "cogl-context-private.h"
 #include "cogl-texture-private.h"
+
+#include <string.h>
 
 static void
 _cogl_pipeline_layer_free (CoglPipelineLayer *layer);
@@ -108,7 +116,7 @@ _cogl_pipeline_layer_has_alpha (CoglPipelineLayer *layer)
     _cogl_pipeline_layer_get_authority (layer,
                                         COGL_PIPELINE_LAYER_STATE_TEXTURE_DATA);
   if (tex_authority->texture &&
-      cogl_texture_get_format (tex_authority->texture) & COGL_A_BIT)
+      _cogl_texture_get_format (tex_authority->texture) & COGL_A_BIT)
     {
       return TRUE;
     }
@@ -116,11 +124,11 @@ _cogl_pipeline_layer_has_alpha (CoglPipelineLayer *layer)
   /* All bets are off if the layer contains any snippets */
   snippets_authority = _cogl_pipeline_layer_get_authority
     (layer, COGL_PIPELINE_LAYER_STATE_VERTEX_SNIPPETS);
-  if (!COGL_LIST_EMPTY (&snippets_authority->big_state->vertex_snippets))
+  if (snippets_authority->big_state->vertex_snippets.entries != NULL)
     return TRUE;
   snippets_authority = _cogl_pipeline_layer_get_authority
     (layer, COGL_PIPELINE_LAYER_STATE_FRAGMENT_SNIPPETS);
-  if (!COGL_LIST_EMPTY (&snippets_authority->big_state->fragment_snippets))
+  if (snippets_authority->big_state->fragment_snippets.entries != NULL)
     return TRUE;
 
   return FALSE;
@@ -144,6 +152,107 @@ _cogl_get_n_args_for_combine_func (CoglPipelineCombineFunc func)
       return 3;
     }
   return 0;
+}
+
+void
+_cogl_pipeline_layer_copy_differences (CoglPipelineLayer *dest,
+                                       CoglPipelineLayer *src,
+                                       unsigned long differences)
+{
+  CoglPipelineLayerBigState *big_dest, *big_src;
+
+  if ((differences & COGL_PIPELINE_LAYER_STATE_NEEDS_BIG_STATE) &&
+      !dest->has_big_state)
+    {
+      dest->big_state = g_slice_new (CoglPipelineLayerBigState);
+      dest->has_big_state = TRUE;
+    }
+
+  big_dest = dest->big_state;
+  big_src = src->big_state;
+
+  dest->differences |= differences;
+
+  while (differences)
+    {
+      int index = _cogl_util_ffs (differences) - 1;
+
+      differences &= ~(1 << index);
+
+      /* This convoluted switch statement is just here so that we'll
+       * get a warning if a new state is added without handling it
+       * here */
+      switch (index)
+        {
+        case COGL_PIPELINE_LAYER_STATE_COUNT:
+        case COGL_PIPELINE_LAYER_STATE_UNIT_INDEX:
+          g_warn_if_reached ();
+          break;
+
+        case COGL_PIPELINE_LAYER_STATE_TEXTURE_TYPE_INDEX:
+          dest->texture_type = src->texture_type;
+          break;
+
+        case COGL_PIPELINE_LAYER_STATE_TEXTURE_DATA_INDEX:
+          dest->texture = src->texture;
+          if (dest->texture)
+            cogl_object_ref (dest->texture);
+          break;
+
+        case COGL_PIPELINE_LAYER_STATE_SAMPLER_INDEX:
+          dest->sampler_cache_entry = src->sampler_cache_entry;
+          break;
+
+        case COGL_PIPELINE_LAYER_STATE_COMBINE_INDEX:
+          {
+            CoglPipelineCombineFunc func;
+            int n_args, i;
+
+            func = big_src->texture_combine_rgb_func;
+            big_dest->texture_combine_rgb_func = func;
+            n_args = _cogl_get_n_args_for_combine_func (func);
+            for (i = 0; i < n_args; i++)
+              {
+                big_dest->texture_combine_rgb_src[i] =
+                  big_src->texture_combine_rgb_src[i];
+                big_dest->texture_combine_rgb_op[i] =
+                  big_src->texture_combine_rgb_op[i];
+              }
+
+            func = big_src->texture_combine_alpha_func;
+            big_dest->texture_combine_alpha_func = func;
+            n_args = _cogl_get_n_args_for_combine_func (func);
+            for (i = 0; i < n_args; i++)
+              {
+                big_dest->texture_combine_alpha_src[i] =
+                  big_src->texture_combine_alpha_src[i];
+                big_dest->texture_combine_alpha_op[i] =
+                  big_src->texture_combine_alpha_op[i];
+              }
+          }
+          break;
+
+        case COGL_PIPELINE_LAYER_STATE_COMBINE_CONSTANT_INDEX:
+          memcpy (big_dest->texture_combine_constant,
+                  big_src->texture_combine_constant,
+                  sizeof (big_dest->texture_combine_constant));
+          break;
+
+        case COGL_PIPELINE_LAYER_STATE_POINT_SPRITE_COORDS_INDEX:
+          big_dest->point_sprite_coords = big_src->point_sprite_coords;
+          break;
+
+        case COGL_PIPELINE_LAYER_STATE_VERTEX_SNIPPETS_INDEX:
+          _cogl_pipeline_snippet_list_copy (&big_dest->vertex_snippets,
+                                            &big_src->vertex_snippets);
+          break;
+
+        case COGL_PIPELINE_LAYER_STATE_FRAGMENT_SNIPPETS_INDEX:
+          _cogl_pipeline_snippet_list_copy (&big_dest->fragment_snippets,
+                                            &big_src->fragment_snippets);
+          break;
+        }
+    }
 }
 
 static void
@@ -244,7 +353,7 @@ _cogl_pipeline_layer_pre_change_notify (CoglPipeline *required_owner,
 
   /* Identify the case where the layer is new with no owner or
    * dependants and so we don't need to do anything. */
-  if (COGL_LIST_EMPTY (&COGL_NODE (layer)->children) &&
+  if (_cogl_list_empty (&COGL_NODE (layer)->children) &&
       layer->owner == NULL)
     goto init_layer_state;
 
@@ -266,7 +375,7 @@ _cogl_pipeline_layer_pre_change_notify (CoglPipeline *required_owner,
    * they have dependants - either direct children, or another
    * pipeline as an owner.
    */
-  if (!COGL_LIST_EMPTY (&COGL_NODE (layer)->children) ||
+  if (!_cogl_list_empty (&COGL_NODE (layer)->children) ||
       layer->owner != required_owner)
     {
       CoglPipelineLayer *new = _cogl_pipeline_layer_copy (layer);

@@ -28,38 +28,42 @@
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="cogl.props" />
+    <Import Project="cogl-build-defines.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="cogl.props" />
+    <Import Project="cogl-build-defines.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="cogl.props" />
+    <Import Project="cogl-build-defines.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="cogl.props" />
+    <Import Project="cogl-build-defines.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
@@ -71,7 +75,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;COGL_ENABLE_EXPERIMENTAL_API;$(TestProgDef);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\test-fixtures;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;COGL_ENABLE_EXPERIMENTAL_API;$(CoglAppAvoidForcedSDLLinkingDefines);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -90,7 +95,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;COGL_ENABLE_EXPERIMENTAL_API;$(TestProgDef);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\test-fixtures;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;COGL_ENABLE_EXPERIMENTAL_API;$(CoglAppAvoidForcedSDLLinkingDefines);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -113,8 +119,9 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories>..\..\..\test-fixtures;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>COGL_ENABLE_EXPERIMENTAL_API;$(TestProgDef);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>COGL_ENABLE_EXPERIMENTAL_API;$(CoglAppAvoidForcedSDLLinkingDefines);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>
@@ -133,7 +140,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>COGL_ENABLE_EXPERIMENTAL_API;$(TestProgDef);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\test-fixtures;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>COGL_ENABLE_EXPERIMENTAL_API;$(CoglAppAvoidForcedSDLLinkingDefines);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
@@ -154,16 +162,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\tests\conform\test-utils.c" />
     <ClCompile Include="..\..\..\tests\conform\test-conform-main.c" />
     <ClCompile Include="..\..\..\tests\conform\test-atlas-migration.c" />
-    <ClCompile Include="..\..\..\tests\conform\test-bitmask.c" />
     <ClCompile Include="..\..\..\tests\conform\test-blend-strings.c" />
+    <ClCompile Include="..\..\..\tests\conform\test-blend.c" />
     <ClCompile Include="..\..\..\tests\conform\test-depth-test.c" />
+    <ClCompile Include="..\..\..\tests\conform\test-color-hsl.c" />
     <ClCompile Include="..\..\..\tests\conform\test-color-mask.c" />
     <ClCompile Include="..\..\..\tests\conform\test-backface-culling.c" />
     <ClCompile Include="..\..\..\tests\conform\test-just-vertex-shader.c" />
-    <ClCompile Include="..\..\..\tests\conform\test-path.c" />
     <ClCompile Include="..\..\..\tests\conform\test-pipeline-user-matrix.c" />
     <ClCompile Include="..\..\..\tests\conform\test-pipeline-uniforms.c" />
     <ClCompile Include="..\..\..\tests\conform\test-pixel-buffer.c" />
@@ -179,6 +186,7 @@
     <ClCompile Include="..\..\..\tests\conform\test-read-texture-formats.c" />
     <ClCompile Include="..\..\..\tests\conform\test-write-texture-formats.c" />
     <ClCompile Include="..\..\..\tests\conform\test-point-size.c" />
+    <ClCompile Include="..\..\..\tests\conform\test-point-size-attribute.c" />
     <ClCompile Include="..\..\..\tests\conform\test-point-sprite.c" />
     <ClCompile Include="..\..\..\tests\conform\test-no-gl-header.c" />
     <ClCompile Include="..\..\..\tests\conform\test-version.c" />
@@ -194,13 +202,25 @@
     <ClCompile Include="..\..\..\tests\conform\test-framebuffer-get-bits.c" />
     <ClCompile Include="..\..\..\tests\conform\test-primitive-and-journal.c" />
     <ClCompile Include="..\..\..\tests\conform\test-copy-replace-texture.c" />
+    <ClCompile Include="..\..\..\tests\conform\test-pipeline-cache-unrefs-texture.c" />
+    <ClCompile Include="..\..\..\tests\conform\test-texture-no-allocate.c" />
+    <ClCompile Include="..\..\..\tests\conform\test-pipeline-shader-state.c" />
+    <ClCompile Include="..\..\..\tests\conform\test-texture-rg.c" />
+    <ClCompile Include="..\..\..\tests\conform\test-fence.c" />
+    <ClCompile Include="..\..\..\tests\conform\test-path.c" />
+    <ClCompile Include="..\..\..\tests\conform\test-path-clip.c" />
+    <ClCompile Include="..\..\..\test-fixtures\test-utils.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="cogl.vcxproj">
       <Project>{ea036190-0950-4640-84f9-d459a33b33a8}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
- <ProjectReference Include="cogl-pango.vcxproj">
+    <ProjectReference Include="cogl-path.vcxproj">
+      <Project>{f3a80987-5411-43db-a23b-06f2076e1207}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="cogl-pango.vcxproj">
       <Project>{fe5abd0f-91e8-4aa5-9c1c-408427d5f768}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>

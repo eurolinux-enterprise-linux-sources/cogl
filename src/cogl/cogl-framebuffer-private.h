@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2007,2008,2009 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  */
@@ -26,12 +33,12 @@
 
 #include "cogl-object-private.h"
 #include "cogl-matrix-stack-private.h"
-#include "cogl-clip-state-private.h"
 #include "cogl-journal-private.h"
 #include "cogl-winsys-private.h"
 #include "cogl-attribute-private.h"
 #include "cogl-offscreen.h"
 #include "cogl-gl-header.h"
+#include "cogl-clip-stack.h"
 
 #ifdef COGL_HAS_XLIB_SUPPORT
 #include <X11/Xlib.h>
@@ -56,7 +63,7 @@ typedef struct
   CoglBool depth_texture_enabled;
 } CoglFramebufferConfig;
 
-/* Flags to pass to _cogl_offscreen_new_to_texture_full */
+/* Flags to pass to _cogl_offscreen_new_with_texture_full */
 typedef enum
 {
   COGL_OFFSCREEN_DISABLE_DEPTH_AND_STENCIL = 1
@@ -78,7 +85,8 @@ typedef enum _CoglFramebufferStateIndex
   COGL_FRAMEBUFFER_STATE_INDEX_PROJECTION         = 5,
   COGL_FRAMEBUFFER_STATE_INDEX_COLOR_MASK         = 6,
   COGL_FRAMEBUFFER_STATE_INDEX_FRONT_FACE_WINDING = 7,
-  COGL_FRAMEBUFFER_STATE_INDEX_MAX                = 8
+  COGL_FRAMEBUFFER_STATE_INDEX_DEPTH_WRITE        = 8,
+  COGL_FRAMEBUFFER_STATE_INDEX_MAX                = 9
 } CoglFramebufferStateIndex;
 
 typedef enum _CoglFramebufferState
@@ -90,7 +98,8 @@ typedef enum _CoglFramebufferState
   COGL_FRAMEBUFFER_STATE_MODELVIEW          = 1<<4,
   COGL_FRAMEBUFFER_STATE_PROJECTION         = 1<<5,
   COGL_FRAMEBUFFER_STATE_COLOR_MASK         = 1<<6,
-  COGL_FRAMEBUFFER_STATE_FRONT_FACE_WINDING = 1<<7
+  COGL_FRAMEBUFFER_STATE_FRONT_FACE_WINDING = 1<<7,
+  COGL_FRAMEBUFFER_STATE_DEPTH_WRITE        = 1<<8
 } CoglFramebufferState;
 
 #define COGL_FRAMEBUFFER_STATE_ALL ((1<<COGL_FRAMEBUFFER_STATE_INDEX_MAX) - 1)
@@ -128,7 +137,7 @@ struct _CoglFramebuffer
   int                 height;
   /* Format of the pixels in the framebuffer (including the expected
      premult state) */
-  CoglPixelFormat     format;
+  CoglPixelFormat     internal_format;
   CoglBool            allocated;
 
   CoglMatrixStack    *modelview_stack;
@@ -140,9 +149,10 @@ struct _CoglFramebuffer
   int                 viewport_age;
   int                 viewport_age_for_scissor_workaround;
 
-  CoglClipState       clip_state;
+  CoglClipStack      *clip_stack;
 
   CoglBool            dither_enabled;
+  CoglBool            depth_writing_enabled;
   CoglColorMask       color_mask;
 
   /* We journal the textured rectangles we want to submit to OpenGL so
@@ -169,6 +179,10 @@ struct _CoglFramebuffer
   int                 clear_clip_x1;
   int                 clear_clip_y1;
   CoglBool            clear_clip_dirty;
+
+  /* Whether something has been drawn to the buffer since the last
+   * swap buffers or swap region. */
+  CoglBool            mid_scene;
 
   /* driver specific */
   CoglBool            dirty_bitmasks;
@@ -198,14 +212,12 @@ struct _CoglOffscreen
 
   CoglTexture    *texture;
   int             texture_level;
-  int             texture_level_width;
-  int             texture_level_height;
 
   CoglTexture *depth_texture;
 
   CoglOffscreenAllocateFlags allocation_flags;
 
-  /* FIXME: _cogl_offscreen_new_to_texture_full should be made to use
+  /* FIXME: _cogl_offscreen_new_with_texture_full should be made to use
    * fb->config to configure if we want a depth or stencil buffer so
    * we can get rid of these flags */
   CoglOffscreenFlags create_flags;
@@ -215,9 +227,24 @@ void
 _cogl_framebuffer_init (CoglFramebuffer *framebuffer,
                         CoglContext *ctx,
                         CoglFramebufferType type,
-                        CoglPixelFormat format,
                         int width,
                         int height);
+
+/* XXX: For a public api we might instead want a way to explicitly
+ * set the _premult status of a framebuffer or what components we
+ * care about instead of exposing the CoglPixelFormat
+ * internal_format.
+ *
+ * The current use case for this api is where we create an offscreen
+ * framebuffer for a shared atlas texture that has a format of
+ * RGBA_8888 disregarding the premultiplied alpha status for
+ * individual atlased textures or whether the alpha component is being
+ * discarded. We want to overried the internal_format that will be
+ * derived from the texture.
+ */
+void
+_cogl_framebuffer_set_internal_format (CoglFramebuffer *framebuffer,
+                                       CoglPixelFormat internal_format);
 
 void _cogl_framebuffer_free (CoglFramebuffer *framebuffer);
 
@@ -233,10 +260,10 @@ _cogl_framebuffer_clear_without_flush4f (CoglFramebuffer *framebuffer,
                                          float alpha);
 
 void
-_cogl_framebuffer_dirty (CoglFramebuffer *framebuffer);
+_cogl_framebuffer_mark_clear_clip_dirty (CoglFramebuffer *framebuffer);
 
-CoglClipState *
-_cogl_framebuffer_get_clip_state (CoglFramebuffer *framebuffer);
+void
+_cogl_framebuffer_mark_mid_scene (CoglFramebuffer *framebuffer);
 
 /*
  * _cogl_framebuffer_get_clip_stack:
@@ -298,7 +325,7 @@ void
 _cogl_free_framebuffer_stack (GSList *stack);
 
 /*
- * _cogl_offscreen_new_to_texture_full:
+ * _cogl_offscreen_new_with_texture_full:
  * @texture: A #CoglTexture pointer
  * @create_flags: Flags specifying how to create the FBO
  * @level: The mipmap level within the texture to target
@@ -311,9 +338,9 @@ _cogl_free_framebuffer_stack (GSList *stack);
  * Return value: the new CoglOffscreen object.
  */
 CoglOffscreen *
-_cogl_offscreen_new_to_texture_full (CoglTexture *texture,
-                                     CoglOffscreenFlags create_flags,
-                                     int level);
+_cogl_offscreen_new_with_texture_full (CoglTexture *texture,
+                                       CoglOffscreenFlags create_flags,
+                                       int level);
 
 /*
  * _cogl_push_framebuffers:
@@ -401,12 +428,6 @@ _cogl_framebuffer_restore_clip_stack (CoglFramebuffer *framebuffer);
 
 void
 _cogl_framebuffer_unref (CoglFramebuffer *framebuffer);
-
-void
-_cogl_framebuffer_draw_primitive (CoglFramebuffer *framebuffer,
-                                  CoglPipeline *pipeline,
-                                  CoglPrimitive *primitive,
-                                  CoglDrawFlags flags);
 
 /* This can be called directly by the CoglJournal to draw attributes
  * skipping the implicit journal flush, the framebuffer flush and

@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Shader snippets</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Cogl 2.0 Reference Manual">
 <link rel="up" href="cogl-pipeline-apis.html" title="Setting Up A GPU Pipeline">
 <link rel="prev" href="cogl-2.0-experimental-Depth-State.html" title="Depth State">
 <link rel="next" href="cogl-buffer-apis.html" title="Allocating GPU Memory">
-<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.19.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -83,25 +83,25 @@ separate strings (all of which are optional):
 <p>
 </p>
 <div class="glosslist"><dl>
-<dt>declarations</dt>
-<dd><p>
+<dt><span class="glossterm">declarations</span></dt>
+<dd class="glossdef"><p>
 The code in this string will be inserted outside of any function in
 the global scope of the shader. This can be used to declare
 uniforms, attributes, varyings and functions to be used by the
 snippet.
   </p></dd>
-<dt>pre</dt>
-<dd><p>
+<dt><span class="glossterm">pre</span></dt>
+<dd class="glossdef"><p>
 The code in this string will be inserted before the hook point.
   </p></dd>
-<dt>post</dt>
-<dd><p>
+<dt><span class="glossterm">post</span></dt>
+<dd class="glossdef"><p>
 The code in this string will be inserted after the hook point. This
 can be used to modify the results of the builtin generated code for
 that hook point.
   </p></dd>
-<dt>replace</dt>
-<dd><p>
+<dt><span class="glossterm">replace</span></dt>
+<dd class="glossdef"><p>
 If present the code in this string will replace the generated code
 for the hook point.
   </p></dd>
@@ -140,33 +140,30 @@ are:
 <p>
 </p>
 <div class="glosslist"><dl>
-<dt>uniform mat4
-        <span class="emphasis"><em>cogl_modelview_matrix</em></span>
-</dt>
-<dd><p>
+<dt><span class="glossterm">uniform mat4
+        <span class="emphasis"><em>cogl_modelview_matrix</em></span></span></dt>
+<dd class="glossdef"><p>
    The current modelview matrix. This is equivalent to
    <span class="type">gl_ModelViewMatrix</span>.
   </p></dd>
-<dt>uniform mat4
-        <span class="emphasis"><em>cogl_projection_matrix</em></span>
-</dt>
-<dd><p>
+<dt><span class="glossterm">uniform mat4
+        <span class="emphasis"><em>cogl_projection_matrix</em></span></span></dt>
+<dd class="glossdef"><p>
    The current projection matrix. This is equivalent to
    <span class="type">gl_ProjectionMatrix</span>.
   </p></dd>
-<dt>uniform mat4
-        <span class="emphasis"><em>cogl_modelview_projection_matrix</em></span>
-</dt>
-<dd><p>
+<dt><span class="glossterm">uniform mat4
+        <span class="emphasis"><em>cogl_modelview_projection_matrix</em></span></span></dt>
+<dd class="glossdef"><p>
    The combined modelview and projection matrix. A vertex shader
    would typically use this to transform the incoming vertex
    position. The separate modelview and projection matrices are
    usually only needed for lighting calculations. This is
    equivalent to <span class="type">gl_ModelViewProjectionMatrix</span>.
   </p></dd>
-<dt>uniform mat4
-        <span class="emphasis"><em>cogl_texture_matrix</em></span>[]</dt>
-<dd><p>
+<dt><span class="glossterm">uniform mat4
+        <span class="emphasis"><em>cogl_texture_matrix</em></span>[]</span></dt>
+<dd class="glossdef"><p>
    An array of matrices for transforming the texture
    coordinates. This is equivalent to <span class="type">gl_TextureMatrix</span>.
   </p></dd>
@@ -179,63 +176,66 @@ In a vertex shader, the following are also available:
 <p>
 </p>
 <div class="glosslist"><dl>
-<dt>attribute vec4
-        <span class="emphasis"><em>cogl_position_in</em></span>
-</dt>
-<dd><p>
+<dt><span class="glossterm">attribute vec4
+        <span class="emphasis"><em>cogl_position_in</em></span></span></dt>
+<dd class="glossdef"><p>
    The incoming vertex position. This is equivalent to <span class="type">gl_Vertex</span>.
   </p></dd>
-<dt>attribute vec4
-        <span class="emphasis"><em>cogl_color_in</em></span>
-</dt>
-<dd><p>
+<dt><span class="glossterm">attribute vec4
+        <span class="emphasis"><em>cogl_color_in</em></span></span></dt>
+<dd class="glossdef"><p>
    The incoming vertex color. This is equivalent to <span class="type">gl_Color</span>.
   </p></dd>
-<dt>attribute vec4
-        <span class="emphasis"><em>cogl_tex_coord_in</em></span>
-</dt>
-<dd><p>
-   The texture coordinate for the first texture unit. This is
-   equivalent to <span class="type">gl_MultiTexCoord0</span>.
+<dt><span class="glossterm">attribute vec4
+        <span class="emphasis"><em>cogl_tex_coord_in</em></span></span></dt>
+<dd class="glossdef"><p>
+   The texture coordinate for layer 0. This is an alternative name
+   for <span class="type">cogl_tex_coord0_in</span>.
   </p></dd>
-<dt>attribute vec4
-        <span class="emphasis"><em>cogl_tex_coord0_in</em></span>
-</dt>
-<dd><p>
-   The texture coordinate for the first texture unit. This is
-   equivalent to <span class="type">gl_MultiTexCoord0</span>. There is also
-   <span class="type">cogl_tex_coord1_in</span> and so on.
+<dt><span class="glossterm">attribute vec4
+        <span class="emphasis"><em>cogl_tex_coord0_in</em></span></span></dt>
+<dd class="glossdef"><p>
+   The texture coordinate for the layer 0. This is equivalent to
+   <span class="type">gl_MultiTexCoord0</span>. There will also be <span class="type">cogl_tex_coord1_in</span> and
+   so on if more layers are added to the pipeline.
   </p></dd>
-<dt>attribute vec3
-        <span class="emphasis"><em>cogl_normal_in</em></span>
-</dt>
-<dd><p>
+<dt><span class="glossterm">attribute vec3
+        <span class="emphasis"><em>cogl_normal_in</em></span></span></dt>
+<dd class="glossdef"><p>
    The normal of the vertex. This is equivalent to <span class="type">gl_Normal</span>.
   </p></dd>
-<dt>vec4
-        <span class="emphasis"><em>cogl_position_out</em></span>
-</dt>
-<dd><p>
+<dt><span class="glossterm">vec4
+        <span class="emphasis"><em>cogl_position_out</em></span></span></dt>
+<dd class="glossdef"><p>
    The calculated position of the vertex. This must be written to
    in all vertex shaders. This is equivalent to <span class="type">gl_Position</span>.
   </p></dd>
-<dt>float
-        <span class="emphasis"><em>cogl_point_size_out</em></span>
-</dt>
-<dd><p>
+<dt><span class="glossterm">float
+        <span class="emphasis"><em>cogl_point_size_in</em></span></span></dt>
+<dd class="glossdef"><p>
+   The incoming point size from the cogl_point_size_in attribute.
+   This is only available if
+   <a class="link" href="cogl-2.0-experimental-Pipeline.html#cogl-pipeline-set-per-vertex-point-size" title="cogl_pipeline_set_per_vertex_point_size ()"><code class="function">cogl_pipeline_set_per_vertex_point_size()</code></a> is set on the
+   pipeline.
+  </p></dd>
+<dt><span class="glossterm">float
+        <span class="emphasis"><em>cogl_point_size_out</em></span></span></dt>
+<dd class="glossdef"><p>
    The calculated size of a point. This is equivalent to <span class="type">gl_PointSize</span>.
   </p></dd>
-<dt>varying vec4
-        <span class="emphasis"><em>cogl_color_out</em></span>
-</dt>
-<dd><p>
+<dt><span class="glossterm">varying vec4
+        <span class="emphasis"><em>cogl_color_out</em></span></span></dt>
+<dd class="glossdef"><p>
    The calculated color of a vertex. This is equivalent to <span class="type">gl_FrontColor</span>.
   </p></dd>
-<dt>varying vec4
-        <span class="emphasis"><em>cogl_tex_coord_out</em></span>[]</dt>
-<dd><p>
-   An array of calculated texture coordinates for a vertex. This is
-   equivalent to <span class="type">gl_TexCoord</span>.
+<dt><span class="glossterm">varying vec4
+        <span class="emphasis"><em>cogl_tex_coord0_out</em></span></span></dt>
+<dd class="glossdef"><p>
+   The calculated texture coordinate for layer 0 of the pipeline.
+   This is equivalent to <span class="type">gl_TexCoord</span>[0]. There will also be
+   <span class="type">cogl_tex_coord1_out</span> and so on if more layers are added to the
+   pipeline. In the fragment shader, this varying is called
+   <span class="type">cogl_tex_coord0_in</span>.
   </p></dd>
 </dl></div>
 <p>
@@ -246,36 +246,44 @@ In a fragment shader, the following are also available:
 <p>
 </p>
 <div class="glosslist"><dl>
-<dt>varying vec4 <span class="emphasis"><em>cogl_color_in</em></span>
-</dt>
-<dd><p>
+<dt><span class="glossterm">varying vec4 <span class="emphasis"><em>cogl_color_in</em></span></span></dt>
+<dd class="glossdef"><p>
    The calculated color of a vertex. This is equivalent to <span class="type">gl_FrontColor</span>.
   </p></dd>
-<dt>varying vec4
-             <span class="emphasis"><em>cogl_tex_coord_in</em></span>[]</dt>
-<dd><p>
-   An array of calculated texture coordinates for a vertex. This is
-   equivalent to <span class="type">gl_TexCoord</span>.
+<dt><span class="glossterm">varying vec4
+             <span class="emphasis"><em>cogl_tex_coord0_in</em></span></span></dt>
+<dd class="glossdef"><p>
+   The texture coordinate for layer 0. This is equivalent to
+   <span class="type">gl_TexCoord</span>[0]. There will also be <span class="type">cogl_tex_coord1_in</span> and so
+   on if more layers are added to the pipeline.
   </p></dd>
-<dt>vec4 <span class="emphasis"><em>cogl_color_out</em></span>
-</dt>
-<dd><p>
+<dt><span class="glossterm">vec4 <span class="emphasis"><em>cogl_color_out</em></span></span></dt>
+<dd class="glossdef"><p>
    The final calculated color of the fragment. All fragment shaders
    must write to this variable. This is equivalent to
    <span class="type">gl_FrontColor</span>.
   </p></dd>
-<dt>float <span class="emphasis"><em>cogl_depth_out</em></span>
-</dt>
-<dd><p>
+<dt><span class="glossterm">float <span class="emphasis"><em>cogl_depth_out</em></span></span></dt>
+<dd class="glossdef"><p>
    An optional output variable specifying the depth value to use
    for this fragment. This is equivalent to <span class="type">gl_FragDepth</span>.
   </p></dd>
-<dt>bool <span class="emphasis"><em>cogl_front_facing</em></span>
-</dt>
-<dd><p>
+<dt><span class="glossterm">bool <span class="emphasis"><em>cogl_front_facing</em></span></span></dt>
+<dd class="glossdef"><p>
    A readonly variable that will be true if the current primitive
    is front facing. This can be used to implement two-sided
    coloring algorithms. This is equivalent to <span class="type">gl_FrontFacing</span>.
+  </p></dd>
+<dt><span class="glossterm">vec2 <span class="emphasis"><em>cogl_point_coord</em></span></span></dt>
+<dd class="glossdef"><p>
+   When rendering points, this will contain a vec2 which represents
+   the position within the point of the current fragment.
+   vec2(0.0,0.0) will be the topleft of the point and vec2(1.0,1.0)
+   will be the bottom right. Note that there is currently a bug in
+   Cogl where when rendering to an offscreen buffer these
+   coordinates will be upside-down. The value is undefined when not
+   rendering points. This builtin can only be used if the
+   <a class="link" href="cogl-2.0-experimental-The-Top-Level-Context.html#COGL-FEATURE-ID-POINT-SPRITE:CAPS"><code class="literal">COGL_FEATURE_ID_POINT_SPRITE</code></a> feature is available.
   </p></dd>
 </dl></div>
 <p>
@@ -336,6 +344,7 @@ generated color on a pipeline.
   COGL_SNIPPET_HOOK_VERTEX = 0,
   COGL_SNIPPET_HOOK_VERTEX_TRANSFORM,
   COGL_SNIPPET_HOOK_VERTEX_GLOBALS,
+  COGL_SNIPPET_HOOK_POINT_SIZE,
 
   /* Per pipeline fragment hooks */
   COGL_SNIPPET_HOOK_FRAGMENT = 2048,
@@ -357,24 +366,24 @@ is attached to a pipeline.
 <p>
 </p>
 <div class="glosslist"><dl>
-<dt><a class="link" href="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-VERTEX-GLOBALS:CAPS"><code class="literal">COGL_SNIPPET_HOOK_VERTEX_GLOBALS</code></a></dt>
-<dd><p>
+<dt><span class="glossterm"><a class="link" href="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-VERTEX-GLOBALS:CAPS"><code class="literal">COGL_SNIPPET_HOOK_VERTEX_GLOBALS</code></a></span></dt>
+<dd class="glossdef"><p>
 Adds a shader snippet at the beginning of the global section of the
 shader for the vertex processing. Any declarations here can be
 shared with all other snippets that are attached to a vertex hook.
 Only the ‘declarations’ string is used and the other strings are
 ignored.
 </p></dd>
-<dt><a class="link" href="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-FRAGMENT-GLOBALS:CAPS"><code class="literal">COGL_SNIPPET_HOOK_FRAGMENT_GLOBALS</code></a></dt>
-<dd><p>
+<dt><span class="glossterm"><a class="link" href="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-FRAGMENT-GLOBALS:CAPS"><code class="literal">COGL_SNIPPET_HOOK_FRAGMENT_GLOBALS</code></a></span></dt>
+<dd class="glossdef"><p>
 Adds a shader snippet at the beginning of the global section of the
 shader for the fragment processing. Any declarations here can be
 shared with all other snippets that are attached to a fragment
 hook. Only the ‘declarations’ string is used and the other strings
 are ignored.
 </p></dd>
-<dt><a class="link" href="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-VERTEX:CAPS"><code class="literal">COGL_SNIPPET_HOOK_VERTEX</code></a></dt>
-<dd>
+<dt><span class="glossterm"><a class="link" href="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-VERTEX:CAPS"><code class="literal">COGL_SNIPPET_HOOK_VERTEX</code></a></span></dt>
+<dd class="glossdef">
 <p>
 Adds a shader snippet that will hook on to the vertex processing
 stage of the pipeline. This gives a chance for the application to
@@ -402,8 +411,8 @@ standard vertex processing is done. This can be used to modify the
 outputs.
 </p>
 </dd>
-<dt><a class="link" href="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-VERTEX-TRANSFORM:CAPS"><code class="literal">COGL_SNIPPET_HOOK_VERTEX_TRANSFORM</code></a></dt>
-<dd>
+<dt><span class="glossterm"><a class="link" href="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-VERTEX-TRANSFORM:CAPS"><code class="literal">COGL_SNIPPET_HOOK_VERTEX_TRANSFORM</code></a></span></dt>
+<dd class="glossdef">
 <p>
 Adds a shader snippet that will hook on to the vertex transform stage.
 Typically the snippet will use the cogl_modelview_matrix,
@@ -431,8 +440,39 @@ standard vertex transformation is done. This can be used to modify the
 cogl_position_out in addition to the default processing.
 </p>
 </dd>
-<dt><a class="link" href="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-FRAGMENT:CAPS"><code class="literal">COGL_SNIPPET_HOOK_FRAGMENT</code></a></dt>
-<dd>
+<dt><span class="glossterm"><a class="link" href="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-POINT-SIZE:CAPS"><code class="literal">COGL_SNIPPET_HOOK_POINT_SIZE</code></a></span></dt>
+<dd class="glossdef">
+<p>
+Adds a shader snippet that will hook on to the point size
+calculation step within the vertex shader stage. The snippet should
+write to the builtin cogl_point_size_out with the new point size.
+The snippet can either read cogl_point_size_in directly and write a
+new value or first read an existing value in cogl_point_size_out
+that would be set by a previous snippet. Note that this hook is
+only used if <a class="link" href="cogl-2.0-experimental-Pipeline.html#cogl-pipeline-set-per-vertex-point-size" title="cogl_pipeline_set_per_vertex_point_size ()"><code class="function">cogl_pipeline_set_per_vertex_point_size()</code></a> is enabled
+on the pipeline.
+</p>
+<p>
+The ‘declarations’ string in <em class="parameter"><code>snippet</code></em> will be inserted in the
+global scope of the shader. Use this to declare any uniforms,
+attributes or functions that the snippet requires.
+</p>
+<p>
+The ‘pre’ string in <em class="parameter"><code>snippet</code></em> will be inserted just before
+calculating the point size.
+</p>
+<p>
+The ‘replace’ string in <em class="parameter"><code>snippet</code></em> will be used instead of the
+generated point size calculation if it is present.
+</p>
+<p>
+The ‘post’ string in <em class="parameter"><code>snippet</code></em> will be inserted after the
+standard point size calculation is done. This can be used to modify
+cogl_point_size_out in addition to the default processing.
+</p>
+</dd>
+<dt><span class="glossterm"><a class="link" href="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-FRAGMENT:CAPS"><code class="literal">COGL_SNIPPET_HOOK_FRAGMENT</code></a></span></dt>
+<dd class="glossdef">
 <p>
 Adds a shader snippet that will hook on to the fragment processing
 stage of the pipeline. This gives a chance for the application to
@@ -462,8 +502,8 @@ cogl_color_out so the application can modify the result by altering
 this variable.
 </p>
 </dd>
-<dt><a class="link" href="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-TEXTURE-COORD-TRANSFORM:CAPS"><code class="literal">COGL_SNIPPET_HOOK_TEXTURE_COORD_TRANSFORM</code></a></dt>
-<dd>
+<dt><span class="glossterm"><a class="link" href="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-TEXTURE-COORD-TRANSFORM:CAPS"><code class="literal">COGL_SNIPPET_HOOK_TEXTURE_COORD_TRANSFORM</code></a></span></dt>
+<dd class="glossdef">
 <p>
 Adds a shader snippet that will hook on to the texture coordinate
 transformation of a particular layer. This can be used to replace
@@ -503,8 +543,8 @@ results of the transformation but it can be further modified by the
 snippet.
 </p>
 </dd>
-<dt><a class="link" href="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-LAYER-FRAGMENT:CAPS"><code class="literal">COGL_SNIPPET_HOOK_LAYER_FRAGMENT</code></a></dt>
-<dd>
+<dt><span class="glossterm"><a class="link" href="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-LAYER-FRAGMENT:CAPS"><code class="literal">COGL_SNIPPET_HOOK_LAYER_FRAGMENT</code></a></span></dt>
+<dd class="glossdef">
 <p>
 Adds a shader snippet that will hook on to the fragment processing
 of a particular layer. This can be used to replace the processing
@@ -537,8 +577,8 @@ fragment processing for the layer. The results can be modified by changing
 the value of the ‘cogl_layer’ variable.
 </p>
 </dd>
-<dt><a class="link" href="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-TEXTURE-LOOKUP:CAPS"><code class="literal">COGL_SNIPPET_HOOK_TEXTURE_LOOKUP</code></a></dt>
-<dd>
+<dt><span class="glossterm"><a class="link" href="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-TEXTURE-LOOKUP:CAPS"><code class="literal">COGL_SNIPPET_HOOK_TEXTURE_LOOKUP</code></a></span></dt>
+<dd class="glossdef">
 <p>
 Adds a shader snippet that will hook on to the texture lookup part
 of a given layer. This gives a chance for the application to modify
@@ -603,6 +643,14 @@ variable to alter the returned texel.
 </td>
 </tr>
 <tr>
+<td><p><a name="COGL-SNIPPET-HOOK-POINT-SIZE:CAPS"></a><span class="term"><code class="literal">COGL_SNIPPET_HOOK_POINT_SIZE</code></span></p></td>
+<td>A hook for manipulating the point
+  size of a vertex. This is only used if
+  <a class="link" href="cogl-2.0-experimental-Pipeline.html#cogl-pipeline-set-per-vertex-point-size" title="cogl_pipeline_set_per_vertex_point_size ()"><code class="function">cogl_pipeline_set_per_vertex_point_size()</code></a> is enabled on the
+  pipeline.
+</td>
+</tr>
+<tr>
 <td><p><a name="COGL-SNIPPET-HOOK-FRAGMENT:CAPS"></a><span class="term"><code class="literal">COGL_SNIPPET_HOOK_FRAGMENT</code></span></p></td>
 <td>A hook for the entire fragment
   processing stage of the pipeline.
@@ -661,12 +709,12 @@ or replace.</td>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>declarations</code></em> :</span></p></td>
 <td>The source code for the declarations for this
-snippet or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. See <a class="link" href="cogl-2.0-experimental-Shader-snippets.html#cogl-snippet-set-declarations" title="cogl_snippet_set_declarations ()"><code class="function">cogl_snippet_set_declarations()</code></a>.</td>
+snippet or <code class="literal">NULL</code>. See <a class="link" href="cogl-2.0-experimental-Shader-snippets.html#cogl-snippet-set-declarations" title="cogl_snippet_set_declarations ()"><code class="function">cogl_snippet_set_declarations()</code></a>.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>post</code></em> :</span></p></td>
 <td>The source code to run after the hook point where this
-shader snippet is attached or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. See <a class="link" href="cogl-2.0-experimental-Shader-snippets.html#cogl-snippet-set-post" title="cogl_snippet_set_post ()"><code class="function">cogl_snippet_set_post()</code></a>.</td>
+shader snippet is attached or <code class="literal">NULL</code>. See <a class="link" href="cogl-2.0-experimental-Shader-snippets.html#cogl-snippet-set-post" title="cogl_snippet_set_post ()"><code class="function">cogl_snippet_set_post()</code></a>.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
@@ -723,8 +771,8 @@ Gets whether the given <em class="parameter"><code>object</code></em> references
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the <em class="parameter"><code>object</code></em> references a <a class="link" href="cogl-2.0-experimental-Shader-snippets.html#CoglSnippet" title="CoglSnippet"><span class="type">CoglSnippet</span></a>,
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise</td>
+<code class="literal">TRUE</code> if the <em class="parameter"><code>object</code></em> references a <a class="link" href="cogl-2.0-experimental-Shader-snippets.html#CoglSnippet" title="CoglSnippet"><span class="type">CoglSnippet</span></a>,
+<code class="literal">FALSE</code> otherwise</td>
 </tr>
 </tbody>
 </table></div>
@@ -786,7 +834,7 @@ of this snippet.</td>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>the source string that was set with
-<a class="link" href="cogl-2.0-experimental-Shader-snippets.html#cogl-snippet-set-declarations" title="cogl_snippet_set_declarations ()"><code class="function">cogl_snippet_set_declarations()</code></a> or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if none was set.</td>
+<a class="link" href="cogl-2.0-experimental-Shader-snippets.html#cogl-snippet-set-declarations" title="cogl_snippet_set_declarations ()"><code class="function">cogl_snippet_set_declarations()</code></a> or <code class="literal">NULL</code> if none was set.</td>
 </tr>
 </tbody>
 </table></div>
@@ -847,7 +895,7 @@ immutable.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>the source string that was set with
-<a class="link" href="cogl-2.0-experimental-Shader-snippets.html#cogl-snippet-set-pre" title="cogl_snippet_set_pre ()"><code class="function">cogl_snippet_set_pre()</code></a> or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if none was set.</td>
+<a class="link" href="cogl-2.0-experimental-Shader-snippets.html#cogl-snippet-set-pre" title="cogl_snippet_set_pre ()"><code class="function">cogl_snippet_set_pre()</code></a> or <code class="literal">NULL</code> if none was set.</td>
 </tr>
 </tbody>
 </table></div>
@@ -908,7 +956,7 @@ immutable.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>the source string that was set with
-<a class="link" href="cogl-2.0-experimental-Shader-snippets.html#cogl-snippet-set-replace" title="cogl_snippet_set_replace ()"><code class="function">cogl_snippet_set_replace()</code></a> or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if none was set.</td>
+<a class="link" href="cogl-2.0-experimental-Shader-snippets.html#cogl-snippet-set-replace" title="cogl_snippet_set_replace ()"><code class="function">cogl_snippet_set_replace()</code></a> or <code class="literal">NULL</code> if none was set.</td>
 </tr>
 </tbody>
 </table></div>
@@ -969,7 +1017,7 @@ immutable.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>the source string that was set with
-<a class="link" href="cogl-2.0-experimental-Shader-snippets.html#cogl-snippet-set-post" title="cogl_snippet_set_post ()"><code class="function">cogl_snippet_set_post()</code></a> or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if none was set.</td>
+<a class="link" href="cogl-2.0-experimental-Shader-snippets.html#cogl-snippet-set-post" title="cogl_snippet_set_post ()"><code class="function">cogl_snippet_set_post()</code></a> or <code class="literal">NULL</code> if none was set.</td>
 </tr>
 </tbody>
 </table></div>
@@ -980,6 +1028,6 @@ immutable.
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18.1</div>
+          Generated by GTK-Doc V1.19.1</div>
 </body>
 </html>

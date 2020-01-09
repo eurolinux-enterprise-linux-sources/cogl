@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2007,2008,2009,2010,2011,2012 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  *
@@ -33,8 +40,8 @@
 #include "cogl-util-gl-private.h"
 #include "cogl-primitives-private.h"
 #include "cogl-pipeline-opengl-private.h"
-#include "cogl-path-private.h"
 #include "cogl-clip-stack-gl-private.h"
+#include "cogl-primitive-private.h"
 
 #ifndef GL_CLIP_PLANE0
 #define GL_CLIP_PLANE0 0x3000
@@ -287,7 +294,8 @@ add_stencil_clip_silhouette (CoglFramebuffer *framebuffer,
                                               projection_stack->last_entry);
   _cogl_context_set_current_modelview_entry (ctx, modelview_entry);
 
-  _cogl_pipeline_flush_gl_state (ctx->stencil_pipeline, framebuffer, FALSE);
+  _cogl_pipeline_flush_gl_state (ctx, ctx->stencil_pipeline,
+                                 framebuffer, FALSE, FALSE);
 
   GE( ctx, glEnable (GL_STENCIL_TEST) );
 
@@ -360,52 +368,17 @@ add_stencil_clip_silhouette (CoglFramebuffer *framebuffer,
 }
 
 static void
-paint_path_silhouette (CoglFramebuffer *framebuffer,
-                       CoglPipeline *pipeline,
-                       void *user_data)
-{
-  CoglPath *path = user_data;
-  if (path->data->path_nodes->len >= 3)
-    _cogl_path_fill_nodes (path,
-                           framebuffer,
-                           pipeline,
-                           COGL_DRAW_SKIP_JOURNAL_FLUSH |
-                           COGL_DRAW_SKIP_PIPELINE_VALIDATION |
-                           COGL_DRAW_SKIP_FRAMEBUFFER_FLUSH);
-}
-
-static void
-add_stencil_clip_path (CoglFramebuffer *framebuffer,
-                       CoglMatrixEntry *modelview_entry,
-                       CoglPath *path,
-                       CoglBool merge,
-                       CoglBool need_clear)
-{
-  CoglPathData *data = path->data;
-  add_stencil_clip_silhouette (framebuffer,
-                               paint_path_silhouette,
-                               modelview_entry,
-                               data->path_nodes_min.x,
-                               data->path_nodes_min.y,
-                               data->path_nodes_max.x,
-                               data->path_nodes_max.y,
-                               merge,
-                               need_clear,
-                               path);
-}
-
-static void
 paint_primitive_silhouette (CoglFramebuffer *framebuffer,
                             CoglPipeline *pipeline,
                             void *user_data)
 {
-  _cogl_framebuffer_draw_primitive (framebuffer,
-                                    pipeline,
-                                    user_data,
-                                    COGL_DRAW_SKIP_JOURNAL_FLUSH |
-                                    COGL_DRAW_SKIP_PIPELINE_VALIDATION |
-                                    COGL_DRAW_SKIP_FRAMEBUFFER_FLUSH |
-                                    COGL_DRAW_SKIP_LEGACY_STATE);
+  _cogl_primitive_draw (user_data,
+                        framebuffer,
+                        pipeline,
+                        COGL_DRAW_SKIP_JOURNAL_FLUSH |
+                        COGL_DRAW_SKIP_PIPELINE_VALIDATION |
+                        COGL_DRAW_SKIP_FRAMEBUFFER_FLUSH |
+                        COGL_DRAW_SKIP_LEGACY_STATE);
 }
 
 static void
@@ -483,7 +456,7 @@ _cogl_clip_stack_gl_flush (CoglClipStack *stack,
   ctx->current_clip_stack = _cogl_clip_stack_ref (stack);
 
   has_clip_planes =
-    ctx->private_feature_flags & COGL_PRIVATE_FEATURE_FOUR_CLIP_PLANES;
+    _cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_FOUR_CLIP_PLANES);
 
   if (has_clip_planes)
     disable_clip_planes (ctx);
@@ -576,21 +549,6 @@ _cogl_clip_stack_gl_flush (CoglClipStack *stack,
     {
       switch (entry->type)
         {
-        case COGL_CLIP_STACK_PATH:
-            {
-              CoglClipStackPath *path_entry = (CoglClipStackPath *) entry;
-
-              COGL_NOTE (CLIPPING, "Adding stencil clip for path");
-
-              add_stencil_clip_path (framebuffer,
-                                     path_entry->matrix_entry,
-                                     path_entry->path,
-                                     using_stencil_buffer,
-                                     TRUE);
-
-              using_stencil_buffer = TRUE;
-              break;
-            }
         case COGL_CLIP_STACK_PRIMITIVE:
             {
               CoglClipStackPrimitive *primitive_entry =

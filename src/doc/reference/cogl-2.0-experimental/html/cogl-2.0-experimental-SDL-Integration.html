@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>SDL Integration</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Cogl 2.0 Reference Manual">
 <link rel="up" href="cogl-integration.html" title="Binding and Integrating">
 <link rel="prev" href="cogl-integration.html" title="Binding and Integrating">
-<link rel="next" href="cogl-2.0-experimental-Main-loop-integeration.html" title="Main loop integeration">
-<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<link rel="next" href="cogl-2.0-experimental-Main-loop-integration.html" title="Main loop integration">
+<meta name="generator" content="GTK-Doc V1.19.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -18,7 +18,7 @@
 <td><a accesskey="u" href="cogl-integration.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
 <th width="100%" align="center">Cogl 2.0 Reference Manual</th>
-<td><a accesskey="n" href="cogl-2.0-experimental-Main-loop-integeration.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+<td><a accesskey="n" href="cogl-2.0-experimental-Main-loop-integration.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
 </tr>
 <tr><td colspan="5" class="shortcuts">
 <a href="#cogl-2.0-experimental-SDL-Integration.synopsis" class="shortcut">Top</a>
@@ -101,44 +101,96 @@ this:
 34
 35
 36
-37</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="usertype">MyAppData</span><span class="normal"> data</span><span class="symbol">;</span>
-<span class="usertype">CoglError</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">error </span><span class="symbol">=</span><span class="normal"> <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
 
-<span class="normal">data</span><span class="symbol">.</span><span class="normal">ctx </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="cogl-2.0-experimental-SDL-Integration.html#cogl-sdl-context-new">cogl_sdl_context_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">SDL_USEREVENT</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">error</span><span class="symbol">);</span>
-<span class="keyword">if</span><span class="normal"> </span><span class="symbol">(!</span><span class="normal">data</span><span class="symbol">.</span><span class="normal">ctx</span><span class="symbol">)</span>
-<span class="normal">  </span><span class="cbracket">{</span>
-<span class="normal">    </span><span class="function">fprintf</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">stderr</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"Failed to create context: %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span>
-<span class="normal">             error</span><span class="symbol">-&gt;</span><span class="normal">message</span><span class="symbol">);</span>
-<span class="normal">    </span><span class="keyword">return</span><span class="normal"> </span><span class="number">1</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="cbracket">}</span>
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Statement { color: #008080; font-weight: bold; }
+.Constant { color: #0000c0; text-decoration: underline; }
+.Special { color: #c000c0; font-weight: bold; }
 
-<span class="function">my_application_setup</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">data</span><span class="symbol">);</span>
+</style>
 
-<span class="normal">data</span><span class="symbol">.</span><span class="normal">redraw_queued </span><span class="symbol">=</span><span class="normal"> <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS">TRUE</a></span><span class="symbol">;</span>
-<span class="keyword">while</span><span class="normal"> </span><span class="symbol">(!</span><span class="normal">data</span><span class="symbol">.</span><span class="normal">quit</span><span class="symbol">)</span>
-<span class="normal">  </span><span class="cbracket">{</span>
-<span class="normal">    </span><span class="keyword">while</span><span class="normal"> </span><span class="symbol">(!</span><span class="normal">data</span><span class="symbol">.</span><span class="normal">quit</span><span class="symbol">)</span>
-<span class="normal">      </span><span class="cbracket">{</span>
-<span class="normal">        </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(!</span><span class="function">SDL_PollEvent</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">event</span><span class="symbol">))</span>
-<span class="normal">          </span><span class="cbracket">{</span>
-<span class="normal">            </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">data</span><span class="symbol">.</span><span class="normal">redraw_queued</span><span class="symbol">)</span>
-<span class="normal">              </span><span class="keyword">break</span><span class="symbol">;</span>
+<script type='text/javascript'>
+//<![CDATA[
 
-<span class="normal">            </span><span class="function"><a href="cogl-2.0-experimental-SDL-Integration.html#cogl-sdl-idle">cogl_sdl_idle</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">ctx</span><span class="symbol">);</span>
-<span class="normal">            </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(!</span><span class="function">SDL_WaitEvent</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">event</span><span class="symbol">))</span>
-<span class="normal">              </span><span class="cbracket">{</span>
-<span class="normal">                </span><span class="function">fprintf</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">stderr</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"Error waiting for SDL events"</span><span class="symbol">);</span>
-<span class="normal">                </span><span class="keyword">return</span><span class="normal"> </span><span class="number">1</span><span class="symbol">;</span>
-<span class="normal">              </span><span class="cbracket">}</span>
-<span class="normal">          </span><span class="cbracket">}</span>
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+MyAppData data;
+CoglError *error = <span class="number">NULL</span>;
 
-<span class="normal">         </span><span class="function">handle_event</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">data</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">event</span><span class="symbol">);</span>
-<span class="normal">         </span><span class="function"><a href="cogl-2.0-experimental-SDL-Integration.html#cogl-sdl-handle-event">cogl_sdl_handle_event</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">ctx</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">event</span><span class="symbol">);</span>
-<span class="normal">       </span><span class="cbracket">}</span>
+data.ctx = cogl_sdl_context_new (SDL_USEREVENT, &amp;error);
+<span class="keyword">if</span> (!data.ctx)
+  {
+    fprintf (<span class="number">stderr</span>, <span class="number">&quot;Failed to create context: </span><span class="symbol">%s</span><span class="symbol">\n</span><span class="number">&quot;</span>,
+             error-&gt;message);
+    <span class="keyword">return</span> <span class="number">1</span>;
+  }
 
-<span class="normal">    data</span><span class="symbol">.</span><span class="normal">redraw_queued </span><span class="symbol">=</span><span class="normal"> </span><span class="function">redraw</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">data</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="cbracket">}</span></pre></td>
+my_application_setup (&amp;data);
+
+data.redraw_queued = TRUE;
+<span class="keyword">while</span> (!data.quit)
+  {
+    <span class="keyword">while</span> (!data.quit)
+      {
+        <span class="keyword">if</span> (!SDL_PollEvent (&amp;event))
+          {
+            <span class="keyword">if</span> (data.redraw_queued)
+              <span class="keyword">break</span>;
+
+            cogl_sdl_idle (ctx);
+            <span class="keyword">if</span> (!SDL_WaitEvent (&amp;event))
+              {
+                fprintf (<span class="number">stderr</span>, <span class="number">&quot;Error waiting for SDL events&quot;</span>);
+                <span class="keyword">return</span> <span class="number">1</span>;
+              }
+          }
+
+         handle_event (&amp;data, &amp;event);
+         cogl_sdl_handle_event (ctx, &amp;event);
+       }
+
+    data.redraw_queued = redraw (&amp;data);
+  }</pre></td>
       </tr>
     </tbody>
   </table>
@@ -179,22 +231,72 @@ This function is equivalent to the following code:
 12
 13
 14
-15</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="usertype">CoglRenderer</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">renderer </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-renderer-new">cogl_renderer_new</a></span><span class="normal"> </span><span class="symbol">();</span>
-<span class="usertype">CoglDisplay</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">display</span><span class="symbol">;</span>
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
 
-<span class="function"><a href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-renderer-set-winsys-id">cogl_renderer_set_winsys_id</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">renderer</span><span class="symbol">,</span><span class="normal"> <a href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#COGL-WINSYS-ID-SDL:CAPS">COGL_WINSYS_ID_SDL</a></span><span class="symbol">);</span>
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Statement { color: #008080; font-weight: bold; }
+.Constant { color: #0000c0; text-decoration: underline; }
 
-<span class="function"><a href="cogl-2.0-experimental-SDL-Integration.html#cogl-sdl-renderer-set-event-type">cogl_sdl_renderer_set_event_type</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">renderer</span><span class="symbol">,</span><span class="normal"> type</span><span class="symbol">);</span>
+</style>
 
-<span class="keyword">if</span><span class="normal"> </span><span class="symbol">(!</span><span class="function"><a href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-renderer-connect">cogl_renderer_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">renderer</span><span class="symbol">,</span><span class="normal"> error</span><span class="symbol">))</span>
-<span class="normal">  </span><span class="keyword">return</span><span class="normal"> <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
+<script type='text/javascript'>
+//<![CDATA[
 
-<span class="normal">display </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="cogl-2.0-experimental-CoglDisplay---Setup-a-display-pipeline.html#cogl-display-new">cogl_display_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">renderer</span><span class="symbol">,</span><span class="normal"> <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
-<span class="keyword">if</span><span class="normal"> </span><span class="symbol">(!</span><span class="function"><a href="cogl-2.0-experimental-CoglDisplay---Setup-a-display-pipeline.html#cogl-display-setup">cogl_display_setup</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">display</span><span class="symbol">,</span><span class="normal"> error</span><span class="symbol">))</span>
-<span class="normal">  </span><span class="keyword">return</span><span class="normal"> <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+CoglRenderer *renderer = cogl_renderer_new ();
+CoglDisplay *display;
 
-<span class="keyword">return</span><span class="normal"> </span><span class="function"><a href="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-context-new">cogl_context_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">display</span><span class="symbol">,</span><span class="normal"> error</span><span class="symbol">);</span></pre></td>
+cogl_renderer_set_winsys_id (renderer, COGL_WINSYS_ID_SDL);
+
+cogl_sdl_renderer_set_event_type (renderer, type);
+
+<span class="keyword">if</span> (!cogl_renderer_connect (renderer, error))
+  <span class="keyword">return</span> <span class="number">NULL</span>;
+
+display = cogl_display_new (renderer, <span class="number">NULL</span>);
+<span class="keyword">if</span> (!cogl_display_setup (display, error))
+  <span class="keyword">return</span> <span class="number">NULL</span>;
+
+<span class="keyword">return</span> cogl_context_new (display, error);</pre></td>
       </tr>
     </tbody>
   </table>
@@ -382,6 +484,6 @@ tasks.
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18.1</div>
+          Generated by GTK-Doc V1.19.1</div>
 </body>
 </html>

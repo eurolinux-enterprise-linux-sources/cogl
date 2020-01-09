@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2007,2008,2009 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  */
@@ -36,6 +43,10 @@ typedef struct _CoglPipeline CoglPipeline;
 #include <cogl/cogl-types.h>
 #include <cogl/cogl-context.h>
 #include <cogl/cogl-snippet.h>
+
+#ifdef COGL_HAS_GTYPE_SUPPORT
+#include <glib-object.h>
+#endif
 
 COGL_BEGIN_DECLS
 
@@ -57,6 +68,15 @@ COGL_BEGIN_DECLS
 
 #define COGL_PIPELINE(OBJECT) ((CoglPipeline *)OBJECT)
 
+#ifdef COGL_HAS_GTYPE_SUPPORT
+/**
+ * cogl_pipeline_get_gtype:
+ *
+ * Returns: a #GType that can be used with the GLib type system.
+ */
+GType cogl_pipeline_get_gtype (void);
+#endif
+
 /**
  * cogl_pipeline_new:
  * @context: a #CoglContext
@@ -64,7 +84,7 @@ COGL_BEGIN_DECLS
  * Allocates and initializes a default simple pipeline that will color
  * a primitive white.
  *
- * Return value: a pointer to a new #CoglPipeline
+ * Return value: (transfer full): a pointer to a new #CoglPipeline
  *
  * Since: 2.0
  * Stability: Unstable
@@ -85,7 +105,7 @@ cogl_pipeline_new (CoglContext *context);
  * keep track of a pipelines ancestry which we may use to help minimize GPU
  * state changes.
  *
- * Returns: a pointer to the newly allocated #CoglPipeline
+ * Return value: (transfer full): a pointer to the newly allocated #CoglPipeline
  *
  * Since: 2.0
  * Stability: Unstable
@@ -127,9 +147,10 @@ typedef CoglBool (*CoglPipelineLayerCallback) (CoglPipeline *pipeline,
 /**
  * cogl_pipeline_foreach_layer:
  * @pipeline: A #CoglPipeline object
- * @callback: A #CoglPipelineLayerCallback to be called for each layer
- *            index
- * @user_data: Private data that will be passed to the callback
+ * @callback: (scope call): A #CoglPipelineLayerCallback to be
+ *            called for each layer index
+ * @user_data: (closure): Private data that will be passed to the
+ *             callback
  *
  * Iterates all the layer indices of the given @pipeline.
  *

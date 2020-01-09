@@ -1,24 +1,30 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2011 Collabora Ltd.
  * Copyright (C) 2012 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * Authors:
  *  Tomeu Vizoso <tomeu.vizoso@collabora.com>
@@ -47,10 +53,12 @@
 #include "cogl-texture-2d-private.h"
 #include "cogl-pipeline-opengl-private.h"
 #include "cogl-error-private.h"
+#include "cogl-gtype-private.h"
 
 static void _cogl_gles2_context_free (CoglGLES2Context *gles2_context);
 
 COGL_OBJECT_DEFINE (GLES2Context, gles2_context);
+COGL_GTYPE_DEFINE_CLASS (GLES2Context, gles2_context);
 
 static CoglGLES2Context *current_gles2_context;
 
@@ -320,8 +328,7 @@ copy_flipped_texture (CoglGLES2Context *gles2_ctx,
                                            tex_id,
                                            tex_object_data->width,
                                            tex_object_data->height,
-                                           internal_format,
-                                           NULL /* error */);
+                                           internal_format);
 
   if (dst_texture)
     {
@@ -330,7 +337,7 @@ copy_flipped_texture (CoglGLES2Context *gles2_ctx,
       CoglPipeline *pipeline = cogl_pipeline_new (ctx);
       const CoglOffscreenFlags flags = COGL_OFFSCREEN_DISABLE_DEPTH_AND_STENCIL;
       CoglOffscreen *offscreen =
-        _cogl_offscreen_new_to_texture_full (COGL_TEXTURE (dst_texture),
+        _cogl_offscreen_new_with_texture_full (COGL_TEXTURE (dst_texture),
                                              flags, level);
       int src_width = cogl_texture_get_width (src_texture);
       int src_height = cogl_texture_get_height (src_texture);
@@ -1439,7 +1446,7 @@ gl_tex_image_2d_wrapper (GLenum target,
 static void
 _cogl_gles2_offscreen_free (CoglGLES2Offscreen *gles2_offscreen)
 {
-  COGL_LIST_REMOVE (gles2_offscreen, list_node);
+  _cogl_list_remove (&gles2_offscreen->link);
   g_slice_free (CoglGLES2Offscreen, gles2_offscreen);
 }
 
@@ -1517,10 +1524,12 @@ _cogl_gles2_context_free (CoglGLES2Context *gles2_context)
   winsys = ctx->display->renderer->winsys_vtable;
   winsys->destroy_gles2_context (gles2_context);
 
-  while (gles2_context->foreign_offscreens.lh_first)
+  while (!_cogl_list_empty (&gles2_context->foreign_offscreens))
     {
       CoglGLES2Offscreen *gles2_offscreen =
-        gles2_context->foreign_offscreens.lh_first;
+        _cogl_container_of (gles2_context->foreign_offscreens.next,
+                            CoglGLES2Offscreen,
+                            link);
 
       /* Note: this will also indirectly free the gles2_offscreen by
        * calling the destroy notify for the _user_data */
@@ -1576,7 +1585,7 @@ cogl_gles2_context_new (CoglContext *ctx, CoglError **error)
 
   gles2_ctx->context = ctx;
 
-  COGL_LIST_INIT (&gles2_ctx->foreign_offscreens);
+  _cogl_list_init (&gles2_ctx->foreign_offscreens);
 
   winsys = ctx->display->renderer->winsys_vtable;
   gles2_ctx->winsys = winsys->context_create_gles2_context (ctx, error);
@@ -1691,6 +1700,8 @@ _cogl_gles2_offscreen_allocate (CoglOffscreen *offscreen,
   const CoglWinsysVtable *winsys;
   CoglError *internal_error = NULL;
   CoglGLES2Offscreen *gles2_offscreen;
+  int level_width;
+  int level_height;
 
   if (!framebuffer->allocated &&
       !cogl_framebuffer_allocate (framebuffer, error))
@@ -1698,9 +1709,9 @@ _cogl_gles2_offscreen_allocate (CoglOffscreen *offscreen,
       return NULL;
     }
 
-  for (gles2_offscreen = gles2_context->foreign_offscreens.lh_first;
-       gles2_offscreen;
-       gles2_offscreen = gles2_offscreen->list_node.le_next)
+  _cogl_list_for_each (gles2_offscreen,
+                       &gles2_context->foreign_offscreens,
+                       link)
     {
       if (gles2_offscreen->original_offscreen == offscreen)
         return gles2_offscreen;
@@ -1720,11 +1731,18 @@ _cogl_gles2_offscreen_allocate (CoglOffscreen *offscreen,
     }
 
   gles2_offscreen = g_slice_new0 (CoglGLES2Offscreen);
+
+  _cogl_texture_get_level_size (offscreen->texture,
+                                offscreen->texture_level,
+                                &level_width,
+                                &level_height,
+                                NULL);
+
   if (!_cogl_framebuffer_try_creating_gl_fbo (gles2_context->context,
                                               offscreen->texture,
                                               offscreen->texture_level,
-                                              offscreen->texture_level_width,
-                                              offscreen->texture_level_height,
+                                              level_width,
+                                              level_height,
                                               offscreen->depth_texture,
                                               &COGL_FRAMEBUFFER (offscreen)->config,
                                               offscreen->allocation_flags,
@@ -1744,9 +1762,8 @@ _cogl_gles2_offscreen_allocate (CoglOffscreen *offscreen,
 
   gles2_offscreen->original_offscreen = offscreen;
 
-  COGL_LIST_INSERT_HEAD (&gles2_context->foreign_offscreens,
-                         gles2_offscreen,
-                         list_node);
+  _cogl_list_insert (&gles2_context->foreign_offscreens,
+                     &gles2_offscreen->link);
 
   /* So we avoid building up an ever growing collection of ancillary
    * buffers for wrapped framebuffers, we make sure that the wrappers
@@ -1931,15 +1948,13 @@ cogl_gles2_texture_2d_new_from_handle (CoglContext *ctx,
                                        unsigned int handle,
                                        int width,
                                        int height,
-                                       CoglPixelFormat internal_format,
-                                       CoglError **error)
+                                       CoglPixelFormat format)
 {
-  return cogl_texture_2d_new_from_foreign (ctx,
-                                           handle,
-                                           width,
-                                           height,
-                                           internal_format,
-                                           error);
+  return cogl_texture_2d_gl_new_from_foreign (ctx,
+                                              handle,
+                                              width,
+                                              height,
+                                              format);
 }
 
 CoglBool

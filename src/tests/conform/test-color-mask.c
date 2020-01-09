@@ -81,13 +81,12 @@ test_color_mask (void)
 
   for (i = 0; i < NUM_FBOS; i++)
     {
-      state.tex[i] = cogl_texture_new_with_size (128, 128,
-                                                 COGL_TEXTURE_NO_ATLAS,
-                                                 COGL_PIXEL_FORMAT_RGB_888);
+      state.tex[i] = test_utils_texture_new_with_size (test_ctx, 128, 128,
+                                                 TEST_UTILS_TEXTURE_NO_ATLAS,
+                                                 COGL_TEXTURE_COMPONENTS_RGB);
 
 
-      state.fbo[i] = COGL_FRAMEBUFFER (
-        cogl_offscreen_new_to_texture (state.tex[i]));
+      state.fbo[i] = cogl_offscreen_new_with_texture (state.tex[i]);
 
       /* Clear the texture color bits */
       cogl_framebuffer_clear4f (state.fbo[i],

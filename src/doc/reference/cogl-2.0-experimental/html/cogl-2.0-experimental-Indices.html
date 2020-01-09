@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Indices</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Cogl 2.0 Reference Manual">
 <link rel="up" href="cogl-buffer-layout-apis.html" title="Describing the layout of GPU Memory">
 <link rel="prev" href="cogl-2.0-experimental-Vertex-Attributes.html" title="Vertex Attributes">
 <link rel="next" href="cogl-primitive-apis.html" title="Geometry">
-<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.19.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -91,15 +91,67 @@ vertices multiple times.
 5
 6
 7
-8</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="usertype">CoglVertex2f</span><span class="normal"> quad_vertices</span><span class="symbol">[]</span><span class="normal"> </span><span class="symbol">=</span><span class="normal"> </span><span class="cbracket">{</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal">x0</span><span class="symbol">,</span><span class="normal"> y0</span><span class="cbracket">}</span><span class="symbol">,</span><span class="normal"> </span><span class="comment">//0 = top left</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal">x1</span><span class="symbol">,</span><span class="normal"> y1</span><span class="cbracket">}</span><span class="symbol">,</span><span class="normal"> </span><span class="comment">//1 = bottom left</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal">x2</span><span class="symbol">,</span><span class="normal"> y2</span><span class="cbracket">}</span><span class="symbol">,</span><span class="normal"> </span><span class="comment">//2 = bottom right</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal">x3</span><span class="symbol">,</span><span class="normal"> y3</span><span class="cbracket">}</span><span class="symbol">,</span><span class="normal"> </span><span class="comment">//3 = top right</span>
-<span class="cbracket">}</span><span class="symbol">;</span>
-<span class="comment">//tell the gpu how to interpret the quad as 2 triangles...</span>
-<span class="type">unsigned</span><span class="normal"> </span><span class="type">char</span><span class="normal"> indices</span><span class="symbol">[]</span><span class="normal"> </span><span class="symbol">=</span><span class="normal"> </span><span class="cbracket">{</span><span class="number">0</span><span class="symbol">,</span><span class="normal"> </span><span class="number">1</span><span class="symbol">,</span><span class="normal"> </span><span class="number">2</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal"> </span><span class="number">2</span><span class="symbol">,</span><span class="normal"> </span><span class="number">3</span><span class="cbracket">}</span><span class="symbol">;</span></pre></td>
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
+
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Constant { color: #0000c0; text-decoration: underline; }
+.Comment { color: #c00000; font-weight: bold; }
+.Type { color: #008000; text-decoration: underline; }
+
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+CoglVertex2f quad_vertices[] = {
+    {x0, y0}, <span class="comment">//0 = top left</span>
+    {x1, y1}, <span class="comment">//1 = bottom left</span>
+    {x2, y2}, <span class="comment">//2 = bottom right</span>
+    {x3, y3}, <span class="comment">//3 = top right</span>
+  };
+  <span class="comment">//tell the gpu how to interpret the quad as 2 triangles...</span>
+  <span class="type">unsigned</span> <span class="type">char</span> indices[] = {<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">2</span>, <span class="number">3</span>};</pre></td>
       </tr>
     </tbody>
   </table>
@@ -157,8 +209,8 @@ Gets whether the given object references a <a class="link" href="cogl-2.0-experi
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the object references a <a class="link" href="cogl-2.0-experimental-Indices.html#CoglIndices" title="CoglIndices"><span class="type">CoglIndices</span></a>
-and <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
+<code class="literal">TRUE</code> if the object references a <a class="link" href="cogl-2.0-experimental-Indices.html#CoglIndices" title="CoglIndices"><span class="type">CoglIndices</span></a>
+and <code class="literal">FALSE</code> otherwise.</td>
 </tr>
 </tbody>
 </table></div>
@@ -228,6 +280,6 @@ advertized.
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18.1</div>
+          Generated by GTK-Doc V1.19.1</div>
 </body>
 </html>

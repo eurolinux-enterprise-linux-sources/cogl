@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>CoglBuffer: The Buffer Interface</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Cogl 2.0 Reference Manual">
 <link rel="up" href="cogl-buffer-apis.html" title="Allocating GPU Memory">
 <link rel="prev" href="cogl-buffer-apis.html" title="Allocating GPU Memory">
 <link rel="next" href="cogl-2.0-experimental-CoglAttributeBuffer---Buffers-of-vertex-attributes.html" title="CoglAttributeBuffer: Buffers of vertex attributes">
-<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.19.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -41,7 +41,7 @@ Unstable, unless otherwise indicated
 </div>
 <div class="refsynopsisdiv">
 <a name="cogl-2.0-experimental-CoglBuffer---The-Buffer-Interface.synopsis"></a><h2>Synopsis</h2>
-<pre class="synopsis">                    <a class="link" href="cogl-2.0-experimental-CoglBuffer---The-Buffer-Interface.html#CoglBuffer" title="CoglBuffer">CoglBuffer</a>;
+<pre class="synopsis">typedef             <a class="link" href="cogl-2.0-experimental-CoglBuffer---The-Buffer-Interface.html#CoglBuffer" title="CoglBuffer">CoglBuffer</a>;
 <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglBool" title="CoglBool"><span class="returnvalue">CoglBool</span></a>            <a class="link" href="cogl-2.0-experimental-CoglBuffer---The-Buffer-Interface.html#cogl-is-buffer" title="cogl_is_buffer ()">cogl_is_buffer</a>                      (<em class="parameter"><code><span class="type">void</span> *object</code></em>);
 unsigned <span class="returnvalue">int</span>        <a class="link" href="cogl-2.0-experimental-CoglBuffer---The-Buffer-Interface.html#cogl-buffer-get-size" title="cogl_buffer_get_size ()">cogl_buffer_get_size</a>                (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglBuffer---The-Buffer-Interface.html#CoglBuffer" title="CoglBuffer"><span class="type">CoglBuffer</span></a> *buffer</code></em>);
 enum                <a class="link" href="cogl-2.0-experimental-CoglBuffer---The-Buffer-Interface.html#CoglBufferUpdateHint" title="enum CoglBufferUpdateHint">CoglBufferUpdateHint</a>;
@@ -98,7 +98,8 @@ without blocking other Cogl operations.
 <a name="cogl-2.0-experimental-CoglBuffer---The-Buffer-Interface.details"></a><h2>Details</h2>
 <div class="refsect2">
 <a name="CoglBuffer"></a><h3>CoglBuffer</h3>
-<pre class="programlisting">typedef struct _CoglBuffer CoglBuffer;</pre>
+<pre class="programlisting">typedef void CoglBuffer;
+</pre>
 </div>
 <hr>
 <div class="refsect2">
@@ -120,7 +121,7 @@ Checks whether <em class="parameter"><code>buffer</code></em> is a buffer object
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the handle is a CoglBuffer, and <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise</td>
+<code class="literal">TRUE</code> if the handle is a CoglBuffer, and <code class="literal">FALSE</code> otherwise</td>
 </tr>
 </tbody>
 </table></div>
@@ -373,7 +374,9 @@ the data will be modified once mapped.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A pointer to the mapped memory or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> is the call fails</td>
+<td>A pointer to the mapped memory or
+<code class="literal">NULL</code> is the call fails. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -441,7 +444,9 @@ the data will be modified once mapped.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A pointer to the mapped memory or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> is the call fails</td>
+<td>A pointer to the mapped memory or
+<code class="literal">NULL</code> is the call fails. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -505,7 +510,7 @@ buffer size.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> is the operation succeeded, <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise</td>
+<code class="literal">TRUE</code> is the operation succeeded, <code class="literal">FALSE</code> otherwise</td>
 </tr>
 </tbody>
 </table></div>
@@ -530,7 +535,7 @@ or by mapping it into the application's address space using
 <a class="link" href="cogl-2.0-experimental-CoglBuffer---The-Buffer-Interface.html#cogl-buffer-map" title="cogl_buffer_map ()"><code class="function">cogl_buffer_map()</code></a>.
 </p>
 <p>
-If <em class="parameter"><code>data</code></em> isn't <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> then <em class="parameter"><code>size</code></em> bytes will be read from <em class="parameter"><code>data</code></em> and
+If <em class="parameter"><code>data</code></em> isn't <code class="literal">NULL</code> then <em class="parameter"><code>size</code></em> bytes will be read from <em class="parameter"><code>data</code></em> and
 immediately copied into the new buffer.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -551,6 +556,11 @@ immediately copied into the new buffer.
 <tr>
 <td><p><span class="term"><em class="parameter"><code>data</code></em> :</span></p></td>
 <td>An optional pointer to vertex data to upload immediately</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a newly allocated <a class="link" href="cogl-2.0-experimental-CoglBuffer---The-Buffer-Interface.html#CoglPixelBuffer" title="CoglPixelBuffer"><span class="type">CoglPixelBuffer</span></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -577,7 +587,7 @@ Checks whether <em class="parameter"><code>object</code></em> is a pixel buffer.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the <em class="parameter"><code>object</code></em> is a pixel buffer, and <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>
+<code class="literal">TRUE</code> if the <em class="parameter"><code>object</code></em> is a pixel buffer, and <code class="literal">FALSE</code>
 otherwise</td>
 </tr>
 </tbody>
@@ -589,6 +599,6 @@ otherwise</td>
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18.1</div>
+          Generated by GTK-Doc V1.19.1</div>
 </body>
 </html>

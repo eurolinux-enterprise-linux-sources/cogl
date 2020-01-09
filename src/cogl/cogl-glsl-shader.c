@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2012 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  *
@@ -71,7 +77,6 @@ add_layer_fragment_boilerplate_cb (CoglPipelineLayer *layer,
 
 void
 _cogl_glsl_shader_set_source_with_boilerplate (CoglContext *ctx,
-                                               const char *version_string,
                                                GLuint shader_gl_handle,
                                                GLenum shader_gl_type,
                                                CoglPipeline *pipeline,
@@ -84,6 +89,7 @@ _cogl_glsl_shader_set_source_with_boilerplate (CoglContext *ctx,
 
   const char **strings = g_alloca (sizeof (char *) * (count_in + 4));
   GLint *lengths = g_alloca (sizeof (GLint) * (count_in + 4));
+  char *version_string;
   int count = 0;
 
   int n_layers;
@@ -91,13 +97,12 @@ _cogl_glsl_shader_set_source_with_boilerplate (CoglContext *ctx,
   vertex_boilerplate = _COGL_VERTEX_SHADER_BOILERPLATE;
   fragment_boilerplate = _COGL_FRAGMENT_SHADER_BOILERPLATE;
 
-  if (version_string)
-    {
-      strings[count] = version_string;
-      lengths[count++] = -1;
-    }
+  version_string = g_strdup_printf ("#version %i\n\n",
+                                    ctx->glsl_version_to_use);
+  strings[count] = version_string;
+  lengths[count++] = -1;
 
-  if (ctx->driver == COGL_DRIVER_GLES2 &&
+  if (_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_GL_EMBEDDED) &&
       cogl_has_feature (ctx, COGL_FEATURE_ID_TEXTURE_3D))
     {
       static const char texture_3d_extension[] =
@@ -182,4 +187,6 @@ _cogl_glsl_shader_set_source_with_boilerplate (CoglContext *ctx,
 
   GE( ctx, glShaderSource (shader_gl_handle, count,
                            (const char **) strings, lengths) );
+
+  g_free (version_string);
 }

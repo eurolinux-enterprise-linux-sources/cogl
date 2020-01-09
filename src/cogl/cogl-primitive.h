@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2010 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  *
@@ -36,8 +43,13 @@
  */
 typedef struct _CoglPrimitive CoglPrimitive;
 
-#include <cogl/cogl-vertex-buffer.h> /* for CoglVerticesMode */
+#include <cogl/cogl-types.h> /* for CoglVerticesMode */
 #include <cogl/cogl-attribute.h>
+#include <cogl/cogl-framebuffer.h>
+
+#ifdef COGL_HAS_GTYPE_SUPPORT
+#include <glib-object.h>
+#endif
 
 COGL_BEGIN_DECLS
 
@@ -48,6 +60,15 @@ COGL_BEGIN_DECLS
  *
  * FIXME
  */
+
+#ifdef COGL_HAS_GTYPE_SUPPORT
+/**
+ * cogl_primitive_get_gtype:
+ *
+ * Returns: a #GType that can be used with the GLib type system.
+ */
+GType cogl_primitive_get_gtype (void);
+#endif
 
 /**
  * CoglVertexP2:
@@ -221,7 +242,7 @@ typedef struct {
  * cogl_primitive_set_n_vertices() were called. This property defines
  * the number of vertices to read when drawing.
  *
- * Returns: A newly allocated #CoglPrimitive object
+ * Return value: (transfer full): A newly allocated #CoglPrimitive object
  *
  * Since: 1.6
  * Stability: Unstable
@@ -231,6 +252,27 @@ cogl_primitive_new (CoglVerticesMode mode,
                     int n_vertices,
                     ...);
 
+/**
+ * cogl_primitive_new_with_attributes:
+ * @mode: A #CoglVerticesMode defining how to draw the vertices
+ * @n_vertices: The number of vertices to process when drawing
+ * @attributes: An array of CoglAttribute
+ * @n_attributes: The number of attributes
+ *
+ * Combines a set of #CoglAttribute<!-- -->s with a specific draw @mode
+ * and defines a vertex count so a #CoglPrimitive object can be retained and
+ * drawn later with no addition information required.
+ *
+ * The value passed as @n_vertices will simply update the
+ * #CoglPrimitive <structfield>n_vertices</structfield> property as if
+ * cogl_primitive_set_n_vertices() were called. This property defines
+ * the number of vertices to read when drawing.
+ *
+ * Return value: (transfer full): A newly allocated #CoglPrimitive object
+ *
+ * Since: 1.6
+ * Stability: Unstable
+ */
 CoglPrimitive *
 cogl_primitive_new_with_attributes (CoglVerticesMode mode,
                                     int n_vertices,
@@ -243,7 +285,8 @@ cogl_primitive_new_with_attributes (CoglVerticesMode mode,
  * @mode: A #CoglVerticesMode defining how to draw the vertices
  * @n_vertices: The number of vertices to read from @data and also
  *              the number of vertices to read when later drawing.
- * @data: An array of #CoglVertexP2 vertices
+ * @data: (array length=n_vertices): (type Cogl.VertexP2): An array
+ *        of #CoglVertexP2 vertices
  *
  * Provides a convenient way to describe a primitive, such as a single
  * triangle strip or a triangle fan, that will internally allocate the
@@ -278,8 +321,8 @@ cogl_primitive_new_with_attributes (CoglVerticesMode mode,
  * 1.1) then you will need to make sure your assets are resized to a
  * power-of-two size (though they don't have to be square)</note>
  *
- * Return value: A newly allocated #CoglPrimitive with a reference of
- * 1. This can be freed using cogl_object_unref().
+ * Return value: (transfer full): A newly allocated #CoglPrimitive
+ * with a reference of 1. This can be freed using cogl_object_unref().
  *
  * Since: 1.6
  * Stability: Unstable
@@ -296,7 +339,8 @@ cogl_primitive_new_p2 (CoglContext *context,
  * @mode: A #CoglVerticesMode defining how to draw the vertices
  * @n_vertices: The number of vertices to read from @data and also
  *              the number of vertices to read when later drawing.
- * @data: An array of #CoglVertexP3 vertices
+ * @data: (array length=n_vertices): (type Cogl.VertexP3): An array of
+ *        #CoglVertexP3 vertices
  *
  * Provides a convenient way to describe a primitive, such as a single
  * triangle strip or a triangle fan, that will internally allocate the
@@ -331,8 +375,8 @@ cogl_primitive_new_p2 (CoglContext *context,
  * 1.1) then you will need to make sure your assets are resized to a
  * power-of-two size (though they don't have to be square)</note>
  *
- * Return value: A newly allocated #CoglPrimitive with a reference of
- * 1. This can be freed using cogl_object_unref().
+ * Return value: (transfer full): A newly allocated #CoglPrimitive
+ * with a reference of 1. This can be freed using cogl_object_unref().
  *
  * Since: 1.6
  * Stability: Unstable
@@ -349,7 +393,8 @@ cogl_primitive_new_p3 (CoglContext *context,
  * @mode: A #CoglVerticesMode defining how to draw the vertices
  * @n_vertices: The number of vertices to read from @data and also
  *              the number of vertices to read when later drawing.
- * @data: An array of #CoglVertexP2C4 vertices
+ * @data: (array length=n_vertices): (type Cogl.VertexP2C4): An array
+ *        of #CoglVertexP2C4 vertices
  *
  * Provides a convenient way to describe a primitive, such as a single
  * triangle strip or a triangle fan, that will internally allocate the
@@ -386,8 +431,8 @@ cogl_primitive_new_p3 (CoglContext *context,
  * 1.1) then you will need to make sure your assets are resized to a
  * power-of-two size (though they don't have to be square)</note>
  *
- * Return value: A newly allocated #CoglPrimitive with a reference of
- * 1. This can be freed using cogl_object_unref().
+ * Return value: (transfer full): A newly allocated #CoglPrimitive
+ * with a reference of 1. This can be freed using cogl_object_unref().
  *
  * Since: 1.6
  * Stability: Unstable
@@ -404,7 +449,8 @@ cogl_primitive_new_p2c4 (CoglContext *context,
  * @mode: A #CoglVerticesMode defining how to draw the vertices
  * @n_vertices: The number of vertices to read from @data and also
  *              the number of vertices to read when later drawing.
- * @data: An array of #CoglVertexP3C4 vertices
+ * @data: (array length=n_vertices): (type Cogl.VertexP3C4): An array
+ *        of #CoglVertexP3C4 vertices
  *
  * Provides a convenient way to describe a primitive, such as a single
  * triangle strip or a triangle fan, that will internally allocate the
@@ -441,8 +487,8 @@ cogl_primitive_new_p2c4 (CoglContext *context,
  * 1.1) then you will need to make sure your assets are resized to a
  * power-of-two size (though they don't have to be square)</note>
  *
- * Return value: A newly allocated #CoglPrimitive with a reference of
- * 1. This can be freed using cogl_object_unref().
+ * Return value: (transfer full): A newly allocated #CoglPrimitive
+ * with a reference of 1. This can be freed using cogl_object_unref().
  *
  * Since: 1.6
  * Stability: Unstable
@@ -459,7 +505,8 @@ cogl_primitive_new_p3c4 (CoglContext *context,
  * @mode: A #CoglVerticesMode defining how to draw the vertices
  * @n_vertices: The number of vertices to read from @data and also
  *              the number of vertices to read when later drawing.
- * @data: An array of #CoglVertexP2T2 vertices
+ * @data: (array length=n_vertices): (type Cogl.VertexP2T2): An array
+ *        of #CoglVertexP2T2 vertices
  *
  * Provides a convenient way to describe a primitive, such as a single
  * triangle strip or a triangle fan, that will internally allocate the
@@ -496,8 +543,8 @@ cogl_primitive_new_p3c4 (CoglContext *context,
  * 1.1) then you will need to make sure your assets are resized to a
  * power-of-two size (though they don't have to be square)</note>
  *
- * Return value: A newly allocated #CoglPrimitive with a reference of
- * 1. This can be freed using cogl_object_unref().
+ * Return value: (transfer full): A newly allocated #CoglPrimitive
+ * with a reference of 1. This can be freed using cogl_object_unref().
  *
  * Since: 1.6
  * Stability: Unstable
@@ -514,7 +561,8 @@ cogl_primitive_new_p2t2 (CoglContext *context,
  * @mode: A #CoglVerticesMode defining how to draw the vertices
  * @n_vertices: The number of vertices to read from @data and also
  *              the number of vertices to read when later drawing.
- * @data: An array of #CoglVertexP3T2 vertices
+ * @data: (array length=n_vertices): (type Cogl.VertexP3T2): An array
+ *        of #CoglVertexP3T2 vertices
  *
  * Provides a convenient way to describe a primitive, such as a single
  * triangle strip or a triangle fan, that will internally allocate the
@@ -551,8 +599,8 @@ cogl_primitive_new_p2t2 (CoglContext *context,
  * 1.1) then you will need to make sure your assets are resized to a
  * power-of-two size (though they don't have to be square)</note>
  *
- * Return value: A newly allocated #CoglPrimitive with a reference of
- * 1. This can be freed using cogl_object_unref().
+ * Return value: (transfer full): A newly allocated #CoglPrimitive
+ * with a reference of 1. This can be freed using cogl_object_unref().
  *
  * Since: 1.6
  * Stability: Unstable
@@ -569,7 +617,8 @@ cogl_primitive_new_p3t2 (CoglContext *context,
  * @mode: A #CoglVerticesMode defining how to draw the vertices
  * @n_vertices: The number of vertices to read from @data and also
  *              the number of vertices to read when later drawing.
- * @data: An array of #CoglVertexP2T2C4 vertices
+ * @data: (array length=n_vertices): (type Cogl.VertexP2T2C4): An
+ *        array of #CoglVertexP2T2C4 vertices
  *
  * Provides a convenient way to describe a primitive, such as a single
  * triangle strip or a triangle fan, that will internally allocate the
@@ -606,8 +655,8 @@ cogl_primitive_new_p3t2 (CoglContext *context,
  * 1.1) then you will need to make sure your assets are resized to a
  * power-of-two size (though they don't have to be square)</note>
  *
- * Return value: A newly allocated #CoglPrimitive with a reference of
- * 1. This can be freed using cogl_object_unref().
+ * Return value: (transfer full): A newly allocated #CoglPrimitive
+ * with a reference of 1. This can be freed using cogl_object_unref().
  *
  * Since: 1.6
  * Stability: Unstable
@@ -624,7 +673,8 @@ cogl_primitive_new_p2t2c4 (CoglContext *context,
  * @mode: A #CoglVerticesMode defining how to draw the vertices
  * @n_vertices: The number of vertices to read from @data and also
  *              the number of vertices to read when later drawing.
- * @data: An array of #CoglVertexP3T2C4 vertices
+ * @data: (array length=n_vertices): (type Cogl.VertexP3T2C4): An
+ *        array of #CoglVertexP3T2C4 vertices
  *
  * Provides a convenient way to describe a primitive, such as a single
  * triangle strip or a triangle fan, that will internally allocate the
@@ -661,8 +711,8 @@ cogl_primitive_new_p2t2c4 (CoglContext *context,
  * 1.1) then you will need to make sure your assets are resized to a
  * power-of-two size (though they don't have to be square)</note>
  *
- * Return value: A newly allocated #CoglPrimitive with a reference of
- * 1. This can be freed using cogl_object_unref().
+ * Return value: (transfer full): A newly allocated #CoglPrimitive
+ * with a reference of 1. This can be freed using cogl_object_unref().
  *
  * Since: 1.6
  * Stability: Unstable
@@ -786,7 +836,7 @@ cogl_primitive_set_indices (CoglPrimitive *primitive,
  * cogl_primitive_get_indices:
  * @primitive: A #CoglPrimitive
  *
- * Return value: the indices that were set with
+ * Return value: (transfer none): the indices that were set with
  * cogl_primitive_set_indices() or %NULL if no indices were set.
  *
  * Since: 1.10
@@ -803,7 +853,7 @@ cogl_primitive_get_indices (CoglPrimitive *primitive);
  * is a shallow copy which means it will use the same attributes and
  * attribute buffers as the original primitive.
  *
- * Return value: the new primitive
+ * Return value: (transfer full): the new primitive
  * Since: 1.10
  * Stability: unstable
  */
@@ -847,8 +897,10 @@ typedef CoglBool (* CoglPrimitiveAttributeCallback) (CoglPrimitive *primitive,
 /**
  * cogl_primitive_foreach_attribute:
  * @primitive: A #CoglPrimitive object
- * @callback: A #CoglPrimitiveAttributeCallback to be called for each attribute
- * @user_data: Private data that will be passed to the callback
+ * @callback: (scope call): A #CoglPrimitiveAttributeCallback to be
+ *            called for each attribute
+ * @user_data: (closure): Private data that will be passed to the
+ *             callback
  *
  * Iterates all the attributes of the given #CoglPrimitive.
  *
@@ -859,6 +911,30 @@ void
 cogl_primitive_foreach_attribute (CoglPrimitive *primitive,
                                   CoglPrimitiveAttributeCallback callback,
                                   void *user_data);
+
+/**
+ * cogl_primitive_draw:
+ * @primitive: A #CoglPrimitive geometry object
+ * @framebuffer: A destination #CoglFramebuffer
+ * @pipeline: A #CoglPipeline state object
+ *
+ * Draws the given @primitive geometry to the specified destination
+ * @framebuffer using the graphics processing state described by @pipeline.
+ *
+ * This drawing api doesn't support high-level meta texture types such
+ * as #CoglTexture2DSliced so it is the user's responsibility to
+ * ensure that only low-level textures that can be directly sampled by
+ * a GPU such as #CoglTexture2D, #CoglTextureRectangle or #CoglTexture3D
+ * are associated with layers of the given @pipeline.
+ *
+ * Stability: unstable
+ * Since: 1.16
+ */
+void
+cogl_primitive_draw (CoglPrimitive *primitive,
+                     CoglFramebuffer *framebuffer,
+                     CoglPipeline *pipeline);
+
 
 COGL_END_DECLS
 

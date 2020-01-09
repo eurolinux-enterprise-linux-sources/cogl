@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2007,2008,2009 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  *
@@ -102,7 +109,7 @@ prep_gl_for_pixels_upload_full (CoglContext *ctx,
                                 int pixels_src_y,
                                 int pixels_bpp)
 {
-  if ((ctx->private_feature_flags & COGL_PRIVATE_FEATURE_UNPACK_SUBIMAGE))
+  if (_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_UNPACK_SUBIMAGE))
     {
       GE( ctx, glPixelStorei (GL_UNPACK_ROW_LENGTH,
                               pixels_rowstride / pixels_bpp) );
@@ -153,7 +160,7 @@ prepare_bitmap_alignment_for_upload (CoglContext *ctx,
   int width = cogl_bitmap_get_width (src_bmp);
   int alignment = 1;
 
-  if ((ctx->private_feature_flags & COGL_PRIVATE_FEATURE_UNPACK_SUBIMAGE) ||
+  if (_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_UNPACK_SUBIMAGE) ||
       src_rowstride == 0)
     return cogl_object_ref (src_bmp);
 
@@ -205,7 +212,7 @@ _cogl_texture_driver_upload_subregion_to_gl (CoglContext *ctx,
   /* If we have the GL_EXT_unpack_subimage extension then we can
      upload from subregions directly. Otherwise we may need to copy
      the bitmap */
-  if (!(ctx->private_feature_flags & COGL_PRIVATE_FEATURE_UNPACK_SUBIMAGE) &&
+  if (!_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_UNPACK_SUBIMAGE) &&
       (src_x != 0 || src_y != 0 ||
        width != cogl_bitmap_get_width (source_bmp) ||
        height != cogl_bitmap_get_height (source_bmp)))

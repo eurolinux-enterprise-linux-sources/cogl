@@ -52,7 +52,6 @@ create_texture_3d (CoglContext *context)
   tex = cogl_texture_3d_new_from_data (context,
                                        TEX_WIDTH, TEX_HEIGHT, TEX_DEPTH,
                                        COGL_PIXEL_FORMAT_RGBA_8888,
-                                       COGL_PIXEL_FORMAT_ANY,
                                        TEX_ROWSTRIDE,
                                        TEX_IMAGE_STRIDE,
                                        data,
@@ -73,7 +72,7 @@ create_texture_3d (CoglContext *context)
 static void
 draw_frame (TestState *state)
 {
-  CoglTexture *tex = COGL_TEXTURE (create_texture_3d (test_ctx));
+  CoglTexture *tex = create_texture_3d (test_ctx);
   CoglPipeline *pipeline = cogl_pipeline_new (test_ctx);
   typedef struct { float x, y, s, t, r; } Vert;
   CoglPrimitive *primitive;
@@ -156,7 +155,7 @@ draw_frame (TestState *state)
                                                           TEX_DEPTH),
                               6 * TEX_DEPTH);
 
-  cogl_framebuffer_draw_primitive (test_fb, pipeline, primitive);
+  cogl_primitive_draw (primitive, test_fb, pipeline);
 
   g_free (verts);
 
@@ -217,11 +216,10 @@ test_multi_texture (TestState *state)
   tex_2d = cogl_texture_2d_new_from_data (test_ctx,
                                           1, 1, /* width/height */
                                           COGL_PIXEL_FORMAT_RGBA_8888_PRE,
-                                          COGL_PIXEL_FORMAT_RGBA_8888_PRE,
                                           4, /* rowstride */
                                           tex_data,
                                           NULL);
-  cogl_pipeline_set_layer_texture (pipeline, 0, COGL_TEXTURE (tex_2d));
+  cogl_pipeline_set_layer_texture (pipeline, 0, tex_2d);
 
   tex_data[0] = 0x00;
   tex_data[1] = 0xff;
@@ -230,12 +228,11 @@ test_multi_texture (TestState *state)
   tex_3d = cogl_texture_3d_new_from_data (test_ctx,
                                           1, 1, 1, /* width/height/depth */
                                           COGL_PIXEL_FORMAT_RGBA_8888_PRE,
-                                          COGL_PIXEL_FORMAT_RGBA_8888_PRE,
                                           4, /* rowstride */
                                           4, /* image_stride */
                                           tex_data,
                                           NULL);
-  cogl_pipeline_set_layer_texture (pipeline, 1, COGL_TEXTURE (tex_3d));
+  cogl_pipeline_set_layer_texture (pipeline, 1, tex_3d);
 
   cogl_pipeline_set_layer_combine (pipeline, 0,
                                    "RGBA = REPLACE(PREVIOUS)",

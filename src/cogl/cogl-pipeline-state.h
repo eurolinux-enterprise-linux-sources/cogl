@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2007,2008,2009,2011 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  */
@@ -487,12 +494,17 @@ cogl_pipeline_set_blend_constant (CoglPipeline *pipeline,
  * @point_size: the new point size.
  *
  * Changes the size of points drawn when %COGL_VERTICES_MODE_POINTS is
- * used with the vertex buffer API. Note that typically the GPU will
- * only support a limited minimum and maximum range of point sizes. If
- * the chosen point size is outside that range then the nearest value
- * within that range will be used instead. The size of a point is in
- * screen space so it will be the same regardless of any
- * transformations. The default point size is 1.0.
+ * used with the attribute buffer API. Note that typically the GPU
+ * will only support a limited minimum and maximum range of point
+ * sizes. If the chosen point size is outside that range then the
+ * nearest value within that range will be used instead. The size of a
+ * point is in screen space so it will be the same regardless of any
+ * transformations.
+ *
+ * If the point size is set to 0.0 then drawing points with the
+ * pipeline will have undefined results. This is the default value so
+ * if an application wants to draw points it must make sure to use a
+ * pipeline that has an explicit point size set on it.
  *
  * Since: 2.0
  * Stability: Unstable
@@ -515,6 +527,50 @@ cogl_pipeline_set_point_size (CoglPipeline *pipeline,
  */
 float
 cogl_pipeline_get_point_size (CoglPipeline *pipeline);
+
+/**
+ * cogl_pipeline_set_per_vertex_point_size:
+ * @pipeline: a #CoglPipeline pointer
+ * @enable: whether to enable per-vertex point size
+ * @error: a location to store a #CoglError if the change failed
+ *
+ * Sets whether to use a per-vertex point size or to use the value set
+ * by cogl_pipeline_set_point_size(). If per-vertex point size is
+ * enabled then the point size can be set for an individual point
+ * either by drawing with a #CoglAttribute with the name
+ * ‘cogl_point_size_in’ or by writing to the GLSL builtin
+ * ‘cogl_point_size_out’ from a vertex shader snippet.
+ *
+ * If per-vertex point size is enabled and this attribute is not used
+ * and cogl_point_size_out is not written to then the results are
+ * undefined.
+ *
+ * Note that enabling this will only work if the
+ * %COGL_FEATURE_ID_PER_VERTEX_POINT_SIZE feature is available. If
+ * this is not available then the function will return %FALSE and set
+ * a #CoglError.
+ *
+ * Since: 2.0
+ * Stability: Unstable
+ * Return value: %TRUE if the change suceeded or %FALSE otherwise
+ */
+CoglBool
+cogl_pipeline_set_per_vertex_point_size (CoglPipeline *pipeline,
+                                         CoglBool enable,
+                                         CoglError **error);
+
+/**
+ * cogl_pipeline_get_per_vertex_point_size:
+ * @pipeline: a #CoglPipeline pointer
+ *
+ * Since: 2.0
+ * Stability: Unstable
+ * Return value: %TRUE if the pipeline has per-vertex point size
+ *   enabled or %FALSE otherwise. The per-vertex point size can be
+ *   enabled with cogl_pipeline_set_per_vertex_point_size().
+ */
+CoglBool
+cogl_pipeline_get_per_vertex_point_size (CoglPipeline *pipeline);
 
 /**
  * cogl_pipeline_get_color_mask:
@@ -555,7 +611,7 @@ cogl_pipeline_set_color_mask (CoglPipeline *pipeline,
  * Queries what user program has been associated with the given
  * @pipeline using cogl_pipeline_set_user_program().
  *
- * Return value: The current user program or %COGL_INVALID_HANDLE.
+ * Return value: (transfer none): The current user program or %COGL_INVALID_HANDLE.
  *
  * Since: 2.0
  * Stability: Unstable
@@ -640,7 +696,7 @@ cogl_pipeline_set_depth_state (CoglPipeline *pipeline,
                                CoglError **error);
 
 /**
- * cogl_pipeline_get_depth_state
+ * cogl_pipeline_get_depth_state:
  * @pipeline: A #CoglPipeline object
  * @state_out: (out): A destination #CoglDepthState struct
  *

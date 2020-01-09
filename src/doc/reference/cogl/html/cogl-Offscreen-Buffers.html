@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Offscreen Buffers</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Cogl Reference Manual">
 <link rel="up" href="ch01.html" title="Cogl - a modern 3D graphics API">
 <link rel="prev" href="cogl-Shaders-and-Programmable-Pipeline.html" title="Shaders and Programmable Pipeline">
 <link rel="next" href="cogl-Bitmaps.html" title="Bitmaps">
-<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.19.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -38,10 +38,11 @@
 </tr></table></div>
 <div class="refsynopsisdiv">
 <a name="cogl-Offscreen-Buffers.synopsis"></a><h2>Synopsis</h2>
-<pre class="synopsis"><a href="../cogl-2.0-experimental/cogl-2.0-experimental-Offscreen-Framebuffers.html#CoglOffscreen"><span class="returnvalue">CoglOffscreen</span></a> *     <a class="link" href="cogl-Offscreen-Buffers.html#cogl-offscreen-new-to-texture" title="cogl_offscreen_new_to_texture ()">cogl_offscreen_new_to_texture</a>       (<em class="parameter"><code><a href="../cogl-2.0-experimental/cogl-2.0-experimental-The-Texture-Interface.html#CoglTexture"><span class="type">CoglTexture</span></a> *texture</code></em>);
-<a href="../cogl-2.0-experimental/cogl-2.0-experimental-Common-Types.html#CoglBool"><span class="returnvalue">CoglBool</span></a>            <a class="link" href="cogl-Offscreen-Buffers.html#cogl-is-offscreen" title="cogl_is_offscreen ()">cogl_is_offscreen</a>                   (<em class="parameter"><code><span class="type">void</span> *object</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="cogl-Offscreen-Buffers.html#cogl-set-framebuffer" title="cogl_set_framebuffer ()">cogl_set_framebuffer</a>                (<em class="parameter"><code><a href="../cogl-2.0-experimental/cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *buffer</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="cogl-Offscreen-Buffers.html#cogl-push-framebuffer" title="cogl_push_framebuffer ()">cogl_push_framebuffer</a>               (<em class="parameter"><code><a href="../cogl-2.0-experimental/cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *buffer</code></em>);
+<pre class="synopsis"><span class="returnvalue">CoglOffscreen</span> *     <a class="link" href="cogl-Offscreen-Buffers.html#cogl-offscreen-new-with-texture" title="cogl_offscreen_new_with_texture ()">cogl_offscreen_new_with_texture</a>     (<em class="parameter"><code><span class="type">CoglTexture</span> *texture</code></em>);
+<span class="returnvalue">CoglOffscreen</span> *     <a class="link" href="cogl-Offscreen-Buffers.html#cogl-offscreen-new-to-texture" title="cogl_offscreen_new_to_texture ()">cogl_offscreen_new_to_texture</a>       (<em class="parameter"><code><span class="type">CoglTexture</span> *texture</code></em>);
+<span class="returnvalue">CoglBool</span>            <a class="link" href="cogl-Offscreen-Buffers.html#cogl-is-offscreen" title="cogl_is_offscreen ()">cogl_is_offscreen</a>                   (<em class="parameter"><code><span class="type">void</span> *object</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="cogl-Offscreen-Buffers.html#cogl-set-framebuffer" title="cogl_set_framebuffer ()">cogl_set_framebuffer</a>                (<em class="parameter"><code><span class="type">CoglFramebuffer</span> *buffer</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="cogl-Offscreen-Buffers.html#cogl-push-framebuffer" title="cogl_push_framebuffer ()">cogl_push_framebuffer</a>               (<em class="parameter"><code><span class="type">CoglFramebuffer</span> *buffer</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="cogl-Offscreen-Buffers.html#cogl-pop-framebuffer" title="cogl_pop_framebuffer ()">cogl_pop_framebuffer</a>                (<em class="parameter"><code><span class="type">void</span></code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="cogl-Offscreen-Buffers.html#cogl-set-draw-buffer" title="cogl_set_draw_buffer ()">cogl_set_draw_buffer</a>                (<em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglBufferTarget" title="enum CoglBufferTarget"><span class="type">CoglBufferTarget</span></a> target</code></em>,
                                                          <em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglHandle" title="CoglHandle"><span class="type">CoglHandle</span></a> offscreen</code></em>);
@@ -58,8 +59,67 @@ Cogl allows creating and operating on offscreen framebuffers.
 <div class="refsect1">
 <a name="cogl-Offscreen-Buffers.details"></a><h2>Details</h2>
 <div class="refsect2">
+<a name="cogl-offscreen-new-with-texture"></a><h3>cogl_offscreen_new_with_texture ()</h3>
+<pre class="programlisting"><span class="returnvalue">CoglOffscreen</span> *     cogl_offscreen_new_with_texture     (<em class="parameter"><code><span class="type">CoglTexture</span> *texture</code></em>);</pre>
+<p>
+This creates an offscreen framebuffer object using the given
+<em class="parameter"><code>texture</code></em> as the primary color buffer. It doesn't just initialize
+the contents of the offscreen buffer with the <em class="parameter"><code>texture</code></em>; they are
+tightly bound so that drawing to the offscreen buffer effectively
+updates the contents of the given texture. You don't need to
+destroy the offscreen buffer before you can use the <em class="parameter"><code>texture</code></em> again.
+</p>
+<p>
+</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Note</h3>This api only works with low-level <span class="type">CoglTexture</span> types such as
+<span class="type">CoglTexture2D</span>, <span class="type">CoglTexture3D</span> and <span class="type">CoglTextureRectangle</span>, and not
+with meta-texture types such as <span class="type">CoglTexture2DSliced</span>.</div>
+<p>
+</p>
+<p>
+The storage for the framebuffer is actually allocated lazily
+so this function will never return <code class="literal">NULL</code> to indicate a runtime
+error. This means it is still possible to configure the framebuffer
+before it is really allocated.
+</p>
+<p>
+Simple applications without full error handling can simply rely on
+Cogl to lazily allocate the storage of framebuffers but you should
+be aware that if Cogl encounters an error (such as running out of
+GPU memory) then your application will simply abort with an error
+message. If you need to be able to catch such exceptions at runtime
+then you can explicitly allocate your framebuffer when you have
+finished configuring it by calling <code class="function">cogl_framebuffer_allocate()</code> and
+passing in a <span class="type">CoglError</span> argument to catch any exceptions.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>texture</code></em> :</span></p></td>
+<td>A <span class="type">CoglTexture</span> pointer</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a newly instantiated <span class="type">CoglOffscreen</span>
+framebuffer. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
 <a name="cogl-offscreen-new-to-texture"></a><h3>cogl_offscreen_new_to_texture ()</h3>
-<pre class="programlisting"><a href="../cogl-2.0-experimental/cogl-2.0-experimental-Offscreen-Framebuffers.html#CoglOffscreen"><span class="returnvalue">CoglOffscreen</span></a> *     cogl_offscreen_new_to_texture       (<em class="parameter"><code><a href="../cogl-2.0-experimental/cogl-2.0-experimental-The-Texture-Interface.html#CoglTexture"><span class="type">CoglTexture</span></a> *texture</code></em>);</pre>
+<pre class="programlisting"><span class="returnvalue">CoglOffscreen</span> *     cogl_offscreen_new_to_texture       (<em class="parameter"><code><span class="type">CoglTexture</span> *texture</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_offscreen_new_to_texture</code> has been deprecated since version 1.16 and should not be used in newly-written code. Use cogl_offscreen_new_with_texture instead.</p>
+</div>
 <p>
 This creates an offscreen buffer object using the given <em class="parameter"><code>texture</code></em> as the
 primary color buffer. It doesn't just initialize the contents of the
@@ -71,9 +131,9 @@ you can use the <em class="parameter"><code>texture</code></em> again.
 <p>
 </p>
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
-<h3 class="title">Note</h3>This only works with low-level <a href="../cogl-2.0-experimental/cogl-2.0-experimental-The-Texture-Interface.html#CoglTexture"><span class="type">CoglTexture</span></a> types such as
-<a href="../cogl-2.0-experimental/cogl-2.0-experimental-2D-textures.html#CoglTexture2D"><span class="type">CoglTexture2D</span></a>, <a href="../cogl-2.0-experimental/cogl-2.0-experimental-3D-textures.html#CoglTexture3D"><span class="type">CoglTexture3D</span></a> and <a href="../cogl-2.0-experimental/cogl-2.0-experimental-Rectangle-textures-(non-normalized-coordinates).html#CoglTextureRectangle"><span class="type">CoglTextureRectangle</span></a>, and not
-with meta-texture types such as <a href="../cogl-2.0-experimental/cogl-2.0-experimental-Sliced-Textures.html#CoglTexture2DSliced"><span class="type">CoglTexture2DSliced</span></a>.</div>
+<h3 class="title">Note</h3>This only works with low-level <span class="type">CoglTexture</span> types such as
+<span class="type">CoglTexture2D</span>, <span class="type">CoglTexture3D</span> and <span class="type">CoglTextureRectangle</span>, and not
+with meta-texture types such as <span class="type">CoglTexture2DSliced</span>.</div>
 <p>
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -84,12 +144,12 @@ with meta-texture types such as <a href="../cogl-2.0-experimental/cogl-2.0-exper
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>texture</code></em> :</span></p></td>
-<td>A <a href="../cogl-2.0-experimental/cogl-2.0-experimental-The-Texture-Interface.html#CoglTexture"><span class="type">CoglTexture</span></a> pointer</td>
+<td>A <span class="type">CoglTexture</span> pointer</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a newly instantiated <a href="../cogl-2.0-experimental/cogl-2.0-experimental-Offscreen-Framebuffers.html#CoglOffscreen"><span class="type">CoglOffscreen</span></a>
-framebuffer or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if it wasn't possible to create the
+<td>a newly instantiated <span class="type">CoglOffscreen</span>
+framebuffer or <code class="literal">NULL</code> if it wasn't possible to create the
 buffer. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
@@ -99,7 +159,7 @@ buffer. <span class="annotation">[<acronym title="Free data after the code is do
 <hr>
 <div class="refsect2">
 <a name="cogl-is-offscreen"></a><h3>cogl_is_offscreen ()</h3>
-<pre class="programlisting"><a href="../cogl-2.0-experimental/cogl-2.0-experimental-Common-Types.html#CoglBool"><span class="returnvalue">CoglBool</span></a>            cogl_is_offscreen                   (<em class="parameter"><code><span class="type">void</span> *object</code></em>);</pre>
+<pre class="programlisting"><span class="returnvalue">CoglBool</span>            cogl_is_offscreen                   (<em class="parameter"><code><span class="type">void</span> *object</code></em>);</pre>
 <p>
 Determines whether the given <a class="link" href="cogl-General-API.html#CoglObject" title="CoglObject"><span class="type">CoglObject</span></a> references an offscreen
 framebuffer object.
@@ -118,8 +178,8 @@ framebuffer object.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>object</code></em> is a <a href="../cogl-2.0-experimental/cogl-2.0-experimental-Offscreen-Framebuffers.html#CoglOffscreen"><span class="type">CoglOffscreen</span></a> framebuffer,
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise</td>
+<code class="literal">TRUE</code> if <em class="parameter"><code>object</code></em> is a <span class="type">CoglOffscreen</span> framebuffer,
+<code class="literal">FALSE</code> otherwise</td>
 </tr>
 </tbody>
 </table></div>
@@ -127,7 +187,13 @@ framebuffer object.
 <hr>
 <div class="refsect2">
 <a name="cogl-set-framebuffer"></a><h3>cogl_set_framebuffer ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                cogl_set_framebuffer                (<em class="parameter"><code><a href="../cogl-2.0-experimental/cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *buffer</code></em>);</pre>
+<pre class="programlisting"><span class="returnvalue">void</span>                cogl_set_framebuffer                (<em class="parameter"><code><span class="type">CoglFramebuffer</span> *buffer</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_set_framebuffer</code> has been deprecated since version 1.16 and should not be used in newly-written code. The latest drawing apis take explicit
+                  <span class="type">CoglFramebuffer</span> arguments so this stack of
+                  framebuffers shouldn't be used anymore.</p>
+</div>
 <p>
 This redirects all subsequent drawing to the specified framebuffer. This can
 either be an offscreen buffer created with <a class="link" href="cogl-Offscreen-Buffers.html#cogl-offscreen-new-to-texture" title="cogl_offscreen_new_to_texture ()"><code class="function">cogl_offscreen_new_to_texture()</code></a>
@@ -140,7 +206,7 @@ or in the future it may be an onscreen framebuffers too.
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><em class="parameter"><code>buffer</code></em> :</span></p></td>
-<td>A <a href="../cogl-2.0-experimental/cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> object, either onscreen or offscreen.</td>
+<td>A <span class="type">CoglFramebuffer</span> object, either onscreen or offscreen.</td>
 </tr></tbody>
 </table></div>
 <p class="since">Since 1.2</p>
@@ -148,7 +214,13 @@ or in the future it may be an onscreen framebuffers too.
 <hr>
 <div class="refsect2">
 <a name="cogl-push-framebuffer"></a><h3>cogl_push_framebuffer ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                cogl_push_framebuffer               (<em class="parameter"><code><a href="../cogl-2.0-experimental/cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *buffer</code></em>);</pre>
+<pre class="programlisting"><span class="returnvalue">void</span>                cogl_push_framebuffer               (<em class="parameter"><code><span class="type">CoglFramebuffer</span> *buffer</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_push_framebuffer</code> has been deprecated since version 1.16 and should not be used in newly-written code. The latest drawing apis take explicit
+                  <span class="type">CoglFramebuffer</span> arguments so this stack of
+                  framebuffers shouldn't be used anymore.</p>
+</div>
 <p>
 Redirects all subsequent drawing to the specified framebuffer. This can
 either be an offscreen buffer created with <a class="link" href="cogl-Offscreen-Buffers.html#cogl-offscreen-new-to-texture" title="cogl_offscreen_new_to_texture ()"><code class="function">cogl_offscreen_new_to_texture()</code></a>
@@ -227,50 +299,100 @@ corresponding to the bottom right you can do so like this:
 40
 41
 42
-43</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="keyword">static</span><span class="normal"> </span><span class="type">void</span>
-<span class="function">setup_viewport</span><span class="normal"> </span><span class="symbol">(</span><span class="type">unsigned</span><span class="normal"> </span><span class="type">int</span><span class="normal"> width</span><span class="symbol">,</span>
-<span class="normal">                </span><span class="type">unsigned</span><span class="normal"> </span><span class="type">int</span><span class="normal"> height</span><span class="symbol">,</span>
-<span class="normal">                </span><span class="type">float</span><span class="normal"> fovy</span><span class="symbol">,</span>
-<span class="normal">                </span><span class="type">float</span><span class="normal"> aspect</span><span class="symbol">,</span>
-<span class="normal">                </span><span class="type">float</span><span class="normal"> z_near</span><span class="symbol">,</span>
-<span class="normal">                </span><span class="type">float</span><span class="normal"> z_far</span><span class="symbol">)</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="type">float</span><span class="normal"> z_camera</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="usertype">CoglMatrix</span><span class="normal"> projection_matrix</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="usertype">CoglMatrix</span><span class="normal"> mv_matrix</span><span class="symbol">;</span>
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
 
-<span class="normal">  </span><span class="function"><a href="cogl-General-API.html#cogl-set-viewport">cogl_set_viewport</a></span><span class="normal"> </span><span class="symbol">(</span><span class="number">0</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal"> width</span><span class="symbol">,</span><span class="normal"> height</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="cogl-General-API.html#cogl-perspective">cogl_perspective</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">fovy</span><span class="symbol">,</span><span class="normal"> aspect</span><span class="symbol">,</span><span class="normal"> z_near</span><span class="symbol">,</span><span class="normal"> z_far</span><span class="symbol">);</span>
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Constant { color: #0000c0; text-decoration: underline; }
+.Type { color: #008000; text-decoration: underline; }
 
-<span class="normal">  </span><span class="function"><a href="cogl-General-API.html#cogl-get-projection-matrix">cogl_get_projection_matrix</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">projection_matrix</span><span class="symbol">);</span>
-<span class="normal">  z_camera </span><span class="symbol">=</span><span class="normal"> </span><span class="number">0.5</span><span class="normal"> </span><span class="symbol">*</span><span class="normal"> projection_matrix</span><span class="symbol">.</span><span class="normal">xx</span><span class="symbol">;</span>
+</style>
 
-<span class="normal">  </span><span class="function"><a href="cogl-Matrices.html#cogl-matrix-init-identity">cogl_matrix_init_identity</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">mv_matrix</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="cogl-Matrices.html#cogl-matrix-translate">cogl_matrix_translate</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">mv_matrix</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">-</span><span class="number">0</span><span class="symbol">.</span><span class="normal">5f</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">-</span><span class="number">0</span><span class="symbol">.</span><span class="normal">5f</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">-</span><span class="normal">z_camera</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="cogl-Matrices.html#cogl-matrix-scale">cogl_matrix_scale</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">mv_matrix</span><span class="symbol">,</span><span class="normal"> </span><span class="number">1</span><span class="symbol">.</span><span class="normal">0f </span><span class="symbol">/</span><span class="normal"> width</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1</span><span class="symbol">.</span><span class="normal">0f </span><span class="symbol">/</span><span class="normal"> height</span><span class="symbol">,</span><span class="normal"> </span><span class="number">1</span><span class="symbol">.</span><span class="normal">0f </span><span class="symbol">/</span><span class="normal"> width</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="cogl-Matrices.html#cogl-matrix-translate">cogl_matrix_translate</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">mv_matrix</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">.</span><span class="normal">0f</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1.0</span><span class="normal"> </span><span class="symbol">*</span><span class="normal"> height</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">.</span><span class="normal">0f</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="cogl-General-API.html#cogl-set-modelview-matrix">cogl_set_modelview_matrix</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">mv_matrix</span><span class="symbol">);</span>
-<span class="cbracket">}</span>
+<script type='text/javascript'>
+//<![CDATA[
 
-<span class="keyword">static</span><span class="normal"> </span><span class="type">void</span>
-<span class="function">my_init_framebuffer</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">ClutterStage</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">stage</span><span class="symbol">,</span>
-<span class="normal">                     </span><span class="usertype">CoglFramebuffer</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">framebuffer</span><span class="symbol">,</span>
-<span class="normal">                     </span><span class="type">unsigned</span><span class="normal"> </span><span class="type">int</span><span class="normal"> framebuffer_width</span><span class="symbol">,</span>
-<span class="normal">                     </span><span class="type">unsigned</span><span class="normal"> </span><span class="type">int</span><span class="normal"> framebuffer_height</span><span class="symbol">)</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="usertype">ClutterPerspective</span><span class="normal"> perspective</span><span class="symbol">;</span>
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+<span class="type">static</span> <span class="type">void</span>
+setup_viewport (<span class="type">unsigned</span> <span class="type">int</span> width,
+                <span class="type">unsigned</span> <span class="type">int</span> height,
+                <span class="type">float</span> fovy,
+                <span class="type">float</span> aspect,
+                <span class="type">float</span> z_near,
+                <span class="type">float</span> z_far)
+{
+  <span class="type">float</span> z_camera;
+  CoglMatrix projection_matrix;
+  CoglMatrix mv_matrix;
 
-<span class="normal">  </span><span class="function">clutter_stage_get_perspective</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">stage</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">perspective</span><span class="symbol">);</span>
+  cogl_set_viewport (<span class="number">0</span>, <span class="number">0</span>, width, height);
+  cogl_perspective (fovy, aspect, z_near, z_far);
 
-<span class="normal">  </span><span class="function"><a href="cogl-Offscreen-Buffers.html#cogl-push-framebuffer">cogl_push_framebuffer</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">framebuffer</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function">setup_viewport</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">framebuffer_width</span><span class="symbol">,</span>
-<span class="normal">                  framebuffer_height</span><span class="symbol">,</span>
-<span class="normal">                  perspective</span><span class="symbol">.</span><span class="normal">fovy</span><span class="symbol">,</span>
-<span class="normal">                  perspective</span><span class="symbol">.</span><span class="normal">aspect</span><span class="symbol">,</span>
-<span class="normal">                  perspective</span><span class="symbol">.</span><span class="normal">z_near</span><span class="symbol">,</span>
-<span class="normal">                  perspective</span><span class="symbol">.</span><span class="normal">z_far</span><span class="symbol">);</span>
-<span class="cbracket">}</span></pre></td>
+  cogl_get_projection_matrix (&amp;projection_matrix);
+  z_camera = <span class="number">0.5</span> * projection_matrix.xx;
+
+  cogl_matrix_init_identity (&amp;mv_matrix);
+  cogl_matrix_translate (&amp;mv_matrix, -<span class="number">0.5f</span>, -<span class="number">0.5f</span>, -z_camera);
+  cogl_matrix_scale (&amp;mv_matrix, <span class="number">1.0f</span> / width, -<span class="number">1.0f</span> / height, <span class="number">1.0f</span> / width);
+  cogl_matrix_translate (&amp;mv_matrix, <span class="number">0.0f</span>, -<span class="number">1.0</span> * height, <span class="number">0.0f</span>);
+  cogl_set_modelview_matrix (&amp;mv_matrix);
+}
+
+<span class="type">static</span> <span class="type">void</span>
+my_init_framebuffer (ClutterStage *stage,
+                     CoglFramebuffer *framebuffer,
+                     <span class="type">unsigned</span> <span class="type">int</span> framebuffer_width,
+                     <span class="type">unsigned</span> <span class="type">int</span> framebuffer_height)
+{
+  ClutterPerspective perspective;
+
+  clutter_stage_get_perspective (stage, &amp;perspective);
+
+  cogl_push_framebuffer (framebuffer);
+  setup_viewport (framebuffer_width,
+                  framebuffer_height,
+                  perspective.fovy,
+                  perspective.aspect,
+                  perspective.z_near,
+                  perspective.z_far);
+}</pre></td>
       </tr>
     </tbody>
   </table>
@@ -288,7 +410,7 @@ The previous framebuffer can be restored by calling <a class="link" href="cogl-O
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><em class="parameter"><code>buffer</code></em> :</span></p></td>
-<td>A <a href="../cogl-2.0-experimental/cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> object, either onscreen or offscreen.</td>
+<td>A <span class="type">CoglFramebuffer</span> object, either onscreen or offscreen.</td>
 </tr></tbody>
 </table></div>
 <p class="since">Since 1.2</p>
@@ -297,6 +419,12 @@ The previous framebuffer can be restored by calling <a class="link" href="cogl-O
 <div class="refsect2">
 <a name="cogl-pop-framebuffer"></a><h3>cogl_pop_framebuffer ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_pop_framebuffer                (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_pop_framebuffer</code> has been deprecated since version 1.16 and should not be used in newly-written code. The latest drawing apis take explicit
+                  <span class="type">CoglFramebuffer</span> arguments so this stack of
+                  framebuffers shouldn't be used anymore.</p>
+</div>
 <p>
 Restores the framebuffer that was previously at the top of the stack.
 All subsequent drawing will be redirected to this framebuffer.
@@ -310,8 +438,9 @@ All subsequent drawing will be redirected to this framebuffer.
                                                          <em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglHandle" title="CoglHandle"><span class="type">CoglHandle</span></a> offscreen</code></em>);</pre>
 <div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Warning</h3>
-<p><code class="literal">cogl_set_draw_buffer</code> has been deprecated since version 1.2 and should not be used in newly-written code. The target argument was redundant since we could look at
-   the type of CoglHandle given instead.</p>
+<p><code class="literal">cogl_set_draw_buffer</code> has been deprecated since version 1.16 and should not be used in newly-written code. The latest drawing apis take explicit
+                  <span class="type">CoglFramebuffer</span> arguments so this stack of
+                  framebuffers shouldn't be used anymore.</p>
 </div>
 <p>
 Redirects all subsequent drawing to the specified framebuffer. This
@@ -344,7 +473,9 @@ then this is a CoglHandle for the offscreen buffer.</td>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_pop_draw_buffer                (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Warning</h3>
-<p><code class="literal">cogl_pop_draw_buffer</code> has been deprecated since version 1.2 and should not be used in newly-written code. The draw buffer API was replaced with a framebuffer API</p>
+<p><code class="literal">cogl_pop_draw_buffer</code> has been deprecated since version 1.16 and should not be used in newly-written code. The latest drawing apis take explicit
+                  <span class="type">CoglFramebuffer</span> arguments so this stack of
+                  framebuffers shouldn't be used anymore.</p>
 </div>
 <p>
 Restore <a class="link" href="cogl-Offscreen-Buffers.html#cogl-set-draw-buffer" title="cogl_set_draw_buffer ()"><code class="function">cogl_set_draw_buffer()</code></a> state.
@@ -356,7 +487,9 @@ Restore <a class="link" href="cogl-Offscreen-Buffers.html#cogl-set-draw-buffer" 
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_push_draw_buffer               (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Warning</h3>
-<p><code class="literal">cogl_push_draw_buffer</code> has been deprecated since version 1.2 and should not be used in newly-written code. The draw buffer API was replaced with a framebuffer API</p>
+<p><code class="literal">cogl_push_draw_buffer</code> has been deprecated since version 1.16 and should not be used in newly-written code. The latest drawing apis take explicit
+                  <span class="type">CoglFramebuffer</span> arguments so this stack of
+                  framebuffers shouldn't be used anymore.</p>
 </div>
 <p>
 Save <a class="link" href="cogl-Offscreen-Buffers.html#cogl-set-draw-buffer" title="cogl_set_draw_buffer ()"><code class="function">cogl_set_draw_buffer()</code></a> state.
@@ -366,6 +499,6 @@ Save <a class="link" href="cogl-Offscreen-Buffers.html#cogl-set-draw-buffer" tit
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18.1</div>
+          Generated by GTK-Doc V1.19.1</div>
 </body>
 </html>

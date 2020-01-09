@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2008,2009,2010,2013 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  *
@@ -38,6 +44,7 @@
 #include "cogl-pipeline-layer-private.h"
 #include "cogl-blend-string.h"
 #include "cogl-snippet-private.h"
+#include "cogl-list.h"
 
 #ifdef COGL_PIPELINE_FRAGEND_GLSL
 
@@ -68,13 +75,9 @@ typedef struct _UnitState
   unsigned int combine_constant_used:1;
 } UnitState;
 
-typedef struct _LayerData LayerData;
-
-COGL_LIST_HEAD (LayerDataList, LayerData);
-
-struct _LayerData
+typedef struct _LayerData
 {
-  COGL_LIST_ENTRY (LayerData) list_node;
+  CoglList link;
 
   /* Layer index for the for the previous layer. This isn't
      necessarily the same as this layer's index - 1 because the
@@ -83,7 +86,7 @@ struct _LayerData
   int previous_layer_index;
 
   CoglPipelineLayer *layer;
-};
+} LayerData;
 
 typedef struct
 {
@@ -93,14 +96,13 @@ typedef struct
   GString *header, *source;
   UnitState *unit_state;
 
-  CoglBool ref_point_coord;
-
   /* List of layers that we haven't generated code for yet. These are
      in reverse order. As soon as we're about to generate code for
      layer we'll remove it from the list so we don't generate it
      again */
-  LayerDataList layers;
+  CoglList layers;
 
+  CoglPipelineCacheEntry *cache_entry;
 } CoglPipelineShaderState;
 
 static CoglUserDataKey shader_state_key;
@@ -110,14 +112,15 @@ ensure_layer_generated (CoglPipeline *pipeline,
                         int layer_num);
 
 static CoglPipelineShaderState *
-shader_state_new (int n_layers)
+shader_state_new (int n_layers,
+                  CoglPipelineCacheEntry *cache_entry)
 {
   CoglPipelineShaderState *shader_state;
 
   shader_state = g_slice_new0 (CoglPipelineShaderState);
   shader_state->ref_count = 1;
   shader_state->unit_state = g_new0 (UnitState, n_layers);
-  shader_state->ref_point_coord = FALSE;
+  shader_state->cache_entry = cache_entry;
 
   return shader_state;
 }
@@ -129,11 +132,16 @@ get_shader_state (CoglPipeline *pipeline)
 }
 
 static void
-destroy_shader_state (void *user_data)
+destroy_shader_state (void *user_data,
+                      void *instance)
 {
   CoglPipelineShaderState *shader_state = user_data;
 
   _COGL_GET_CONTEXT (ctx, NO_RETVAL);
+
+  if (shader_state->cache_entry &&
+      shader_state->cache_entry->pipeline != instance)
+    shader_state->cache_entry->usage_count--;
 
   if (--shader_state->ref_count == 0)
     {
@@ -149,10 +157,21 @@ destroy_shader_state (void *user_data)
 static void
 set_shader_state (CoglPipeline *pipeline, CoglPipelineShaderState *shader_state)
 {
-  cogl_object_set_user_data (COGL_OBJECT (pipeline),
-                             &shader_state_key,
-                             shader_state,
-                             destroy_shader_state);
+  if (shader_state)
+    {
+      shader_state->ref_count++;
+
+      /* If we're not setting the state on the template pipeline then
+       * mark it as a usage of the pipeline cache entry */
+      if (shader_state->cache_entry &&
+          shader_state->cache_entry->pipeline != pipeline)
+        shader_state->cache_entry->usage_count++;
+    }
+
+  _cogl_object_set_user_data (COGL_OBJECT (pipeline),
+                              &shader_state_key,
+                              shader_state,
+                              destroy_shader_state);
 }
 
 static void
@@ -198,11 +217,15 @@ static CoglBool
 has_replace_hook (CoglPipelineLayer *layer,
                   CoglSnippetHook hook)
 {
-  CoglPipelineSnippet *snippet;
+  GList *l;
 
-  COGL_LIST_FOREACH (snippet, get_layer_fragment_snippets (layer), list_node)
-    if (snippet->snippet->hook == hook && snippet->snippet->replace)
-      return TRUE;
+  for (l = get_layer_fragment_snippets (layer)->entries; l; l = l->next)
+    {
+      CoglSnippet *snippet = l->data;
+
+      if (snippet->hook == hook && snippet->replace)
+        return TRUE;
+    }
 
   return FALSE;
 }
@@ -260,7 +283,7 @@ _cogl_pipeline_fragend_glsl_start (CoglPipeline *pipeline,
 {
   CoglPipelineShaderState *shader_state;
   CoglPipeline *authority;
-  CoglPipeline *template_pipeline = NULL;
+  CoglPipelineCacheEntry *cache_entry = NULL;
   CoglProgram *user_program = cogl_pipeline_get_user_program (pipeline);
   int i;
 
@@ -297,35 +320,31 @@ _cogl_pipeline_fragend_glsl_start (CoglPipeline *pipeline,
           if (G_LIKELY (!(COGL_DEBUG_ENABLED
                           (COGL_DEBUG_DISABLE_PROGRAM_CACHES))))
             {
-              template_pipeline =
+              cache_entry =
                 _cogl_pipeline_cache_get_fragment_template (ctx->pipeline_cache,
                                                             authority);
 
-              shader_state = get_shader_state (template_pipeline);
+              shader_state = get_shader_state (cache_entry->pipeline);
             }
 
           if (shader_state)
             shader_state->ref_count++;
           else
-            shader_state = shader_state_new (n_layers);
+            shader_state = shader_state_new (n_layers, cache_entry);
 
           set_shader_state (authority, shader_state);
 
-          if (template_pipeline)
-            {
-              shader_state->ref_count++;
-              set_shader_state (template_pipeline, shader_state);
-            }
+          shader_state->ref_count--;
+
+          if (cache_entry)
+            set_shader_state (cache_entry->pipeline, shader_state);
         }
 
       /* If the pipeline isn't actually its own glsl-authority
        * then take a reference to the program state associated
        * with the glsl-authority... */
       if (authority != pipeline)
-        {
-          shader_state->ref_count++;
-          set_shader_state (pipeline, shader_state);
-        }
+        set_shader_state (pipeline, shader_state);
     }
 
   if (user_program)
@@ -359,7 +378,7 @@ _cogl_pipeline_fragend_glsl_start (CoglPipeline *pipeline,
   g_string_set_size (ctx->codegen_source_buffer, 0);
   shader_state->header = ctx->codegen_header_buffer;
   shader_state->source = ctx->codegen_source_buffer;
-  COGL_LIST_INIT (&shader_state->layers);
+  _cogl_list_init (&shader_state->layers);
 
   add_layer_declarations (pipeline, shader_state);
   add_global_declarations (pipeline, shader_state);
@@ -423,11 +442,8 @@ ensure_texture_lookup_generated (CoglPipelineShaderState *shader_state,
 
   if (cogl_pipeline_get_layer_point_sprite_coords_enabled (pipeline,
                                                            layer->index))
-    {
-      shader_state->ref_point_coord = TRUE;
-      g_string_append_printf (shader_state->source,
-                              "vec4 (gl_PointCoord, 0.0, 1.0)");
-    }
+    g_string_append_printf (shader_state->source,
+                            "vec4 (cogl_point_coord, 0.0, 1.0)");
   else
     g_string_append_printf (shader_state->source,
                             "cogl_tex_coord%i_in",
@@ -760,7 +776,7 @@ ensure_layer_generated (CoglPipeline *pipeline,
   LayerData *layer_data;
 
   /* Find the layer that corresponds to this layer_num */
-  COGL_LIST_FOREACH (layer_data, &shader_state->layers, list_node)
+  _cogl_list_for_each (layer_data, &shader_state->layers, link)
     {
       layer = layer_data->layer;
 
@@ -775,7 +791,7 @@ ensure_layer_generated (CoglPipeline *pipeline,
  found:
 
   /* Remove the layer from the list so we don't generate it again */
-  COGL_LIST_REMOVE (layer_data, list_node);
+  _cogl_list_remove (&layer_data->link);
 
   combine_authority =
     _cogl_pipeline_layer_get_authority (layer,
@@ -892,13 +908,18 @@ _cogl_pipeline_fragend_glsl_add_layer (CoglPipeline *pipeline,
   layer_data = g_slice_new (LayerData);
   layer_data->layer = layer;
 
-  if (COGL_LIST_EMPTY (&shader_state->layers))
-    layer_data->previous_layer_index = -1;
+  if (_cogl_list_empty (&shader_state->layers))
+    {
+      layer_data->previous_layer_index = -1;
+    }
   else
-    layer_data->previous_layer_index
-      = COGL_LIST_FIRST (&shader_state->layers)->layer->index;
+    {
+      LayerData *first =
+        _cogl_container_of (shader_state->layers.next, LayerData, link);
+      layer_data->previous_layer_index = first->layer->index;
+    }
 
-  COGL_LIST_INSERT_HEAD (&shader_state->layers, layer_data, list_node);
+  _cogl_list_insert (&shader_state->layers, &layer_data->link);
 
   return TRUE;
 }
@@ -985,7 +1006,6 @@ _cogl_pipeline_fragend_glsl_end (CoglPipeline *pipeline,
       GLint compile_status;
       GLuint shader;
       CoglPipelineSnippetData snippet_data;
-      const char *version_string;
 
       COGL_STATIC_COUNTER (fragend_glsl_compile_counter,
                            "glsl fragment compile counter",
@@ -998,20 +1018,25 @@ _cogl_pipeline_fragend_glsl_end (CoglPipeline *pipeline,
          for the last layer. If the value of this layer depends on any
          previous layers then it will recursively generate the code
          for those layers */
-      if (!COGL_LIST_EMPTY (&shader_state->layers))
+      if (!_cogl_list_empty (&shader_state->layers))
         {
           CoglPipelineLayer *last_layer;
           LayerData *layer_data, *tmp;
 
-          last_layer = COGL_LIST_FIRST (&shader_state->layers)->layer;
+          layer_data = _cogl_container_of (shader_state->layers.next,
+                                           LayerData,
+                                           link);
+          last_layer = layer_data->layer;
 
           ensure_layer_generated (pipeline, last_layer->index);
           g_string_append_printf (shader_state->source,
                                   "  cogl_color_out = cogl_layer%i;\n",
                                   last_layer->index);
 
-          COGL_LIST_FOREACH_SAFE (layer_data, &shader_state->layers,
-                                  list_node, tmp)
+          _cogl_list_for_each_safe (layer_data,
+                                    tmp,
+                                    &shader_state->layers,
+                                    link)
             g_slice_free (LayerData, layer_data);
         }
       else
@@ -1019,7 +1044,7 @@ _cogl_pipeline_fragend_glsl_end (CoglPipeline *pipeline,
                          "  cogl_color_out = cogl_color_in;\n");
 
 #if defined(HAVE_COGL_GLES2) || defined (HAVE_COGL_GL)
-      if (!(ctx->private_feature_flags & COGL_PRIVATE_FEATURE_ALPHA_TEST))
+      if (!_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_ALPHA_TEST))
         add_alpha_test_snippet (pipeline, shader_state);
 #endif
 
@@ -1043,15 +1068,7 @@ _cogl_pipeline_fragend_glsl_end (CoglPipeline *pipeline,
       lengths[1] = shader_state->source->len;
       source_strings[1] = shader_state->source->str;
 
-      if (shader_state->ref_point_coord &&
-          (ctx->driver == COGL_DRIVER_GL ||
-           ctx->driver == COGL_DRIVER_GL3))
-        version_string = "#version 120\n";
-      else
-        version_string = NULL;
-
       _cogl_glsl_shader_set_source_with_boilerplate (ctx,
-                                                     version_string,
                                                      shader, GL_FRAGMENT_SHADER,
                                                      pipeline,
                                                      2, /* count */

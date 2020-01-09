@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2010,2011 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  * Authors:
@@ -29,8 +35,6 @@
 #endif
 
 #include <windows.h>
-
-#include "cogl.h"
 
 #include "cogl-util.h"
 #include "cogl-winsys-private.h"
@@ -46,6 +50,11 @@
 #include "cogl-win32-renderer.h"
 #include "cogl-winsys-wgl-private.h"
 #include "cogl-error-private.h"
+#include "cogl-poll-private.h"
+
+/* This magic handle will cause g_poll to wakeup when there is a
+ * pending message */
+#define WIN32_MSG_HANDLE 19981206
 
 typedef struct _CoglRendererWgl
 {
@@ -161,6 +170,9 @@ _cogl_winsys_renderer_disconnect (CoglRenderer *renderer)
 {
   CoglRendererWgl *wgl_renderer = renderer->winsys;
 
+  if (renderer->win32_enable_event_retrieval)
+    _cogl_poll_renderer_remove_fd (renderer, WIN32_MSG_HANDLE);
+
   if (wgl_renderer->gl_module)
     g_module_close (wgl_renderer->gl_module);
 
@@ -227,8 +239,50 @@ win32_event_filter_cb (MSG *msg, void *data)
             }
         }
     }
+  else if (msg->message == WM_PAINT)
+    {
+      CoglOnscreen *onscreen =
+        find_onscreen_for_hwnd (context, msg->hwnd);
+      RECT rect;
+
+      if (onscreen && GetUpdateRect (msg->hwnd, &rect, FALSE))
+        {
+          CoglOnscreenDirtyInfo info;
+
+          /* Apparently this removes the dirty region from the window
+           * so that it won't be included in the next WM_PAINT
+           * message. This is also what SDL does to emit dirty
+           * events */
+          ValidateRect (msg->hwnd, &rect);
+
+          info.x = rect.left;
+          info.y = rect.top;
+          info.width = rect.right - rect.left;
+          info.height = rect.bottom - rect.top;
+
+          _cogl_onscreen_queue_dirty (onscreen, &info);
+        }
+    }
 
   return COGL_FILTER_CONTINUE;
+}
+
+static CoglBool
+check_messages (void *user_data)
+{
+  MSG msg;
+
+  return PeekMessageW (&msg, NULL, 0, 0, PM_NOREMOVE) ? TRUE : FALSE;
+}
+
+static void
+dispatch_messages (void *user_data)
+{
+  MSG msg;
+
+  while (PeekMessageW (&msg, NULL, 0, 0, PM_REMOVE))
+    /* This should cause the message to be sent to our window proc */
+    DispatchMessageW (&msg);
 }
 
 static CoglBool
@@ -236,6 +290,22 @@ _cogl_winsys_renderer_connect (CoglRenderer *renderer,
                                CoglError **error)
 {
   renderer->winsys = g_slice_new0 (CoglRendererWgl);
+
+  if (renderer->win32_enable_event_retrieval)
+    {
+      /* We'll add a magic handle that will cause a GLib main loop to
+       * wake up when there are messages. This will only work if the
+       * application is using GLib but it shouldn't matter if it
+       * doesn't work in other cases because the application shouldn't
+       * be using the cogl_poll_* functions on non-Unix systems
+       * anyway */
+      _cogl_poll_renderer_add_fd (renderer,
+                                  WIN32_MSG_HANDLE,
+                                  COGL_POLL_FD_EVENT_IN,
+                                  check_messages,
+                                  dispatch_messages,
+                                  renderer);
+    }
 
   return TRUE;
 }
@@ -640,6 +710,12 @@ update_winsys_features (CoglContext *context, CoglError **error)
       g_strfreev (split_extensions);
     }
 
+  /* We'll manually handle queueing dirty events in response to
+   * WM_PAINT messages */
+  COGL_FLAGS_SET (context->private_features,
+                  COGL_PRIVATE_FEATURE_DIRTY_EVENTS,
+                  TRUE);
+
   return TRUE;
 }
 
@@ -836,7 +912,9 @@ _cogl_winsys_onscreen_init (CoglOnscreen *onscreen,
 }
 
 static void
-_cogl_winsys_onscreen_swap_buffers (CoglOnscreen *onscreen)
+_cogl_winsys_onscreen_swap_buffers_with_damage (CoglOnscreen *onscreen,
+                                                const int *rectangles,
+                                                int n_rectangles)
 {
   CoglOnscreenWgl *wgl_onscreen = onscreen->winsys;
 
@@ -901,7 +979,8 @@ _cogl_winsys_wgl_get_vtable (void)
       vtable.onscreen_init = _cogl_winsys_onscreen_init;
       vtable.onscreen_deinit = _cogl_winsys_onscreen_deinit;
       vtable.onscreen_bind = _cogl_winsys_onscreen_bind;
-      vtable.onscreen_swap_buffers = _cogl_winsys_onscreen_swap_buffers;
+      vtable.onscreen_swap_buffers_with_damage =
+        _cogl_winsys_onscreen_swap_buffers_with_damage;
       vtable.onscreen_update_swap_throttled =
         _cogl_winsys_onscreen_update_swap_throttled;
       vtable.onscreen_set_visibility = _cogl_winsys_onscreen_set_visibility;

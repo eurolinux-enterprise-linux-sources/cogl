@@ -10,7 +10,7 @@ RELEASE_URL      = $(RELEASE_URL_BASE)/$(COGL_1_MAJOR_VERSION).$(COGL_1_MINOR_VE
 RELEASE_ANNOUNCE_LIST = cogl@lists.freedesktop.org
 RELEASE_ANNOUNCE_CC   = gnome-announce-list@gnome.org clutter-announce@clutter-project.org
 
-tar_file    = $(distdir).tar.bz2
+tar_file    = $(distdir).tar.xz
 sha256_file = $(distdir).sha256sum
 
 $(sha256_file): $(tar_file)
@@ -113,9 +113,8 @@ release-message:
 	@echo "  http://developer.gnome.org/cogl/stable/"
 	@echo "The 1.x development API is documented here:"
 	@echo "  http://developer.gnome.org/cogl/1.$(COGL_1_MINOR_VERSION)"
-	@echo ""
-	@echo "The experimental 2.0 API is currently not hosted online but can be built"
-	@echo "by passing the --enable-gtk-doc option to ./configure when building."
+	@echo "The experimental 2.0 API is documented here:"
+	@echo "  http://cogl3d.org/cogl2-reference/"
 	@echo ""
 	@echo ""
 	@echo "RELEASE NOTES"

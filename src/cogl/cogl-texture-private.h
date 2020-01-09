@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2007,2008,2009 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  */
@@ -30,6 +37,10 @@
 #include "cogl-spans.h"
 #include "cogl-meta-texture.h"
 #include "cogl-framebuffer.h"
+
+#ifdef COGL_HAS_EGL_SUPPORT
+#include "cogl-egl-defines.h"
+#endif
 
 typedef struct _CoglTextureVtable     CoglTextureVtable;
 
@@ -65,9 +76,9 @@ struct _CoglTextureVtable
 
   /* This should update the specified sub region of the texture with a
      sub region of the given bitmap. The bitmap is not converted
-     before being passed so the implementation is expected to call
-     _cogl_texture_prepare_for_upload with a suitable destination
-     format before uploading */
+     before being set so the caller is expected to have called
+     _cogl_bitmap_convert_for_upload with a suitable internal_format
+     before passing here */
   CoglBool (* set_region) (CoglTexture *tex,
                            int src_x,
                            int src_y,
@@ -139,15 +150,62 @@ struct _CoglTextureVtable
                             CoglBool value);
 };
 
+typedef enum _CoglTextureSoureType {
+  COGL_TEXTURE_SOURCE_TYPE_SIZED = 1,
+  COGL_TEXTURE_SOURCE_TYPE_BITMAP,
+  COGL_TEXTURE_SOURCE_TYPE_EGL_IMAGE,
+  COGL_TEXTURE_SOURCE_TYPE_GL_FOREIGN
+} CoglTextureSourceType;
+
+typedef struct _CoglTextureLoader
+{
+  CoglTextureSourceType src_type;
+  union {
+    struct {
+      int width;
+      int height;
+      int depth; /* for 3d textures */
+    } sized;
+    struct {
+      CoglBitmap *bitmap;
+      int height; /* for 3d textures */
+      int depth; /* for 3d textures */
+      CoglBool can_convert_in_place;
+    } bitmap;
+#if defined (COGL_HAS_EGL_SUPPORT) && defined (EGL_KHR_image_base)
+    struct {
+      EGLImageKHR image;
+      int width;
+      int height;
+      CoglPixelFormat format;
+    } egl_image;
+#endif
+    struct {
+      int width;
+      int height;
+      unsigned int gl_handle;
+      CoglPixelFormat format;
+    } gl_foreign;
+  } src;
+} CoglTextureLoader;
+
 struct _CoglTexture
 {
   CoglObject _parent;
   CoglContext *context;
+  CoglTextureLoader *loader;
   GList *framebuffers;
   int max_level;
   int width;
   int height;
   CoglBool allocated;
+
+  /*
+   * Internal format
+   */
+  CoglTextureComponents components;
+  unsigned int premultiplied:1;
+
   const CoglTextureVtable *vtable;
 };
 
@@ -183,6 +241,8 @@ _cogl_texture_init (CoglTexture *texture,
                     CoglContext *ctx,
                     int width,
                     int height,
+                    CoglPixelFormat src_format,
+                    CoglTextureLoader *loader,
                     const CoglTextureVtable *vtable);
 
 void
@@ -194,7 +254,7 @@ void
 _cogl_texture_register_texture_type (const CoglObjectClass *klass);
 
 #define COGL_TEXTURE_DEFINE(TypeName, type_name)                        \
-  COGL_OBJECT_DEFINE_WITH_CODE                                          \
+  COGL_OBJECT_DEFINE_WITH_CODE_GTYPE                                    \
   (TypeName, type_name,                                                 \
    _cogl_texture_register_texture_type (&_cogl_##type_name##_class))
 
@@ -220,27 +280,38 @@ _cogl_texture_pre_paint (CoglTexture *texture, CoglTexturePrePaintFlags flags);
 void
 _cogl_texture_ensure_non_quad_rendering (CoglTexture *texture);
 
-/* Utility function to determine which pixel format to use when
-   dst_format is COGL_PIXEL_FORMAT_ANY. If dst_format is not ANY then
-   it will just be returned directly */
-CoglPixelFormat
-_cogl_texture_determine_internal_format (CoglPixelFormat src_format,
-                                         CoglPixelFormat dst_format);
-
-/* Utility function to help uploading a bitmap. If the bitmap needs
- * premult conversion then a converted copy will be returned,
- * otherwise a reference to the original source will be returned.
+/*
+ * This determines a CoglPixelFormat according to texture::components
+ * and texture::premultiplied (i.e. the user required components and
+ * whether the texture should be considered premultiplied)
  *
- * The GLenums needed for uploading are returned
+ * A reference/source format can be given (or COGL_PIXEL_FORMAT_ANY)
+ * and wherever possible this function tries to simply return the
+ * given source format if its compatible with the required components.
+ *
+ * Texture backends can call this when allocating a texture to know
+ * how to convert a source image in preparation for uploading.
  */
-CoglBitmap *
-_cogl_texture_prepare_for_upload (CoglBitmap *src_bmp,
-                                  CoglPixelFormat dst_format,
-                                  CoglPixelFormat *dst_format_out,
-                                  GLenum *out_glintformat,
-                                  GLenum *out_glformat,
-                                  GLenum *out_gltype,
-                                  CoglError **error);
+CoglPixelFormat
+_cogl_texture_determine_internal_format (CoglTexture *texture,
+                                         CoglPixelFormat src_format);
+
+/* This is called by texture backends when they have successfully
+ * allocated a texture.
+ *
+ * Most texture backends currently track the internal layout of
+ * textures using a CoglPixelFormat which will be finalized when a
+ * texture is allocated. At this point we need to update
+ * texture::components and texture::premultiplied according to the
+ * determined layout.
+ *
+ * XXX: Going forward we should probably aim to stop using
+ * CoglPixelFormat at all for tracking the internal layout of
+ * textures.
+ */
+void
+_cogl_texture_set_internal_format (CoglTexture *texture,
+                                   CoglPixelFormat internal_format);
 
 CoglBool
 _cogl_texture_is_foreign (CoglTexture *texture);
@@ -293,12 +364,6 @@ _cogl_texture_set_region (CoglTexture *texture,
                           int level,
                           CoglError **error);
 
-CoglTexture *
-_cogl_texture_new_from_bitmap (CoglBitmap *bitmap,
-                               CoglTextureFlags flags,
-                               CoglPixelFormat internal_format,
-                               CoglError **error);
-
 CoglBool
 _cogl_texture_set_region_from_bitmap (CoglTexture *texture,
                                       int src_x,
@@ -327,6 +392,18 @@ _cogl_texture_get_level_size (CoglTexture *texture,
 
 void
 _cogl_texture_set_allocated (CoglTexture *texture,
-                             CoglBool allocated);
+                             CoglPixelFormat internal_format,
+                             int width,
+                             int height);
+
+CoglPixelFormat
+_cogl_texture_get_format (CoglTexture *texture);
+
+CoglTextureLoader *
+_cogl_texture_create_loader (void);
+
+void
+_cogl_texture_copy_internal_format (CoglTexture *src,
+                                    CoglTexture *dest);
 
 #endif /* __COGL_TEXTURE_PRIVATE_H */

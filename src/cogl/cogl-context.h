@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2010 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * Authors:
  *  Robert Bragg <robert@linux.intel.com>
@@ -39,6 +45,10 @@ typedef struct _CoglContext CoglContext;
 #include <cogl/cogl-defines.h>
 #include <cogl/cogl-display.h>
 #include <cogl/cogl-primitive.h>
+
+#ifdef COGL_HAS_GTYPE_SUPPORT
+#include <glib-object.h>
+#endif
 #ifdef COGL_HAS_EGL_PLATFORM_ANDROID_SUPPORT
 #include <android/native_window.h>
 #endif
@@ -91,9 +101,18 @@ COGL_BEGIN_DECLS
 
 #define COGL_CONTEXT(OBJECT) ((CoglContext *)OBJECT)
 
+#ifdef COGL_HAS_GTYPE_SUPPORT
 /**
- * cogl_context_new:
- * @display: A #CoglDisplay pointer
+ * cogl_context_get_gtype:
+ *
+ * Returns: a #GType that can be used with the GLib type system.
+ */
+GType cogl_context_get_gtype (void);
+#endif
+
+/**
+ * cogl_context_new: (constructor)
+ * @display: (allow-none): A #CoglDisplay pointer
  * @error: A CoglError return location.
  *
  * Creates a new #CoglContext which acts as an application sandbox
@@ -124,6 +143,25 @@ cogl_context_new (CoglDisplay *display,
  */
 CoglDisplay *
 cogl_context_get_display (CoglContext *context);
+
+/**
+ * cogl_context_get_renderer:
+ * @context: A #CoglContext pointer
+ *
+ * Retrieves the #CoglRenderer that is internally associated with the
+ * given @context. This will return the same #CoglRenderer that was
+ * passed to cogl_display_new() or if %NULL was passed to
+ * cogl_display_new() or cogl_context_new() then this function returns
+ * a pointer to the renderer that was automatically connected
+ * internally.
+ *
+ * Return value: (transfer none): The #CoglRenderer associated with the
+ *               given @context.
+ * Since: 1.16
+ * Stability: unstable
+ */
+CoglRenderer *
+cogl_context_get_renderer (CoglContext *context);
 
 #ifdef COGL_HAS_EGL_PLATFORM_ANDROID_SUPPORT
 /**
@@ -181,6 +219,9 @@ cogl_is_context (void *object);
  *    and %COGL_FEATURE_ID_TEXTURE_NPOT_REPEAT features combined.
  * @COGL_FEATURE_ID_TEXTURE_RECTANGLE: Support for rectangular
  *    textures with non-normalized texture coordinates.
+ * @COGL_FEATURE_ID_TEXTURE_RG: Support for
+ *    %COGL_TEXTURE_COMPONENTS_RG as the internal components of a
+ *    texture.
  * @COGL_FEATURE_ID_TEXTURE_3D: 3D texture support
  * @COGL_FEATURE_ID_OFFSCREEN: Offscreen rendering support
  * @COGL_FEATURE_ID_OFFSCREEN_MULTISAMPLE: Multisample support for
@@ -195,6 +236,8 @@ cogl_is_context (void *object);
  * @COGL_FEATURE_ID_DEPTH_RANGE: cogl_pipeline_set_depth_range() support
  * @COGL_FEATURE_ID_POINT_SPRITE: Whether
  *     cogl_pipeline_set_layer_point_sprite_coords_enabled() is supported.
+ * @COGL_FEATURE_ID_PER_VERTEX_POINT_SIZE: Whether cogl_point_size_in
+ *     can be used as an attribute to set a per-vertex point size.
  * @COGL_FEATURE_ID_MAP_BUFFER_FOR_READ: Whether cogl_buffer_map() is
  *     supported with CoglBufferAccess including read support.
  * @COGL_FEATURE_ID_MAP_BUFFER_FOR_WRITE: Whether cogl_buffer_map() is
@@ -204,6 +247,9 @@ cogl_is_context (void *object);
  * @COGL_FEATURE_ID_SWAP_BUFFERS_EVENT:
  *     Available if the window system supports reporting an event
  *     for swap buffer completions.
+ * @COGL_FEATURE_ID_BUFFER_AGE: Available if the age of #CoglOnscreen back
+ *    buffers are tracked and so cogl_onscreen_get_buffer_age() can be
+ *    expected to return age values other than 0.
  * @COGL_FEATURE_ID_GLES2_CONTEXT: Whether creating new GLES2 contexts is
  *    suported.
  * @COGL_FEATURE_ID_DEPTH_TEXTURE: Whether #CoglFramebuffer support rendering
@@ -240,6 +286,10 @@ typedef enum _CoglFeatureID
   COGL_FEATURE_ID_GLES2_CONTEXT,
   COGL_FEATURE_ID_DEPTH_TEXTURE,
   COGL_FEATURE_ID_PRESENTATION_TIME,
+  COGL_FEATURE_ID_FENCE,
+  COGL_FEATURE_ID_PER_VERTEX_POINT_SIZE,
+  COGL_FEATURE_ID_TEXTURE_RG,
+  COGL_FEATURE_ID_BUFFER_AGE,
 
   /*< private >*/
   _COGL_N_FEATURE_IDS   /*< skip >*/
@@ -305,8 +355,9 @@ typedef void (*CoglFeatureCallback) (CoglFeatureID feature, void *user_data);
 /**
  * cogl_foreach_feature:
  * @context: A #CoglContext pointer
- * @callback: A #CoglFeatureCallback called for each supported feature
- * @user_data: Private data to pass to the callback
+ * @callback: (scope call): A #CoglFeatureCallback called for each
+ *            supported feature
+ * @user_data: (closure): Private data to pass to the callback
  *
  * Iterates through all the context level features currently supported
  * for a given @context and for each feature @callback is called.

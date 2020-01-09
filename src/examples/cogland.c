@@ -17,28 +17,52 @@ typedef struct
 
 typedef struct
 {
-  struct wl_resource resource;
+  struct wl_resource *resource;
   CoglandRegion region;
 } CoglandSharedRegion;
 
 typedef struct
 {
+  struct wl_resource *resource;
+  struct wl_signal destroy_signal;
+  struct wl_listener destroy_listener;
+
+  union
+  {
+    struct wl_shm_buffer *shm_buffer;
+    struct wl_buffer *legacy_buffer;
+  };
+
+  int32_t width, height;
+  uint32_t busy_count;
+} CoglandBuffer;
+
+typedef struct
+{
+  CoglandBuffer *buffer;
+  struct wl_listener destroy_listener;
+} CoglandBufferReference;
+
+typedef struct
+{
   CoglandCompositor *compositor;
 
-  struct wl_surface wayland_surface;
+  struct wl_resource *resource;
   int x;
   int y;
-  struct wl_buffer *buffer;
-  struct wl_listener buffer_destroy_listener;
+  CoglandBufferReference buffer_ref;
   CoglTexture2D *texture;
 
   CoglBool has_shell_surface;
+
+  struct wl_signal destroy_signal;
 
   /* All the pending state, that wl_surface.commit will apply. */
   struct
   {
     /* wl_surface.attach */
-    struct wl_buffer *buffer;
+    CoglBool newly_attached;
+    CoglandBuffer *buffer;
     struct wl_listener buffer_destroy_listener;
     int32_t sx;
     int32_t sy;
@@ -54,7 +78,7 @@ typedef struct
 typedef struct
 {
   CoglandSurface *surface;
-  struct wl_resource resource;
+  struct wl_resource *resource;
   struct wl_listener surface_destroy_listener;
 } CoglandShellSurface;
 
@@ -93,7 +117,6 @@ struct _CoglandCompositor
   struct wl_display *wayland_display;
   struct wl_event_loop *wayland_loop;
 
-  CoglDisplay *cogl_display;
   CoglContext *cogl_context;
 
   int virtual_width;
@@ -268,6 +291,81 @@ wayland_event_source_new (struct wl_display *display)
   return &source->source;
 }
 
+static void
+cogland_buffer_destroy_handler (struct wl_listener *listener,
+                                void *data)
+{
+  CoglandBuffer *buffer = wl_container_of (listener, buffer, destroy_listener);
+
+  wl_signal_emit (&buffer->destroy_signal, buffer);
+  g_slice_free (CoglandBuffer, buffer);
+}
+
+static CoglandBuffer *
+cogland_buffer_from_resource (struct wl_resource *resource)
+{
+  CoglandBuffer *buffer;
+  struct wl_listener *listener;
+
+  listener = wl_resource_get_destroy_listener (resource,
+                                               cogland_buffer_destroy_handler);
+
+  if (listener)
+    {
+      buffer = wl_container_of (listener, buffer, destroy_listener);
+    }
+  else
+    {
+      buffer = g_slice_new0 (CoglandBuffer);
+
+      buffer->resource = resource;
+      wl_signal_init (&buffer->destroy_signal);
+      buffer->destroy_listener.notify = cogland_buffer_destroy_handler;
+      wl_resource_add_destroy_listener (resource, &buffer->destroy_listener);
+    }
+
+  return buffer;
+}
+
+static void
+cogland_buffer_reference_handle_destroy (struct wl_listener *listener,
+                                         void *data)
+{
+  CoglandBufferReference *ref =
+    wl_container_of (listener, ref, destroy_listener);
+
+  g_assert (data == ref->buffer);
+
+  ref->buffer = NULL;
+}
+
+static void
+cogland_buffer_reference (CoglandBufferReference *ref,
+                          CoglandBuffer *buffer)
+{
+  if (ref->buffer && buffer != ref->buffer)
+    {
+      ref->buffer->busy_count--;
+
+      if (ref->buffer->busy_count == 0)
+        {
+          g_assert (wl_resource_get_client (ref->buffer->resource));
+          wl_resource_queue_event (ref->buffer->resource, WL_BUFFER_RELEASE);
+        }
+
+      wl_list_remove (&ref->destroy_listener.link);
+    }
+
+  if (buffer && buffer != ref->buffer)
+    {
+      buffer->busy_count++;
+      wl_signal_add (&buffer->destroy_signal, &ref->destroy_listener);
+    }
+
+  ref->buffer = buffer;
+  ref->destroy_listener.notify = cogland_buffer_reference_handle_destroy;
+}
+
 typedef struct _CoglandFrameCallback
 {
   struct wl_list link;
@@ -275,7 +373,7 @@ typedef struct _CoglandFrameCallback
   /* Pointer back to the compositor */
   CoglandCompositor *compositor;
 
-  struct wl_resource resource;
+  struct wl_resource *resource;
 } CoglandFrameCallback;
 
 static CoglBool
@@ -287,15 +385,13 @@ paint_cb (void *user_data)
   for (l = compositor->outputs; l; l = l->next)
     {
       CoglandOutput *output = l->data;
-      CoglFramebuffer *fb = COGL_FRAMEBUFFER (output->onscreen);
+      CoglFramebuffer *fb = output->onscreen;
       GList *l2;
-
-      cogl_push_framebuffer (fb);
 
       cogl_framebuffer_clear4f (fb, COGL_BUFFER_BIT_COLOR, 0, 0, 0, 1);
 
-      cogl_framebuffer_draw_primitive (fb, compositor->triangle_pipeline,
-                                       compositor->triangle);
+      cogl_primitive_draw (compositor->triangle,
+                           fb, compositor->triangle_pipeline);
 
       for (l2 = compositor->surfaces; l2; l2 = l2->next)
         {
@@ -304,13 +400,14 @@ paint_cb (void *user_data)
           if (surface->texture)
             {
               CoglTexture2D *texture = surface->texture;
-              cogl_set_source_texture (COGL_TEXTURE (texture));
-              cogl_rectangle (-1, 1, 1, -1);
+              CoglPipeline *pipeline =
+                cogl_pipeline_new (compositor->cogl_context);
+              cogl_pipeline_set_layer_texture (pipeline, 0, texture);
+              cogl_framebuffer_draw_rectangle (fb, pipeline, -1, 1, 1, -1);
+              cogl_object_unref (pipeline);
             }
         }
       cogl_onscreen_swap_buffers (COGL_ONSCREEN (fb));
-
-      cogl_pop_framebuffer ();
     }
 
   while (!wl_list_empty (&compositor->frame_callbacks))
@@ -318,9 +415,8 @@ paint_cb (void *user_data)
       CoglandFrameCallback *callback =
         wl_container_of (compositor->frame_callbacks.next, callback, link);
 
-      wl_resource_post_event (&callback->resource,
-                              WL_CALLBACK_DONE, get_time ());
-      wl_resource_destroy (&callback->resource);
+      wl_callback_send_done (callback->resource, get_time ());
+      wl_resource_destroy (callback->resource);
     }
 
   compositor->redraw_idle = 0;
@@ -336,51 +432,30 @@ cogland_queue_redraw (CoglandCompositor *compositor)
 }
 
 static void
-shm_buffer_damaged (CoglandSurface *surface,
-                    int32_t x,
-                    int32_t y,
-                    int32_t width,
-                    int32_t height)
+surface_damaged (CoglandSurface *surface,
+                 int32_t x,
+                 int32_t y,
+                 int32_t width,
+                 int32_t height)
 {
-  struct wl_buffer *wayland_buffer = surface->buffer;
-
-  if (surface->texture)
+  if (surface->buffer_ref.buffer &&
+      surface->texture)
     {
-      CoglPixelFormat format;
-      int stride = wl_shm_buffer_get_stride (wayland_buffer);
-      const uint8_t *data = wl_shm_buffer_get_data (wayland_buffer);
+      struct wl_shm_buffer *shm_buffer =
+        wl_shm_buffer_get (surface->buffer_ref.buffer->resource);
 
-      switch (wl_shm_buffer_get_format (wayland_buffer))
-        {
-#if G_BYTE_ORDER == G_BIG_ENDIAN
-          case WL_SHM_FORMAT_ARGB8888:
-            format = COGL_PIXEL_FORMAT_ARGB_8888_PRE;
-            break;
-          case WL_SHM_FORMAT_XRGB8888:
-            format = COGL_PIXEL_FORMAT_ARGB_8888;
-            break;
-#elif G_BYTE_ORDER == G_LITTLE_ENDIAN
-          case WL_SHM_FORMAT_ARGB8888:
-            format = COGL_PIXEL_FORMAT_BGRA_8888_PRE;
-            break;
-          case WL_SHM_FORMAT_XRGB8888:
-            format = COGL_PIXEL_FORMAT_BGRA_8888;
-            break;
-#endif
-          default:
-            g_warn_if_reached ();
-            format = COGL_PIXEL_FORMAT_ARGB_8888;
-        }
-
-      cogl_texture_set_region (COGL_TEXTURE (surface->texture),
-                               x, y, /* src_x/y */
-                               x, y, /* dst_x/y */
-                               width, height, /* dst_width/height */
-                               width, height, /* width/height */
-                               format,
-                               stride,
-                               data);
+      if (shm_buffer)
+        cogl_wayland_texture_set_region_from_shm_buffer (surface->texture,
+                                                         x, y,
+                                                         width,
+                                                         height,
+                                                         shm_buffer,
+                                                         x, y,
+                                                         0, /* level */
+                                                         NULL);
     }
+
+  cogland_queue_redraw (surface->compositor);
 }
 
 static void
@@ -391,60 +466,19 @@ cogland_surface_destroy (struct wl_client *wayland_client,
 }
 
 static void
-cogland_surface_detach_buffer (CoglandSurface *surface)
-{
-  struct wl_buffer *buffer = surface->buffer;
-
-  if (buffer)
-    {
-      wl_list_remove (&surface->buffer_destroy_listener.link);
-
-      surface->buffer = NULL;
-
-      if (surface->texture)
-        {
-          cogl_object_unref (surface->texture);
-          surface->texture = NULL;
-        }
-
-      cogland_queue_redraw (surface->compositor);
-    }
-}
-
-static void
-surface_handle_buffer_destroy (struct wl_listener *listener,
-                               void *data)
-{
-  CoglandSurface *surface =
-    wl_container_of (listener, surface, buffer_destroy_listener);
-
-  cogland_surface_detach_buffer (surface);
-}
-
-static void
-cogland_surface_detach_buffer_and_notify (CoglandSurface *surface)
-{
-  struct wl_buffer *buffer = surface->buffer;
-
-  if (buffer)
-    {
-      g_assert (buffer->resource.client != NULL);
-
-      wl_resource_queue_event (&buffer->resource, WL_BUFFER_RELEASE);
-
-      cogland_surface_detach_buffer (surface);
-    }
-}
-
-static void
 cogland_surface_attach (struct wl_client *wayland_client,
                         struct wl_resource *wayland_surface_resource,
                         struct wl_resource *wayland_buffer_resource,
                         int32_t sx, int32_t sy)
 {
-  CoglandSurface *surface = wayland_surface_resource->data;
-  struct wl_buffer *buffer =
-    wayland_buffer_resource ? wayland_buffer_resource->data : NULL;
+  CoglandSurface *surface =
+    wl_resource_get_user_data (wayland_surface_resource);
+  CoglandBuffer *buffer;
+
+  if (wayland_buffer_resource)
+    buffer = cogland_buffer_from_resource (wayland_buffer_resource);
+  else
+    buffer = NULL;
 
   /* Attach without commit in between does not went wl_buffer.release */
   if (surface->pending.buffer)
@@ -453,9 +487,10 @@ cogland_surface_attach (struct wl_client *wayland_client,
   surface->pending.sx = sx;
   surface->pending.sy = sy;
   surface->pending.buffer = buffer;
+  surface->pending.newly_attached = TRUE;
 
   if (buffer)
-    wl_signal_add (&buffer->resource.destroy_signal,
+    wl_signal_add (&buffer->destroy_signal,
                    &surface->pending.buffer_destroy_listener);
 }
 
@@ -467,7 +502,7 @@ cogland_surface_damage (struct wl_client *client,
                         int32_t width,
                         int32_t height)
 {
-  CoglandSurface *surface = resource->data;
+  CoglandSurface *surface = wl_resource_get_user_data (resource);
 
   region_add (&surface->pending.damage, x, y, width, height);
 }
@@ -475,7 +510,8 @@ cogland_surface_damage (struct wl_client *client,
 static void
 destroy_frame_callback (struct wl_resource *callback_resource)
 {
-  CoglandFrameCallback *callback = callback_resource->data;
+  CoglandFrameCallback *callback =
+    wl_resource_get_user_data (callback_resource);
 
   wl_list_remove (&callback->link);
   g_slice_free (CoglandFrameCallback, callback);
@@ -487,16 +523,17 @@ cogland_surface_frame (struct wl_client *client,
                        uint32_t callback_id)
 {
   CoglandFrameCallback *callback;
-  CoglandSurface *surface = surface_resource->data;
+  CoglandSurface *surface = wl_resource_get_user_data (surface_resource);
 
   callback = g_slice_new0 (CoglandFrameCallback);
   callback->compositor = surface->compositor;
-  callback->resource.object.interface = &wl_callback_interface;
-  callback->resource.object.id = callback_id;
-  callback->resource.destroy = destroy_frame_callback;
-  callback->resource.data = callback;
+  callback->resource = wl_client_add_object (client,
+                                             &wl_callback_interface,
+                                             NULL, /* no implementation */
+                                             callback_id,
+                                             callback);
+  wl_resource_set_destructor (callback->resource, destroy_frame_callback);
 
-  wl_client_add_resource (client, &callback->resource);
   wl_list_insert (surface->pending.frame_callback_list.prev, &callback->link);
 }
 
@@ -518,21 +555,31 @@ static void
 cogland_surface_commit (struct wl_client *client,
                         struct wl_resource *resource)
 {
-  CoglandSurface *surface = resource->data;
+  CoglandSurface *surface = wl_resource_get_user_data (resource);
   CoglandCompositor *compositor = surface->compositor;
 
   /* wl_surface.attach */
-  if (surface->buffer != surface->pending.buffer)
+  if (surface->pending.newly_attached &&
+      surface->buffer_ref.buffer != surface->pending.buffer)
     {
       CoglError *error = NULL;
 
-      cogland_surface_detach_buffer_and_notify (surface);
+      if (surface->texture)
+        {
+          cogl_object_unref (surface->texture);
+          surface->texture = NULL;
+        }
+
+      cogland_buffer_reference (&surface->buffer_ref, surface->pending.buffer);
 
       if (surface->pending.buffer)
         {
+          struct wl_resource *buffer_resource =
+            surface->pending.buffer->resource;
+
           surface->texture =
             cogl_wayland_texture_2d_new_from_buffer (compositor->cogl_context,
-                                                     surface->pending.buffer,
+                                                     buffer_resource,
                                                      &error);
 
           if (!surface->texture)
@@ -541,26 +588,24 @@ cogland_surface_commit (struct wl_client *client,
                        error->message);
               cogl_error_free (error);
             }
-
-          surface->buffer = surface->pending.buffer;
-
-          wl_signal_add (&surface->buffer->resource.destroy_signal,
-                         &surface->buffer_destroy_listener);
-          wl_list_remove (&surface->pending.buffer_destroy_listener.link);
         }
     }
-  surface->pending.buffer = NULL;
+  if (surface->pending.buffer)
+    {
+      wl_list_remove (&surface->pending.buffer_destroy_listener.link);
+      surface->pending.buffer = NULL;
+    }
   surface->pending.sx = 0;
   surface->pending.sy = 0;
+  surface->pending.newly_attached = FALSE;
 
   /* wl_surface.damage */
-  if (surface->buffer &&
-      wl_buffer_is_shm (surface->buffer) &&
+  if (surface->buffer_ref.buffer &&
       surface->texture &&
       !region_is_empty (&surface->pending.damage))
     {
       CoglandRegion *region = &surface->pending.damage;
-      CoglTexture *texture = COGL_TEXTURE (surface->texture);
+      CoglTexture *texture = surface->texture;
 
       if (region->x2 > cogl_texture_get_width (texture))
         region->x2 = cogl_texture_get_width (texture);
@@ -571,11 +616,11 @@ cogland_surface_commit (struct wl_client *client,
       if (region->y1 < 0)
         region->y1 = 0;
 
-      shm_buffer_damaged (surface,
-                          region->x1,
-                          region->y1,
-                          region->x2 - region->x1,
-                          region->y2 - region->y1);
+      surface_damaged (surface,
+                       region->x1,
+                       region->y1,
+                       region->x2 - region->x1,
+                       region->y2 - region->y1);
     }
   region_init (&surface->pending.damage);
 
@@ -583,8 +628,6 @@ cogland_surface_commit (struct wl_client *client,
   wl_list_insert_list (&compositor->frame_callbacks,
                        &surface->pending.frame_callback_list);
   wl_list_init (&surface->pending.frame_callback_list);
-
-  cogland_queue_redraw (compositor);
 }
 
 static void
@@ -611,19 +654,30 @@ cogland_surface_free (CoglandSurface *surface)
   CoglandCompositor *compositor = surface->compositor;
   CoglandFrameCallback *cb, *next;
 
+  wl_signal_emit (&surface->destroy_signal, &surface->resource);
+
   compositor->surfaces = g_list_remove (compositor->surfaces, surface);
-  cogland_surface_detach_buffer_and_notify (surface);
+
+  cogland_buffer_reference (&surface->buffer_ref, NULL);
+  if (surface->texture)
+    cogl_object_unref (surface->texture);
+
+  if (surface->pending.buffer)
+    wl_list_remove (&surface->pending.buffer_destroy_listener.link);
 
   wl_list_for_each_safe (cb, next,
                          &surface->pending.frame_callback_list, link)
-    wl_resource_destroy (&cb->resource);
+    wl_resource_destroy (cb->resource);
 
   g_slice_free (CoglandSurface, surface);
+
+  cogland_queue_redraw (compositor);
 }
+
 static void
 cogland_surface_resource_destroy_cb (struct wl_resource *resource)
 {
-  CoglandSurface *surface = resource->data;
+  CoglandSurface *surface = wl_resource_get_user_data (resource);
   cogland_surface_free (surface);
 }
 
@@ -642,28 +696,26 @@ cogland_compositor_create_surface (struct wl_client *wayland_client,
                                    struct wl_resource *wayland_compositor_resource,
                                    uint32_t id)
 {
-  CoglandCompositor *compositor = wayland_compositor_resource->data;
+  CoglandCompositor *compositor =
+    wl_resource_get_user_data (wayland_compositor_resource);
   CoglandSurface *surface = g_slice_new0 (CoglandSurface);
 
   surface->compositor = compositor;
 
-  surface->wayland_surface.resource.destroy =
-    cogland_surface_resource_destroy_cb;
-  surface->wayland_surface.resource.object.id = id;
-  surface->wayland_surface.resource.object.interface = &wl_surface_interface;
-  surface->wayland_surface.resource.object.implementation =
-          (void (**)(void)) &cogland_surface_interface;
-  surface->wayland_surface.resource.data = surface;
+  wl_signal_init (&surface->destroy_signal);
 
-  surface->buffer_destroy_listener.notify =
-    surface_handle_buffer_destroy;
+  surface->resource = wl_client_add_object (wayland_client,
+                                            &wl_surface_interface,
+                                            &cogland_surface_interface,
+                                            id,
+                                            surface);
+  wl_resource_set_destructor (surface->resource,
+                              cogland_surface_resource_destroy_cb);
 
   surface->pending.buffer_destroy_listener.notify =
     surface_handle_pending_buffer_destroy;
   wl_list_init (&surface->pending.frame_callback_list);
   region_init (&surface->pending.damage);
-
-  wl_client_add_resource (wayland_client, &surface->wayland_surface.resource);
 
   compositor->surfaces = g_list_prepend (compositor->surfaces,
                                          surface);
@@ -684,7 +736,7 @@ cogland_region_add (struct wl_client *client,
 		    int32_t width,
 		    int32_t height)
 {
-  CoglandSharedRegion *shared_region = resource->data;
+  CoglandSharedRegion *shared_region = wl_resource_get_user_data (resource);
 
   region_add (&shared_region->region, x, y, width, height);
 }
@@ -697,7 +749,7 @@ cogland_region_subtract (struct wl_client *client,
 			 int32_t width,
 			 int32_t height)
 {
-  CoglandSharedRegion *shared_region = resource->data;
+  CoglandSharedRegion *shared_region = wl_resource_get_user_data (resource);
 
   region_subtract (&shared_region->region, x, y, width, height);
 }
@@ -711,7 +763,7 @@ const struct wl_region_interface cogland_region_interface = {
 static void
 cogland_region_resource_destroy_cb (struct wl_resource *resource)
 {
-  CoglandSharedRegion *region = resource->data;
+  CoglandSharedRegion *region = wl_resource_get_user_data (resource);
 
   g_slice_free (CoglandSharedRegion, region);
 }
@@ -723,17 +775,15 @@ cogland_compositor_create_region (struct wl_client *wayland_client,
 {
   CoglandSharedRegion *region = g_slice_new0 (CoglandSharedRegion);
 
-  region->resource.destroy =
-    cogland_region_resource_destroy_cb;
-  region->resource.object.id = id;
-  region->resource.object.interface = &wl_region_interface;
-  region->resource.object.implementation =
-          (void (**)(void)) &cogland_region_interface;
-  region->resource.data = region;
+  region->resource = wl_client_add_object (wayland_client,
+                                           &wl_region_interface,
+                                           &cogland_region_interface,
+                                           id,
+                                           region);
+  wl_resource_set_destructor (region->resource,
+                              cogland_region_resource_destroy_cb);
 
   region_init (&region->region);
-
-  wl_client_add_resource (wayland_client, &region->resource);
 }
 
 static void
@@ -769,6 +819,16 @@ bind_output (struct wl_client *client,
 }
 
 static void
+dirty_cb (CoglOnscreen *onscreen,
+          const CoglOnscreenDirtyInfo *info,
+          void *user_data)
+{
+  CoglandCompositor *compositor = user_data;
+
+  cogland_queue_redraw (compositor);
+}
+
+static void
 cogland_compositor_create_output (CoglandCompositor *compositor,
                                   int x,
                                   int y,
@@ -796,20 +856,20 @@ cogland_compositor_create_output (CoglandCompositor *compositor,
                                         width_mm, height_mm);
   /* Eventually there will be an implicit allocate on first use so this
    * will become optional... */
-  fb = COGL_FRAMEBUFFER (output->onscreen);
+  fb = output->onscreen;
   if (!cogl_framebuffer_allocate (fb, &error))
     g_error ("Failed to allocate framebuffer: %s\n", error->message);
 
+  cogl_onscreen_add_dirty_callback (output->onscreen,
+                                    dirty_cb,
+                                    compositor,
+                                    NULL /* destroy */);
+
   cogl_onscreen_show (output->onscreen);
-#if 0
-  cogl_framebuffer_set_viewport (fb, x, y, width, height);
-#else
-  cogl_push_framebuffer (fb);
-  cogl_set_viewport (-x, -y,
-                     compositor->virtual_width,
-                     compositor->virtual_height);
-  cogl_pop_framebuffer ();
-#endif
+  cogl_framebuffer_set_viewport (fb,
+                                 -x, -y,
+                                 compositor->virtual_width,
+                                 compositor->virtual_height);
 
   mode = g_slice_new0 (CoglandMode);
   mode->flags = 0;
@@ -937,22 +997,8 @@ static const struct wl_shell_surface_interface cogl_shell_surface_interface =
 };
 
 static void
-shell_handle_surface_destroy (struct wl_listener *listener,
-                              void *data)
+destroy_shell_surface (CoglandShellSurface *shell_surface)
 {
-  CoglandShellSurface *shell_surface =
-    wl_container_of (listener, shell_surface, surface_destroy_listener);
-
-  shell_surface->surface->has_shell_surface = FALSE;
-  shell_surface->surface = NULL;
-  wl_resource_destroy (&shell_surface->resource);
-}
-
-static void
-destroy_shell_surface (struct wl_resource *resource)
-{
-  CoglandShellSurface *shell_surface = resource->data;
-
   /* In case cleaning up a dead client destroys shell_surface first */
   if (shell_surface->surface)
     {
@@ -964,13 +1010,35 @@ destroy_shell_surface (struct wl_resource *resource)
 }
 
 static void
+destroy_shell_surface_cb (struct wl_resource *resource)
+{
+  destroy_shell_surface (wl_resource_get_user_data (resource));
+}
+
+static void
+shell_handle_surface_destroy (struct wl_listener *listener,
+                              void *data)
+{
+  CoglandShellSurface *shell_surface =
+    wl_container_of (listener, shell_surface, surface_destroy_listener);
+
+  shell_surface->surface->has_shell_surface = FALSE;
+  shell_surface->surface = NULL;
+
+  if (shell_surface->resource)
+    wl_resource_destroy (shell_surface->resource);
+  else
+    destroy_shell_surface (shell_surface);
+}
+
+static void
 get_shell_surface (struct wl_client *client,
                    struct wl_resource *resource,
                    uint32_t id,
                    struct wl_resource *surface_resource)
 {
-  CoglandSurface *surface = surface_resource->data;
-  CoglandShellSurface *shell_surface = g_new0 (CoglandShellSurface, 1);
+  CoglandSurface *surface = wl_resource_get_user_data (surface_resource);
+  CoglandShellSurface *shell_surface;
 
   if (surface->has_shell_surface)
     {
@@ -980,21 +1048,23 @@ get_shell_surface (struct wl_client *client,
       return;
     }
 
-  shell_surface->resource.destroy = destroy_shell_surface;
-  shell_surface->resource.object.id = id;
-  shell_surface->resource.object.interface = &wl_shell_surface_interface;
-  shell_surface->resource.object.implementation =
-    (void (**) (void)) &cogl_shell_surface_interface;
-  shell_surface->resource.data = shell_surface;
+  shell_surface = g_new0 (CoglandShellSurface, 1);
 
   shell_surface->surface = surface;
-  shell_surface->surface_destroy_listener.notify = shell_handle_surface_destroy;
-  wl_signal_add (&surface->wayland_surface.resource.destroy_signal,
+  shell_surface->surface_destroy_listener.notify =
+    shell_handle_surface_destroy;
+  wl_signal_add (&surface->destroy_signal,
                  &shell_surface->surface_destroy_listener);
 
   surface->has_shell_surface = TRUE;
 
-  wl_client_add_resource (client, &shell_surface->resource);
+  shell_surface->resource = wl_client_add_object (client,
+                                                  &wl_shell_surface_interface,
+                                                  &cogl_shell_surface_interface,
+                                                  id,
+                                                  shell_surface);
+  wl_resource_set_destructor (shell_surface->resource,
+                              destroy_shell_surface_cb);
 }
 
 static const struct wl_shell_interface cogland_shell_interface =
@@ -1012,6 +1082,36 @@ bind_shell (struct wl_client *client,
                         &cogland_shell_interface, id, data);
 }
 
+static CoglContext *
+create_cogl_context (CoglandCompositor *compositor,
+                     CoglBool use_egl_constraint,
+                     CoglError **error)
+{
+  CoglRenderer *renderer = renderer = cogl_renderer_new ();
+  CoglDisplay *display;
+  CoglContext *context;
+
+  if (use_egl_constraint)
+    cogl_renderer_add_constraint (renderer, COGL_RENDERER_CONSTRAINT_USES_EGL);
+
+  if (!cogl_renderer_connect (renderer, error))
+    {
+      cogl_object_unref (renderer);
+      return NULL;
+    }
+
+  display = cogl_display_new (renderer, NULL);
+  cogl_wayland_display_set_compositor_display (display,
+                                               compositor->wayland_display);
+
+  context = cogl_context_new (display, error);
+
+  cogl_object_unref (renderer);
+  cogl_object_unref (display);
+
+  return context;
+}
+
 int
 main (int argc, char **argv)
 {
@@ -1020,7 +1120,7 @@ main (int argc, char **argv)
   CoglError *error = NULL;
   GError *gerror = NULL;
   CoglVertexP2C4 triangle_vertices[] = {
-      {0, 0.7, 0xff, 0x00, 0x00, 0x80},
+      {0, 0.7, 0xff, 0x00, 0x00, 0xff},
       {-0.7, -0.7, 0x00, 0xff, 0x00, 0xff},
       {0.7, -0.7, 0x00, 0x00, 0xff, 0xff}
   };
@@ -1055,13 +1155,30 @@ main (int argc, char **argv)
     wayland_event_source_new (compositor.wayland_display);
   g_source_attach (compositor.wayland_event_source, NULL);
 
-  compositor.cogl_display = cogl_display_new (NULL, NULL);
-  cogl_wayland_display_set_compositor_display (compositor.cogl_display,
-                                               compositor.wayland_display);
+  /* We want Cogl to use an EGL renderer because otherwise it won't
+   * set up the wl_drm object and only SHM buffers will work. */
+  compositor.cogl_context =
+    create_cogl_context (&compositor,
+                         TRUE /* use EGL constraint */,
+                         &error);
+  if (compositor.cogl_context == NULL)
+    {
+      /* If we couldn't get an EGL context then try any type of
+       * context */
+      cogl_error_free (error);
+      error = NULL;
 
-  compositor.cogl_context = cogl_context_new (compositor.cogl_display, &error);
-  if (!compositor.cogl_context)
-    g_error ("Failed to create a Cogl context: %s\n", error->message);
+      compositor.cogl_context =
+        create_cogl_context (&compositor,
+                             FALSE, /* don't set EGL constraint */
+                             &error);
+
+      if (compositor.cogl_context)
+        g_warning ("Failed to create context with EGL constraint, "
+                   "falling back");
+      else
+        g_error ("Failed to create a Cogl context: %s\n", error->message);
+    }
 
   compositor.virtual_width = 800;
   compositor.virtual_height = 600;
@@ -1100,8 +1217,6 @@ main (int argc, char **argv)
                                       G_PRIORITY_DEFAULT);
 
   g_source_attach (cogl_source, NULL);
-
-  cogland_queue_redraw (&compositor);
 
   g_main_loop_run (loop);
 

@@ -53,16 +53,15 @@ create_texture (int size)
         }
     }
 
-  texture = cogl_texture_new_from_data (size, /* width */
-                                        size, /* height */
-                                        COGL_TEXTURE_NONE, /* flags */
-                                        /* format */
-                                        COGL_PIXEL_FORMAT_RGBA_8888,
-                                        /* internal format */
-                                        COGL_PIXEL_FORMAT_RGBA_8888,
-                                        /* rowstride */
-                                        size * 4,
-                                        data);
+  texture = test_utils_texture_new_from_data (test_ctx,
+                                              size, /* width */
+                                              size, /* height */
+                                              TEST_UTILS_TEXTURE_NONE, /* flags */
+                                              /* format */
+                                              COGL_PIXEL_FORMAT_RGBA_8888_PRE,
+                                              /* rowstride */
+                                              size * 4,
+                                              data);
 
   g_free (data);
 
@@ -81,7 +80,7 @@ verify_texture (CoglTexture *texture, int size)
   p = data = g_malloc (size * size * 4);
 
   cogl_texture_get_data (texture,
-                         COGL_PIXEL_FORMAT_RGBA_8888,
+                         COGL_PIXEL_FORMAT_RGBA_8888_PRE,
                          size * 4,
                          data);
 

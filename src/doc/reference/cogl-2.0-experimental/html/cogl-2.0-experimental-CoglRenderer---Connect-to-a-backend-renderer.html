@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>CoglRenderer: Connect to a backend renderer</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Cogl 2.0 Reference Manual">
 <link rel="up" href="cogl-context-apis.html" title="Setting Up A Drawing Context">
 <link rel="prev" href="cogl-context-apis.html" title="Setting Up A Drawing Context">
-<link rel="next" href="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.html" title="CoglSwapChain: Describe a set of back buffers for flipping between">
-<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<link rel="next" href="cogl-2.0-experimental-CoglOnscreenTemplate---Describe-a-template-for-onscreen-framebuffers.html" title="CoglOnscreenTemplate: Describe a template for onscreen framebuffers">
+<meta name="generator" content="GTK-Doc V1.19.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -18,7 +18,7 @@
 <td><a accesskey="u" href="cogl-context-apis.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
 <th width="100%" align="center">Cogl 2.0 Reference Manual</th>
-<td><a accesskey="n" href="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+<td><a accesskey="n" href="cogl-2.0-experimental-CoglOnscreenTemplate---Describe-a-template-for-onscreen-framebuffers.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
 </tr>
 <tr><td colspan="5" class="shortcuts">
 <a href="#cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.synopsis" class="shortcut">Top</a>
@@ -84,20 +84,17 @@ enum                <a class="link" href="cogl-2.0-experimental-CoglRenderer---C
                                                          <em class="parameter"><code><span class="type">void</span> *data</code></em>);
 <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglFilterReturn" title="enum CoglFilterReturn"><span class="returnvalue">CoglFilterReturn</span></a>    <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-win32-renderer-handle-event" title="cogl_win32_renderer_handle_event ()">cogl_win32_renderer_handle_event</a>    (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a> *renderer</code></em>,
                                                          <em class="parameter"><code><span class="type">MSG</span> *message</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-win32-renderer-set-event-retrieval-enabled" title="cogl_win32_renderer_set_event_retrieval_enabled ()">cogl_win32_renderer_set_event_retrieval_enabled</a>
+                                                        (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a> *renderer</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglBool" title="CoglBool"><span class="type">CoglBool</span></a> enable</code></em>);
 
 <span class="returnvalue">void</span>                <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-wayland-renderer-set-foreign-display" title="cogl_wayland_renderer_set_foreign_display ()">cogl_wayland_renderer_set_foreign_display</a>
                                                         (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a> *renderer</code></em>,
                                                          <em class="parameter"><code><span class="type">struct wl_display</span> *display</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-wayland-renderer-set-event-dispatch-enabled" title="cogl_wayland_renderer_set_event_dispatch_enabled ()">cogl_wayland_renderer_set_event_dispatch_enabled</a>
+                                                        (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a> *renderer</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglBool" title="CoglBool"><span class="type">CoglBool</span></a> enable</code></em>);
 struct <span class="returnvalue">wl_display</span> * <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-wayland-renderer-get-display" title="cogl_wayland_renderer_get_display ()">cogl_wayland_renderer_get_display</a>   (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a> *renderer</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-wayland-renderer-set-foreign-compositor" title="cogl_wayland_renderer_set_foreign_compositor ()">cogl_wayland_renderer_set_foreign_compositor</a>
-                                                        (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a> *renderer</code></em>,
-                                                         <em class="parameter"><code><span class="type">struct wl_compositor</span> *compositor</code></em>);
-struct <span class="returnvalue">wl_compositor</span> * <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-wayland-renderer-get-compositor" title="cogl_wayland_renderer_get_compositor ()">cogl_wayland_renderer_get_compositor</a>
-                                                        (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a> *renderer</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-wayland-renderer-set-foreign-shell" title="cogl_wayland_renderer_set_foreign_shell ()">cogl_wayland_renderer_set_foreign_shell</a>
-                                                        (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a> *renderer</code></em>,
-                                                         <em class="parameter"><code><span class="type">struct wl_shell</span> *shell</code></em>);
-struct <span class="returnvalue">wl_shell</span> *   <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-wayland-renderer-get-shell" title="cogl_wayland_renderer_get_shell ()">cogl_wayland_renderer_get_shell</a>     (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a> *renderer</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -132,7 +129,7 @@ Once you have a configured <a class="link" href="cogl-2.0-experimental-CoglRende
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>Many applications don't need to explicitly use
 <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-renderer-new" title="cogl_renderer_new ()"><code class="function">cogl_renderer_new()</code></a> or <a class="link" href="cogl-2.0-experimental-CoglDisplay---Setup-a-display-pipeline.html#cogl-display-new" title="cogl_display_new ()"><code class="function">cogl_display_new()</code></a> and can just jump
-straight to <a class="link" href="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-context-new" title="cogl_context_new ()"><code class="function">cogl_context_new()</code></a> and pass a <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> display argument so
+straight to <a class="link" href="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-context-new" title="cogl_context_new ()"><code class="function">cogl_context_new()</code></a> and pass a <code class="literal">NULL</code> display argument so
 Cogl will automatically connect and setup a renderer and
 display.</div>
 <p>
@@ -164,7 +161,7 @@ Determines if the given <em class="parameter"><code>object</code></em> is a <a c
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>object</code></em> is a <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a>, else <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>.</td>
+<code class="literal">TRUE</code> if <em class="parameter"><code>object</code></em> is a <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a>, else <code class="literal">FALSE</code>.</td>
 </tr>
 </tbody>
 </table></div>
@@ -213,11 +210,22 @@ Once you have setup your renderer then the next step is to create a
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>Many applications don't need to explicitly use
 <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-renderer-new" title="cogl_renderer_new ()"><code class="function">cogl_renderer_new()</code></a> or <a class="link" href="cogl-2.0-experimental-CoglDisplay---Setup-a-display-pipeline.html#cogl-display-new" title="cogl_display_new ()"><code class="function">cogl_display_new()</code></a> and can just jump
-straight to <a class="link" href="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-context-new" title="cogl_context_new ()"><code class="function">cogl_context_new()</code></a> and pass a <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> display argument
+straight to <a class="link" href="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-context-new" title="cogl_context_new ()"><code class="function">cogl_context_new()</code></a> and pass a <code class="literal">NULL</code> display argument
 so Cogl will automatically connect and setup a renderer and
 display.</div>
 <p>
 </p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>A newly created <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr></tbody>
+</table></div>
 <p class="since">Since 1.10</p>
 <p class="stability">Stability Level: Unstable</p>
 </div>
@@ -278,8 +286,8 @@ usable driver and window system backend can be found.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if there was no error while connecting the
-given <em class="parameter"><code>renderer</code></em>. <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if there was an error.</td>
+<code class="literal">TRUE</code> if there was no error while connecting the
+given <em class="parameter"><code>renderer</code></em>. <code class="literal">FALSE</code> if there was an error.</td>
 </tr>
 </tbody>
 </table></div>
@@ -764,6 +772,40 @@ internal state without taking any exclusive action.</td>
 </div>
 <hr>
 <div class="refsect2">
+<a name="cogl-win32-renderer-set-event-retrieval-enabled"></a><h3>cogl_win32_renderer_set_event_retrieval_enabled ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                cogl_win32_renderer_set_event_retrieval_enabled
+                                                        (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a> *renderer</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglBool" title="CoglBool"><span class="type">CoglBool</span></a> enable</code></em>);</pre>
+<p>
+Sets whether Cogl should automatically retrieve messages from
+Windows. It defaults to <code class="literal">TRUE</code>. It can be set to <code class="literal">FALSE</code> if the
+application wants to handle its own message retrieval. Note that
+Cogl still needs to see all of the messages to function properly so
+the application should call <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-win32-renderer-handle-event" title="cogl_win32_renderer_handle_event ()"><code class="function">cogl_win32_renderer_handle_event()</code></a> for
+each message if it disables automatic event retrieval.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
+<td>a <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>enable</code></em> :</span></p></td>
+<td>The new value</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 1.16</p>
+<p class="stability">Stability Level: Unstable</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="cogl-wayland-renderer-set-foreign-display"></a><h3>cogl_wayland_renderer_set_foreign_display ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_wayland_renderer_set_foreign_display
                                                         (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a> *renderer</code></em>,
@@ -772,19 +814,6 @@ internal state without taking any exclusive action.</td>
 Allows you to explicitly control what Wayland display you want Cogl
 to work with instead of leaving Cogl to automatically connect to a
 wayland compositor.
-</p>
-<p>
-</p>
-<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
-<h3 class="title">Note</h3>If you use this API you must also explicitly set foreign
-Wayland compositor and shell objects using the
-<a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-wayland-renderer-set-foreign-compositor" title="cogl_wayland_renderer_set_foreign_compositor ()"><code class="function">cogl_wayland_renderer_set_foreign_compositor()</code></a> and
-<a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-wayland-renderer-set-foreign-shell" title="cogl_wayland_renderer_set_foreign_shell ()"><code class="function">cogl_wayland_renderer_set_foreign_shell()</code></a> respectively. This ie
-because Wayland doesn't currently provide a way to retrospectively
-query these interfaces so the expectation is that if you have taken
-ownership of the display then you will also have been notified of
-the compositor and shell interfaces which Cogl needs to use.</div>
-<p>
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -808,6 +837,43 @@ the compositor and shell interfaces which Cogl needs to use.</div>
 </div>
 <hr>
 <div class="refsect2">
+<a name="cogl-wayland-renderer-set-event-dispatch-enabled"></a><h3>cogl_wayland_renderer_set_event_dispatch_enabled ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                cogl_wayland_renderer_set_event_dispatch_enabled
+                                                        (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a> *renderer</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglBool" title="CoglBool"><span class="type">CoglBool</span></a> enable</code></em>);</pre>
+<p>
+Sets whether Cogl should handle calling <code class="function">wl_display_dispatch()</code> and
+<code class="function">wl_display_flush()</code> as part of its main loop integration via
+<a class="link" href="cogl-2.0-experimental-Main-loop-integration.html#cogl-poll-renderer-get-info" title="cogl_poll_renderer_get_info ()"><code class="function">cogl_poll_renderer_get_info()</code></a> and <a class="link" href="cogl-2.0-experimental-Main-loop-integration.html#cogl-poll-renderer-dispatch" title="cogl_poll_renderer_dispatch ()"><code class="function">cogl_poll_renderer_dispatch()</code></a>.
+The default value is <code class="literal">TRUE</code>. When it is enabled the application can
+register listeners for Wayland interfaces and the callbacks will be
+invoked during <a class="link" href="cogl-2.0-experimental-Main-loop-integration.html#cogl-poll-renderer-dispatch" title="cogl_poll_renderer_dispatch ()"><code class="function">cogl_poll_renderer_dispatch()</code></a>. If the application
+wants to integrate with its own code that is already handling
+reading from the Wayland display socket, it should disable this to
+avoid having competing code read from the socket.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
+<td>A <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>enable</code></em> :</span></p></td>
+<td>The new value</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 1.16</p>
+<p class="stability">Stability Level: Unstable</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="cogl-wayland-renderer-get-display"></a><h3>cogl_wayland_renderer_get_display ()</h3>
 <pre class="programlisting">struct <span class="returnvalue">wl_display</span> * cogl_wayland_renderer_get_display   (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a> *renderer</code></em>);</pre>
 <p>
@@ -817,7 +883,7 @@ display has been specified using
 be returned. If no foreign display has been specified then the
 display that Cogl creates internally will be returned unless the
 renderer has not yet been connected (either implicitly or explicitly by
-calling <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-renderer-connect" title="cogl_renderer_connect ()"><code class="function">cogl_renderer_connect()</code></a>) in which case <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> is returned.
+calling <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-renderer-connect" title="cogl_renderer_connect ()"><code class="function">cogl_renderer_connect()</code></a>) in which case <code class="literal">NULL</code> is returned.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -833,7 +899,7 @@ calling <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>The wayland display currently associated with <em class="parameter"><code>renderer</code></em>,
-or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the renderer hasn't yet been connected and no
+or <code class="literal">NULL</code> if the renderer hasn't yet been connected and no
 foreign display has been specified.</td>
 </tr>
 </tbody>
@@ -841,135 +907,10 @@ foreign display has been specified.</td>
 <p class="since">Since 1.8</p>
 <p class="stability">Stability Level: Unstable</p>
 </div>
-<hr>
-<div class="refsect2">
-<a name="cogl-wayland-renderer-set-foreign-compositor"></a><h3>cogl_wayland_renderer_set_foreign_compositor ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                cogl_wayland_renderer_set_foreign_compositor
-                                                        (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a> *renderer</code></em>,
-                                                         <em class="parameter"><code><span class="type">struct wl_compositor</span> *compositor</code></em>);</pre>
-<p>
-Allows you to explicitly notify Cogl of a Wayland compositor
-interface to use. This API should be used in conjunction with
-<a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-wayland-renderer-set-foreign-display" title="cogl_wayland_renderer_set_foreign_display ()"><code class="function">cogl_wayland_renderer_set_foreign_display()</code></a> because if you are
-connecting to a wayland compositor manually that will also mean you
-will be notified on connection of the available interfaces that
-can't be queried retrosectively with the current Wayland protocol.
-</p>
-<div class="variablelist"><table border="0" class="variablelist">
-<colgroup>
-<col align="left" valign="top">
-<col>
-</colgroup>
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
-<td>A <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a>
-</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>compositor</code></em> :</span></p></td>
-<td>A Wayland compositor</td>
-</tr>
-</tbody>
-</table></div>
-<p class="since">Since 1.8</p>
-<p class="stability">Stability Level: Unstable</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="cogl-wayland-renderer-get-compositor"></a><h3>cogl_wayland_renderer_get_compositor ()</h3>
-<pre class="programlisting">struct <span class="returnvalue">wl_compositor</span> * cogl_wayland_renderer_get_compositor
-                                                        (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a> *renderer</code></em>);</pre>
-<p>
-Retrieves the Wayland compositor interface that Cogl is using. If a
-foreign compositor has been specified using
-<a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-wayland-renderer-set-foreign-compositor" title="cogl_wayland_renderer_set_foreign_compositor ()"><code class="function">cogl_wayland_renderer_set_foreign_compositor()</code></a> then that compositor
-will be returned. If no foreign compositor has been specified then
-the compositor that Cogl is notified of internally will be returned
-unless the renderer has not yet been connected (either implicitly
-or explicitly by calling <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-renderer-connect" title="cogl_renderer_connect ()"><code class="function">cogl_renderer_connect()</code></a>) in which case
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> is returned.
-</p>
-<div class="variablelist"><table border="0" class="variablelist">
-<colgroup>
-<col align="left" valign="top">
-<col>
-</colgroup>
-<tbody><tr>
-<td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
-<td>A <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a>
-</td>
-</tr></tbody>
-</table></div>
-<p class="since">Since 1.8</p>
-<p class="stability">Stability Level: Unstable</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="cogl-wayland-renderer-set-foreign-shell"></a><h3>cogl_wayland_renderer_set_foreign_shell ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                cogl_wayland_renderer_set_foreign_shell
-                                                        (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a> *renderer</code></em>,
-                                                         <em class="parameter"><code><span class="type">struct wl_shell</span> *shell</code></em>);</pre>
-<p>
-Allows you to explicitly notify Cogl of a Wayland shell interface
-to use.  This API should be used in conjunction with
-<a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-wayland-renderer-set-foreign-display" title="cogl_wayland_renderer_set_foreign_display ()"><code class="function">cogl_wayland_renderer_set_foreign_display()</code></a> because if you are
-connecting to a wayland compositor manually that will also mean you
-will be notified on connection of the available interfaces that
-can't be queried retrosectively with the current Wayland protocol.
-</p>
-<div class="variablelist"><table border="0" class="variablelist">
-<colgroup>
-<col align="left" valign="top">
-<col>
-</colgroup>
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
-<td>A <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a>
-</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>shell</code></em> :</span></p></td>
-<td>A Wayland shell</td>
-</tr>
-</tbody>
-</table></div>
-<p class="since">Since 1.10</p>
-<p class="stability">Stability Level: Unstable</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="cogl-wayland-renderer-get-shell"></a><h3>cogl_wayland_renderer_get_shell ()</h3>
-<pre class="programlisting">struct <span class="returnvalue">wl_shell</span> *   cogl_wayland_renderer_get_shell     (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a> *renderer</code></em>);</pre>
-<p>
-Retrieves the Wayland shell interface that Cogl is using. If a
-foreign shell has been specified using
-<a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-wayland-renderer-set-foreign-shell" title="cogl_wayland_renderer_set_foreign_shell ()"><code class="function">cogl_wayland_renderer_set_foreign_shell()</code></a> then that shell
-will be returned. If no foreign shell has been specified then
-the shell that Cogl is notified of internally will be returned
-unless the renderer has not yet been connected (either implicitly
-or explicitly by calling <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-renderer-connect" title="cogl_renderer_connect ()"><code class="function">cogl_renderer_connect()</code></a>) in which case
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> is returned.
-</p>
-<div class="variablelist"><table border="0" class="variablelist">
-<colgroup>
-<col align="left" valign="top">
-<col>
-</colgroup>
-<tbody><tr>
-<td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
-<td>A <a class="link" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#CoglRenderer" title="CoglRenderer"><span class="type">CoglRenderer</span></a>
-</td>
-</tr></tbody>
-</table></div>
-<p class="since">Since 1.10</p>
-<p class="stability">Stability Level: Unstable</p>
-</div>
 </div>
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18.1</div>
+          Generated by GTK-Doc V1.19.1</div>
 </body>
 </html>

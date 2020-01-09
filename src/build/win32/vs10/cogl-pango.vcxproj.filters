@@ -17,4 +17,7 @@
     <ClCompile Include="..\..\..\cogl-pango\cogl-pango-glyph-cache.c"><Filter>Sources</Filter></ClCompile>
     <ClCompile Include="..\..\..\cogl-pango\cogl-pango-pipeline-cache.c"><Filter>Sources</Filter></ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\cogl-pango\cogl-pango.symbols"><Filter>Resource Files</Filter></CustomBuild>
+  </ItemGroup>
 </Project>

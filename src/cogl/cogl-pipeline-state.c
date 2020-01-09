@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2008,2009,2010 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  *
@@ -37,6 +43,8 @@
 #include "cogl-pipeline-state-private.h"
 #include "cogl-snippet-private.h"
 #include "cogl-error-private.h"
+
+#include <test-fixtures/test-unit.h>
 
 #include "string.h"
 
@@ -119,40 +127,35 @@ _cogl_pipeline_blend_state_equal (CoglPipeline *authority0,
 
   _COGL_GET_CONTEXT (ctx, FALSE);
 
-#if defined(HAVE_COGL_GLES2) || defined(HAVE_COGL_GL)
-  if (ctx->driver != COGL_DRIVER_GLES1)
-    {
-      if (blend_state0->blend_equation_rgb != blend_state1->blend_equation_rgb)
-        return FALSE;
-      if (blend_state0->blend_equation_alpha !=
-          blend_state1->blend_equation_alpha)
-        return FALSE;
-      if (blend_state0->blend_src_factor_alpha !=
-          blend_state1->blend_src_factor_alpha)
-        return FALSE;
-      if (blend_state0->blend_dst_factor_alpha !=
-          blend_state1->blend_dst_factor_alpha)
-        return FALSE;
-    }
-#endif
+  if (blend_state0->blend_equation_rgb != blend_state1->blend_equation_rgb)
+    return FALSE;
+
+  if (blend_state0->blend_equation_alpha !=
+      blend_state1->blend_equation_alpha)
+    return FALSE;
+  if (blend_state0->blend_src_factor_alpha !=
+      blend_state1->blend_src_factor_alpha)
+    return FALSE;
+  if (blend_state0->blend_dst_factor_alpha !=
+      blend_state1->blend_dst_factor_alpha)
+    return FALSE;
+
   if (blend_state0->blend_src_factor_rgb !=
       blend_state1->blend_src_factor_rgb)
     return FALSE;
   if (blend_state0->blend_dst_factor_rgb !=
       blend_state1->blend_dst_factor_rgb)
     return FALSE;
-#if defined(HAVE_COGL_GLES2) || defined(HAVE_COGL_GL)
-  if (ctx->driver != COGL_DRIVER_GLES1 &&
-      (blend_state0->blend_src_factor_rgb == GL_ONE_MINUS_CONSTANT_COLOR ||
-       blend_state0->blend_src_factor_rgb == GL_CONSTANT_COLOR ||
-       blend_state0->blend_dst_factor_rgb == GL_ONE_MINUS_CONSTANT_COLOR ||
-       blend_state0->blend_dst_factor_rgb == GL_CONSTANT_COLOR))
+
+  if (blend_state0->blend_src_factor_rgb == GL_ONE_MINUS_CONSTANT_COLOR ||
+      blend_state0->blend_src_factor_rgb == GL_CONSTANT_COLOR ||
+      blend_state0->blend_dst_factor_rgb == GL_ONE_MINUS_CONSTANT_COLOR ||
+      blend_state0->blend_dst_factor_rgb == GL_CONSTANT_COLOR)
     {
       if (!cogl_color_equal (&blend_state0->blend_constant,
                              &blend_state1->blend_constant))
         return FALSE;
     }
-#endif
 
   return TRUE;
 }
@@ -195,10 +198,26 @@ _cogl_pipeline_fog_state_equal (CoglPipeline *authority0,
 }
 
 CoglBool
+_cogl_pipeline_non_zero_point_size_equal (CoglPipeline *authority0,
+                                          CoglPipeline *authority1)
+{
+  return (authority0->big_state->non_zero_point_size ==
+          authority1->big_state->non_zero_point_size);
+}
+
+CoglBool
 _cogl_pipeline_point_size_equal (CoglPipeline *authority0,
                                  CoglPipeline *authority1)
 {
   return authority0->big_state->point_size == authority1->big_state->point_size;
+}
+
+CoglBool
+_cogl_pipeline_per_vertex_point_size_equal (CoglPipeline *authority0,
+                                            CoglPipeline *authority1)
+{
+  return (authority0->big_state->per_vertex_point_size ==
+          authority1->big_state->per_vertex_point_size);
 }
 
 CoglBool
@@ -413,7 +432,7 @@ cogl_pipeline_set_color (CoglPipeline    *pipeline,
   _cogl_pipeline_update_authority (pipeline, authority, state,
                                    _cogl_pipeline_color_equal);
 
-  _cogl_pipeline_update_blend_enable (pipeline, state);
+  pipeline->dirty_real_blend_enable = TRUE;
 }
 
 void
@@ -487,7 +506,7 @@ _cogl_pipeline_set_blend_enabled (CoglPipeline *pipeline,
   _cogl_pipeline_update_authority (pipeline, authority, state,
                                    _cogl_pipeline_blend_enable_equal);
 
-  _cogl_pipeline_update_blend_enable (pipeline, state);
+  pipeline->dirty_real_blend_enable = TRUE;
 }
 
 void
@@ -537,7 +556,7 @@ cogl_pipeline_set_ambient (CoglPipeline *pipeline,
   _cogl_pipeline_update_authority (pipeline, authority, state,
                                    _cogl_pipeline_lighting_state_equal);
 
-  _cogl_pipeline_update_blend_enable (pipeline, state);
+  pipeline->dirty_real_blend_enable = TRUE;
 }
 
 void
@@ -588,7 +607,7 @@ cogl_pipeline_set_diffuse (CoglPipeline *pipeline,
   _cogl_pipeline_update_authority (pipeline, authority, state,
                                    _cogl_pipeline_lighting_state_equal);
 
-  _cogl_pipeline_update_blend_enable (pipeline, state);
+  pipeline->dirty_real_blend_enable = TRUE;
 }
 
 void
@@ -645,7 +664,7 @@ cogl_pipeline_set_specular (CoglPipeline *pipeline, const CoglColor *specular)
   _cogl_pipeline_update_authority (pipeline, authority, state,
                                    _cogl_pipeline_lighting_state_equal);
 
-  _cogl_pipeline_update_blend_enable (pipeline, state);
+  pipeline->dirty_real_blend_enable = TRUE;
 }
 
 float
@@ -745,7 +764,7 @@ cogl_pipeline_set_emission (CoglPipeline *pipeline, const CoglColor *emission)
   _cogl_pipeline_update_authority (pipeline, authority, state,
                                    _cogl_pipeline_lighting_state_equal);
 
-  _cogl_pipeline_update_blend_enable (pipeline, state);
+  pipeline->dirty_real_blend_enable = TRUE;
 }
 
 static void
@@ -980,26 +999,15 @@ cogl_pipeline_set_blend (CoglPipeline *pipeline,
   _cogl_pipeline_pre_change_notify (pipeline, state, NULL, FALSE);
 
   blend_state = &pipeline->big_state->blend_state;
-#if defined (HAVE_COGL_GL) || defined (HAVE_COGL_GLES2)
-  if (ctx->driver != COGL_DRIVER_GLES1)
-    {
-      setup_blend_state (rgb,
-                         &blend_state->blend_equation_rgb,
-                         &blend_state->blend_src_factor_rgb,
-                         &blend_state->blend_dst_factor_rgb);
-      setup_blend_state (a,
-                         &blend_state->blend_equation_alpha,
-                         &blend_state->blend_src_factor_alpha,
-                         &blend_state->blend_dst_factor_alpha);
-    }
-  else
-#endif
-    {
-      setup_blend_state (rgb,
-                         NULL,
-                         &blend_state->blend_src_factor_rgb,
-                         &blend_state->blend_dst_factor_rgb);
-    }
+
+  setup_blend_state (rgb,
+                     &blend_state->blend_equation_rgb,
+                     &blend_state->blend_src_factor_rgb,
+                     &blend_state->blend_dst_factor_rgb);
+  setup_blend_state (a,
+                     &blend_state->blend_equation_alpha,
+                     &blend_state->blend_src_factor_alpha,
+                     &blend_state->blend_dst_factor_alpha);
 
   /* If we are the current authority see if we can revert to one of our
    * ancestors being the authority */
@@ -1024,7 +1032,7 @@ cogl_pipeline_set_blend (CoglPipeline *pipeline,
       _cogl_pipeline_prune_redundant_ancestry (pipeline);
     }
 
-  _cogl_pipeline_update_blend_enable (pipeline, state);
+  pipeline->dirty_real_blend_enable = TRUE;
 
   return TRUE;
 }
@@ -1037,7 +1045,7 @@ cogl_pipeline_set_blend_constant (CoglPipeline *pipeline,
 
   _COGL_RETURN_IF_FAIL (cogl_is_pipeline (pipeline));
 
-  if (!(ctx->private_feature_flags & COGL_PRIVATE_FEATURE_BLEND_CONSTANT))
+  if (!_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_BLEND_CONSTANT))
     return;
 
 #if defined(HAVE_COGL_GLES2) || defined(HAVE_COGL_GL)
@@ -1065,7 +1073,7 @@ cogl_pipeline_set_blend_constant (CoglPipeline *pipeline,
     _cogl_pipeline_update_authority (pipeline, authority, state,
                                      _cogl_pipeline_blend_state_equal);
 
-    _cogl_pipeline_update_blend_enable (pipeline, state);
+    pipeline->dirty_real_blend_enable = TRUE;
   }
 #endif
 }
@@ -1142,7 +1150,7 @@ cogl_pipeline_set_user_program (CoglPipeline *pipeline,
     cogl_handle_unref (pipeline->big_state->user_program);
   pipeline->big_state->user_program = program;
 
-  _cogl_pipeline_update_blend_enable (pipeline, state);
+  pipeline->dirty_real_blend_enable = TRUE;
 }
 
 CoglBool
@@ -1387,6 +1395,30 @@ cogl_pipeline_get_point_size (CoglPipeline *pipeline)
   return authority->big_state->point_size;
 }
 
+static void
+_cogl_pipeline_set_non_zero_point_size (CoglPipeline *pipeline,
+                                        CoglBool value)
+{
+  CoglPipelineState state = COGL_PIPELINE_STATE_NON_ZERO_POINT_SIZE;
+  CoglPipeline *authority;
+
+  _COGL_RETURN_IF_FAIL (cogl_is_pipeline (pipeline));
+
+  authority = _cogl_pipeline_get_authority (pipeline, state);
+
+  /* - Flush journal primitives referencing the current state.
+   * - Make sure the pipeline has no dependants so it may be modified.
+   * - If the pipeline isn't currently an authority for the state being
+   *   changed, then initialize that state from the current authority.
+   */
+  _cogl_pipeline_pre_change_notify (pipeline, state, NULL, FALSE);
+
+  pipeline->big_state->non_zero_point_size = !!value;
+
+  _cogl_pipeline_update_authority (pipeline, authority, state,
+                                   _cogl_pipeline_non_zero_point_size_equal);
+}
+
 void
 cogl_pipeline_set_point_size (CoglPipeline *pipeline,
                               float point_size)
@@ -1401,6 +1433,12 @@ cogl_pipeline_set_point_size (CoglPipeline *pipeline,
   if (authority->big_state->point_size == point_size)
     return;
 
+  /* Changing the point size may additionally modify
+   * COGL_PIPELINE_STATE_NON_ZERO_POINT_SIZE. */
+
+  if ((authority->big_state->point_size > 0.0f) != (point_size > 0.0f))
+    _cogl_pipeline_set_non_zero_point_size (pipeline, point_size > 0.0f);
+
   /* - Flush journal primitives referencing the current state.
    * - Make sure the pipeline has no dependants so it may be modified.
    * - If the pipeline isn't currently an authority for the state being
@@ -1412,6 +1450,63 @@ cogl_pipeline_set_point_size (CoglPipeline *pipeline,
 
   _cogl_pipeline_update_authority (pipeline, authority, state,
                                    _cogl_pipeline_point_size_equal);
+}
+
+CoglBool
+cogl_pipeline_set_per_vertex_point_size (CoglPipeline *pipeline,
+                                         CoglBool enable,
+                                         CoglError **error)
+{
+  CoglPipelineState state = COGL_PIPELINE_STATE_PER_VERTEX_POINT_SIZE;
+  CoglPipeline *authority;
+
+  _COGL_GET_CONTEXT (ctx, FALSE);
+  _COGL_RETURN_VAL_IF_FAIL (cogl_is_pipeline (pipeline), FALSE);
+
+  authority = _cogl_pipeline_get_authority (pipeline, state);
+
+  enable = !!enable;
+
+  if (authority->big_state->per_vertex_point_size == enable)
+    return TRUE;
+
+  if (enable && !cogl_has_feature (ctx, COGL_FEATURE_ID_PER_VERTEX_POINT_SIZE))
+    {
+      _cogl_set_error (error,
+                       COGL_SYSTEM_ERROR,
+                       COGL_SYSTEM_ERROR_UNSUPPORTED,
+                       "Per-vertex point size is not supported");
+
+      return FALSE;
+    }
+
+  /* - Flush journal primitives referencing the current state.
+   * - Make sure the pipeline has no dependants so it may be modified.
+   * - If the pipeline isn't currently an authority for the state being
+   *   changed, then initialize that state from the current authority.
+   */
+  _cogl_pipeline_pre_change_notify (pipeline, state, NULL, FALSE);
+
+  pipeline->big_state->per_vertex_point_size = enable;
+
+  _cogl_pipeline_update_authority (pipeline, authority, state,
+                                   _cogl_pipeline_point_size_equal);
+
+  return TRUE;
+}
+
+CoglBool
+cogl_pipeline_get_per_vertex_point_size (CoglPipeline *pipeline)
+{
+  CoglPipeline *authority;
+
+  _COGL_RETURN_VAL_IF_FAIL (cogl_is_pipeline (pipeline), FALSE);
+
+  authority =
+    _cogl_pipeline_get_authority (pipeline,
+                                  COGL_PIPELINE_STATE_PER_VERTEX_POINT_SIZE);
+
+  return authority->big_state->per_vertex_point_size;
 }
 
 static CoglBoxedValue *
@@ -1612,7 +1707,7 @@ _cogl_pipeline_has_non_layer_vertex_snippets (CoglPipeline *pipeline)
     _cogl_pipeline_get_authority (pipeline,
                                   COGL_PIPELINE_STATE_VERTEX_SNIPPETS);
 
-  return !COGL_LIST_EMPTY (&authority->big_state->vertex_snippets);
+  return authority->big_state->vertex_snippets.entries != NULL;
 }
 
 static CoglBool
@@ -1624,7 +1719,7 @@ check_layer_has_vertex_snippet (CoglPipelineLayer *layer,
     _cogl_pipeline_layer_get_authority (layer, state);
   CoglBool *found_vertex_snippet = user_data;
 
-  if (!COGL_LIST_EMPTY (&authority->big_state->vertex_snippets))
+  if (authority->big_state->vertex_snippets.entries)
     {
       *found_vertex_snippet = TRUE;
       return FALSE;
@@ -1655,7 +1750,7 @@ _cogl_pipeline_has_non_layer_fragment_snippets (CoglPipeline *pipeline)
     _cogl_pipeline_get_authority (pipeline,
                                   COGL_PIPELINE_STATE_FRAGMENT_SNIPPETS);
 
-  return !COGL_LIST_EMPTY (&authority->big_state->fragment_snippets);
+  return authority->big_state->fragment_snippets.entries != NULL;
 }
 
 static CoglBool
@@ -1667,7 +1762,7 @@ check_layer_has_fragment_snippet (CoglPipelineLayer *layer,
     _cogl_pipeline_layer_get_authority (layer, state);
   CoglBool *found_fragment_snippet = user_data;
 
-  if (!COGL_LIST_EMPTY (&authority->big_state->fragment_snippets))
+  if (authority->big_state->fragment_snippets.entries)
     {
       *found_fragment_snippet = TRUE;
       return FALSE;
@@ -1752,33 +1847,28 @@ _cogl_pipeline_hash_blend_state (CoglPipeline *authority,
 
   hash = state->hash;
 
-#if defined(HAVE_COGL_GLES2) || defined(HAVE_COGL_GL)
-  if (ctx->driver != COGL_DRIVER_GLES1)
+  hash =
+    _cogl_util_one_at_a_time_hash (hash, &blend_state->blend_equation_rgb,
+                                   sizeof (blend_state->blend_equation_rgb));
+  hash =
+    _cogl_util_one_at_a_time_hash (hash, &blend_state->blend_equation_alpha,
+                                   sizeof (blend_state->blend_equation_alpha));
+  hash =
+    _cogl_util_one_at_a_time_hash (hash, &blend_state->blend_src_factor_alpha,
+                                   sizeof (blend_state->blend_src_factor_alpha));
+  hash =
+    _cogl_util_one_at_a_time_hash (hash, &blend_state->blend_dst_factor_alpha,
+                                   sizeof (blend_state->blend_dst_factor_alpha));
+
+  if (blend_state->blend_src_factor_rgb == GL_ONE_MINUS_CONSTANT_COLOR ||
+      blend_state->blend_src_factor_rgb == GL_CONSTANT_COLOR ||
+      blend_state->blend_dst_factor_rgb == GL_ONE_MINUS_CONSTANT_COLOR ||
+      blend_state->blend_dst_factor_rgb == GL_CONSTANT_COLOR)
     {
       hash =
-        _cogl_util_one_at_a_time_hash (hash, &blend_state->blend_equation_rgb,
-                                       sizeof (blend_state->blend_equation_rgb));
-      hash =
-        _cogl_util_one_at_a_time_hash (hash, &blend_state->blend_equation_alpha,
-                                       sizeof (blend_state->blend_equation_alpha));
-      hash =
-        _cogl_util_one_at_a_time_hash (hash, &blend_state->blend_src_factor_alpha,
-                                       sizeof (blend_state->blend_src_factor_alpha));
-      hash =
-        _cogl_util_one_at_a_time_hash (hash, &blend_state->blend_dst_factor_alpha,
-                                       sizeof (blend_state->blend_dst_factor_alpha));
-
-      if (blend_state->blend_src_factor_rgb == GL_ONE_MINUS_CONSTANT_COLOR ||
-          blend_state->blend_src_factor_rgb == GL_CONSTANT_COLOR ||
-          blend_state->blend_dst_factor_rgb == GL_ONE_MINUS_CONSTANT_COLOR ||
-          blend_state->blend_dst_factor_rgb == GL_CONSTANT_COLOR)
-        {
-          hash =
-            _cogl_util_one_at_a_time_hash (hash, &blend_state->blend_constant,
-                                           sizeof (blend_state->blend_constant));
-        }
+        _cogl_util_one_at_a_time_hash (hash, &blend_state->blend_constant,
+                                       sizeof (blend_state->blend_constant));
     }
-#endif
 
   hash =
     _cogl_util_one_at_a_time_hash (hash, &blend_state->blend_src_factor_rgb,
@@ -1845,12 +1935,33 @@ _cogl_pipeline_hash_fog_state (CoglPipeline *authority,
 }
 
 void
+_cogl_pipeline_hash_non_zero_point_size_state (CoglPipeline *authority,
+                                               CoglPipelineHashState *state)
+{
+  CoglBool non_zero_point_size = authority->big_state->non_zero_point_size;
+
+  state->hash = _cogl_util_one_at_a_time_hash (state->hash,
+                                               &non_zero_point_size,
+                                               sizeof (non_zero_point_size));
+}
+
+void
 _cogl_pipeline_hash_point_size_state (CoglPipeline *authority,
                                       CoglPipelineHashState *state)
 {
   float point_size = authority->big_state->point_size;
   state->hash = _cogl_util_one_at_a_time_hash (state->hash, &point_size,
                                                sizeof (point_size));
+}
+
+void
+_cogl_pipeline_hash_per_vertex_point_size_state (CoglPipeline *authority,
+                                                 CoglPipelineHashState *state)
+{
+  CoglBool per_vertex_point_size = authority->big_state->per_vertex_point_size;
+  state->hash = _cogl_util_one_at_a_time_hash (state->hash,
+                                               &per_vertex_point_size,
+                                               sizeof (per_vertex_point_size));
 }
 
 void
@@ -1986,4 +2097,75 @@ _cogl_pipeline_hash_fragment_snippets_state (CoglPipeline *authority,
 {
   _cogl_pipeline_snippet_list_hash (&authority->big_state->fragment_snippets,
                                     &state->hash);
+}
+
+UNIT_TEST (check_blend_constant_ancestry,
+           0 /* no requirements */,
+           0 /* no known failures */)
+{
+  CoglPipeline *pipeline = cogl_pipeline_new (test_ctx);
+  CoglNode *node;
+  int pipeline_length = 0;
+  int i;
+
+  /* Repeatedly making a copy of a pipeline and changing the same
+   * state (in this case the blend constant) shouldn't cause a long
+   * chain of pipelines to be created because the redundant ancestry
+   * should be pruned. */
+
+  for (i = 0; i < 20; i++)
+    {
+      CoglColor color;
+      CoglPipeline *tmp_pipeline;
+
+      cogl_color_init_from_4f (&color, i / 20.0f, 0.0f, 0.0f, 1.0f);
+
+      tmp_pipeline = cogl_pipeline_copy (pipeline);
+      cogl_object_unref (pipeline);
+      pipeline = tmp_pipeline;
+
+      cogl_pipeline_set_blend_constant (pipeline, &color);
+    }
+
+  for (node = (CoglNode *) pipeline; node; node = node->parent)
+    pipeline_length++;
+
+  g_assert_cmpint (pipeline_length, <=, 2);
+
+  cogl_object_unref (pipeline);
+}
+
+UNIT_TEST (check_uniform_ancestry,
+           0 /* no requirements */,
+           TEST_KNOWN_FAILURE)
+{
+  CoglPipeline *pipeline = cogl_pipeline_new (test_ctx);
+  CoglNode *node;
+  int pipeline_length = 0;
+  int i;
+
+  /* Repeatedly making a copy of a pipeline and changing a uniform
+   * shouldn't cause a long chain of pipelines to be created */
+
+  for (i = 0; i < 20; i++)
+    {
+      CoglPipeline *tmp_pipeline;
+      int uniform_location;
+
+      tmp_pipeline = cogl_pipeline_copy (pipeline);
+      cogl_object_unref (pipeline);
+      pipeline = tmp_pipeline;
+
+      uniform_location =
+        cogl_pipeline_get_uniform_location (pipeline, "a_uniform");
+
+      cogl_pipeline_set_uniform_1i (pipeline, uniform_location, i);
+    }
+
+  for (node = (CoglNode *) pipeline; node; node = node->parent)
+    pipeline_length++;
+
+  g_assert_cmpint (pipeline_length, <=, 2);
+
+  cogl_object_unref (pipeline);
 }

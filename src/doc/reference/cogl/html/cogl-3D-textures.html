@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>3D textures</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Cogl Reference Manual">
 <link rel="up" href="ch02.html" title="Cogl experimental API">
 <link rel="prev" href="cogl-Vectors.html" title="Vectors">
 <link rel="next" href="cogl-Quaternions-(Rotations).html" title="Quaternions (Rotations)">
-<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.19.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -37,22 +37,20 @@
 </tr></table></div>
 <div class="refsynopsisdiv">
 <a name="cogl-3D-textures.synopsis"></a><h2>Synopsis</h2>
-<pre class="synopsis"><a href="../cogl-2.0-experimental/cogl-2.0-experimental-3D-textures.html#CoglTexture3D"><span class="returnvalue">CoglTexture3D</span></a> *     <a class="link" href="cogl-3D-textures.html#cogl-texture-3d-new-with-size" title="cogl_texture_3d_new_with_size ()">cogl_texture_3d_new_with_size</a>       (<em class="parameter"><code><a href="../cogl-2.0-experimental/cogl-2.0-experimental-The-Top-Level-Context.html#CoglContext"><span class="type">CoglContext</span></a> *context</code></em>,
+<pre class="synopsis"><span class="returnvalue">CoglTexture3D</span> *     <a class="link" href="cogl-3D-textures.html#cogl-texture-3d-new-with-size" title="cogl_texture_3d_new_with_size ()">cogl_texture_3d_new_with_size</a>       (<em class="parameter"><code><span class="type">CoglContext</span> *context</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> width</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> height</code></em>,
-                                                         <em class="parameter"><code><span class="type">int</span> depth</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglPixelFormat" title="enum CoglPixelFormat"><span class="type">CoglPixelFormat</span></a> internal_format</code></em>);
-<a href="../cogl-2.0-experimental/cogl-2.0-experimental-3D-textures.html#CoglTexture3D"><span class="returnvalue">CoglTexture3D</span></a> *     <a class="link" href="cogl-3D-textures.html#cogl-texture-3d-new-from-data" title="cogl_texture_3d_new_from_data ()">cogl_texture_3d_new_from_data</a>       (<em class="parameter"><code><a href="../cogl-2.0-experimental/cogl-2.0-experimental-The-Top-Level-Context.html#CoglContext"><span class="type">CoglContext</span></a> *context</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> depth</code></em>);
+<span class="returnvalue">CoglTexture3D</span> *     <a class="link" href="cogl-3D-textures.html#cogl-texture-3d-new-from-data" title="cogl_texture_3d_new_from_data ()">cogl_texture_3d_new_from_data</a>       (<em class="parameter"><code><span class="type">CoglContext</span> *context</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> width</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> height</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> depth</code></em>,
                                                          <em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglPixelFormat" title="enum CoglPixelFormat"><span class="type">CoglPixelFormat</span></a> format</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglPixelFormat" title="enum CoglPixelFormat"><span class="type">CoglPixelFormat</span></a> internal_format</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> rowstride</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> image_stride</code></em>,
                                                          <em class="parameter"><code>const <span class="type">uint8_t</span> *data</code></em>,
-                                                         <em class="parameter"><code><a href="../cogl-2.0-experimental/cogl-2.0-experimental-Exception-handling.html#CoglError"><span class="type">CoglError</span></a> **error</code></em>);
-<a href="../cogl-2.0-experimental/cogl-2.0-experimental-Common-Types.html#CoglBool"><span class="returnvalue">CoglBool</span></a>            <a class="link" href="cogl-3D-textures.html#cogl-is-texture-3d" title="cogl_is_texture_3d ()">cogl_is_texture_3d</a>                  (<em class="parameter"><code><span class="type">void</span> *object</code></em>);
+                                                         <em class="parameter"><code><span class="type">CoglError</span> **error</code></em>);
+<span class="returnvalue">CoglBool</span>            <a class="link" href="cogl-3D-textures.html#cogl-is-texture-3d" title="cogl_is_texture_3d ()">cogl_is_texture_3d</a>                  (<em class="parameter"><code><span class="type">void</span> *object</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -68,14 +66,13 @@ account the 'r' texture coordinate to select one of the images.
 <a name="cogl-3D-textures.details"></a><h2>Details</h2>
 <div class="refsect2">
 <a name="cogl-texture-3d-new-with-size"></a><h3>cogl_texture_3d_new_with_size ()</h3>
-<pre class="programlisting"><a href="../cogl-2.0-experimental/cogl-2.0-experimental-3D-textures.html#CoglTexture3D"><span class="returnvalue">CoglTexture3D</span></a> *     cogl_texture_3d_new_with_size       (<em class="parameter"><code><a href="../cogl-2.0-experimental/cogl-2.0-experimental-The-Top-Level-Context.html#CoglContext"><span class="type">CoglContext</span></a> *context</code></em>,
+<pre class="programlisting"><span class="returnvalue">CoglTexture3D</span> *     cogl_texture_3d_new_with_size       (<em class="parameter"><code><span class="type">CoglContext</span> *context</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> width</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> height</code></em>,
-                                                         <em class="parameter"><code><span class="type">int</span> depth</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglPixelFormat" title="enum CoglPixelFormat"><span class="type">CoglPixelFormat</span></a> internal_format</code></em>);</pre>
+                                                         <em class="parameter"><code><span class="type">int</span> depth</code></em>);</pre>
 <p>
-Creates a new <a href="../cogl-2.0-experimental/cogl-2.0-experimental-3D-textures.html#CoglTexture3D"><span class="type">CoglTexture3D</span></a> texture with the specified dimensions
-and pixel format.
+Creates a low-level <span class="type">CoglTexture3D</span> texture with the specified
+dimensions and pixel format.
 </p>
 <p>
 The storage for the texture is not allocated before this function
@@ -86,10 +83,16 @@ how the texture is going to be used and can optimize how it is
 allocated.
 </p>
 <p>
+The texture is still configurable until it has been allocated so
+for example you can influence the internal format of the texture
+using <code class="function">cogl_texture_set_components()</code> and
+<code class="function">cogl_texture_set_premultiplied()</code>.
+</p>
+<p>
 </p>
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>This texture will fail to allocate later if
-<a href="../cogl-2.0-experimental/cogl-2.0-experimental-The-Top-Level-Context.html#COGL-FEATURE-ID-TEXTURE-3D:CAPS"><code class="literal">COGL_FEATURE_ID_TEXTURE_3D</code></a> is not advertised. Allocation can also
+<code class="literal">COGL_FEATURE_ID_TEXTURE_3D</code> is not advertised. Allocation can also
 fail if the requested dimensions are not supported by the
 GPU.</div>
 <p>
@@ -102,7 +105,7 @@ GPU.</div>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>context</code></em> :</span></p></td>
-<td>a <a href="../cogl-2.0-experimental/cogl-2.0-experimental-The-Top-Level-Context.html#CoglContext"><span class="type">CoglContext</span></a>
+<td>a <span class="type">CoglContext</span>
 </td>
 </tr>
 <tr>
@@ -118,13 +121,9 @@ GPU.</div>
 <td>depth of the texture in pixels.</td>
 </tr>
 <tr>
-<td><p><span class="term"><em class="parameter"><code>internal_format</code></em> :</span></p></td>
-<td>the <a class="link" href="cogl-General-API.html#CoglPixelFormat" title="enum CoglPixelFormat"><span class="type">CoglPixelFormat</span></a> to use for the GPU
-storage of the texture.</td>
-</tr>
-<tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A new <a href="../cogl-2.0-experimental/cogl-2.0-experimental-3D-textures.html#CoglTexture3D"><span class="type">CoglTexture3D</span></a> object with no storage yet allocated.</td>
+<td>A new <span class="type">CoglTexture3D</span> object with no storage yet allocated. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -134,25 +133,32 @@ storage of the texture.</td>
 <hr>
 <div class="refsect2">
 <a name="cogl-texture-3d-new-from-data"></a><h3>cogl_texture_3d_new_from_data ()</h3>
-<pre class="programlisting"><a href="../cogl-2.0-experimental/cogl-2.0-experimental-3D-textures.html#CoglTexture3D"><span class="returnvalue">CoglTexture3D</span></a> *     cogl_texture_3d_new_from_data       (<em class="parameter"><code><a href="../cogl-2.0-experimental/cogl-2.0-experimental-The-Top-Level-Context.html#CoglContext"><span class="type">CoglContext</span></a> *context</code></em>,
+<pre class="programlisting"><span class="returnvalue">CoglTexture3D</span> *     cogl_texture_3d_new_from_data       (<em class="parameter"><code><span class="type">CoglContext</span> *context</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> width</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> height</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> depth</code></em>,
                                                          <em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglPixelFormat" title="enum CoglPixelFormat"><span class="type">CoglPixelFormat</span></a> format</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-General-API.html#CoglPixelFormat" title="enum CoglPixelFormat"><span class="type">CoglPixelFormat</span></a> internal_format</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> rowstride</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> image_stride</code></em>,
                                                          <em class="parameter"><code>const <span class="type">uint8_t</span> *data</code></em>,
-                                                         <em class="parameter"><code><a href="../cogl-2.0-experimental/cogl-2.0-experimental-Exception-handling.html#CoglError"><span class="type">CoglError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><span class="type">CoglError</span> **error</code></em>);</pre>
 <p>
-Creates a new 3D texture and initializes it with <em class="parameter"><code>data</code></em>. The data is
-assumed to be packed array of <em class="parameter"><code>depth</code></em> images. There can be padding
-between the images using <em class="parameter"><code>image_stride</code></em>.
+Creates a low-level 3D texture and initializes it with <em class="parameter"><code>data</code></em>. The
+data is assumed to be packed array of <em class="parameter"><code>depth</code></em> images. There can be
+padding between the images using <em class="parameter"><code>image_stride</code></em>.
 </p>
 <p>
-Note that this function will throw a <a href="../cogl-2.0-experimental/cogl-2.0-experimental-Exception-handling.html#CoglError"><span class="type">CoglError</span></a> if
-<a href="../cogl-2.0-experimental/cogl-2.0-experimental-The-Top-Level-Context.html#COGL-FEATURE-ID-TEXTURE-3D:CAPS"><code class="literal">COGL_FEATURE_ID_TEXTURE_3D</code></a> is not advertised. It can also fail if the
-requested dimensions are not supported by the GPU.
+</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Note</h3>This api will always immediately allocate GPU memory for the
+texture and upload the given data so that the <em class="parameter"><code>data</code></em> pointer does
+not need to remain valid once this function returns. This means it
+is not possible to configure the texture before it is allocated. If
+you do need to configure the texture before allocation (to specify
+constraints on the internal format for example) then you can
+instead create a <a class="link" href="cogl-Bitmaps.html#CoglBitmap" title="CoglBitmap"><span class="type">CoglBitmap</span></a> for your data and use
+<code class="function">cogl_texture_3d_new_from_bitmap()</code>.</div>
+<p>
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -162,7 +168,7 @@ requested dimensions are not supported by the GPU.
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>context</code></em> :</span></p></td>
-<td>a <a href="../cogl-2.0-experimental/cogl-2.0-experimental-The-Top-Level-Context.html#CoglContext"><span class="type">CoglContext</span></a>
+<td>a <span class="type">CoglContext</span>
 </td>
 </tr>
 <tr>
@@ -180,17 +186,6 @@ requested dimensions are not supported by the GPU.
 <tr>
 <td><p><span class="term"><em class="parameter"><code>format</code></em> :</span></p></td>
 <td>the <a class="link" href="cogl-General-API.html#CoglPixelFormat" title="enum CoglPixelFormat"><span class="type">CoglPixelFormat</span></a> the buffer is stored in in RAM</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>internal_format</code></em> :</span></p></td>
-<td>the <a class="link" href="cogl-General-API.html#CoglPixelFormat" title="enum CoglPixelFormat"><span class="type">CoglPixelFormat</span></a> that will be used for storing
-the buffer on the GPU. If <a class="link" href="cogl-General-API.html#COGL-PIXEL-FORMAT-ANY:CAPS"><code class="literal">COGL_PIXEL_FORMAT_ANY</code></a> is given then a
-premultiplied format similar to the format of the source data will
-be used. The default blending equations of Cogl expect premultiplied
-color data; the main use of passing a non-premultiplied format here
-is if you have non-premultiplied source data and are going to adjust
-the blend mode (see <a href="../cogl-2.0-experimental/cogl-2.0-experimental-Pipeline.html#cogl-pipeline-set-blend"><code class="function">cogl_pipeline_set_blend()</code></a>) or use the data for
-something other than straight blending.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>rowstride</code></em> :</span></p></td>
@@ -215,9 +210,10 @@ from the <em class="parameter"><code>height</code></em>.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>the newly created <a href="../cogl-2.0-experimental/cogl-2.0-experimental-3D-textures.html#CoglTexture3D"><span class="type">CoglTexture3D</span></a> or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if
-there was an error an an exception will be returned
-through <em class="parameter"><code>error</code></em>.</td>
+<td>the newly created <span class="type">CoglTexture3D</span> or
+<code class="literal">NULL</code> if there was an error and an exception will be
+returned through <em class="parameter"><code>error</code></em>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -227,9 +223,9 @@ through <em class="parameter"><code>error</code></em>.</td>
 <hr>
 <div class="refsect2">
 <a name="cogl-is-texture-3d"></a><h3>cogl_is_texture_3d ()</h3>
-<pre class="programlisting"><a href="../cogl-2.0-experimental/cogl-2.0-experimental-Common-Types.html#CoglBool"><span class="returnvalue">CoglBool</span></a>            cogl_is_texture_3d                  (<em class="parameter"><code><span class="type">void</span> *object</code></em>);</pre>
+<pre class="programlisting"><span class="returnvalue">CoglBool</span>            cogl_is_texture_3d                  (<em class="parameter"><code><span class="type">void</span> *object</code></em>);</pre>
 <p>
-Checks whether the given object references a <a href="../cogl-2.0-experimental/cogl-2.0-experimental-3D-textures.html#CoglTexture3D"><span class="type">CoglTexture3D</span></a>
+Checks whether the given object references a <span class="type">CoglTexture3D</span>
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -245,8 +241,8 @@ Checks whether the given object references a <a href="../cogl-2.0-experimental/c
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the passed object represents a 3D texture
-and <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise</td>
+<code class="literal">TRUE</code> if the passed object represents a 3D texture
+and <code class="literal">FALSE</code> otherwise</td>
 </tr>
 </tbody>
 </table></div>
@@ -257,6 +253,6 @@ and <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.h
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18.1</div>
+          Generated by GTK-Doc V1.19.1</div>
 </body>
 </html>

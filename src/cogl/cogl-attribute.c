@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2010 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  *
@@ -45,6 +51,7 @@
 #include "cogl-pipeline-progend-glsl-private.h"
 #endif
 #include "cogl-private.h"
+#include "cogl-gtype-private.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -58,6 +65,7 @@
 static void _cogl_attribute_free (CoglAttribute *attribute);
 
 COGL_OBJECT_DEFINE (Attribute, attribute);
+COGL_GTYPE_DEFINE_CLASS (Attribute, attribute);
 
 static CoglBool
 validate_cogl_attribute_name (const char *name,
@@ -101,6 +109,8 @@ validate_cogl_attribute_name (const char *name,
       *name_id = COGL_ATTRIBUTE_NAME_ID_NORMAL_ARRAY;
       *normalized = TRUE;
     }
+  else if (strcmp (name, "point_size_in") == 0)
+    *name_id = COGL_ATTRIBUTE_NAME_ID_POINT_SIZE_ARRAY;
   else
     {
       g_warning ("Unknown cogl_* attribute name cogl_%s\n", name);
@@ -190,6 +200,14 @@ validate_n_components (const CoglAttributeNameState *name_state,
           g_critical ("glNormalPointer expects 3 component normals so we "
                       "currently only support \"cogl_normal\" attributes "
                       "where n_components == 3");
+          return FALSE;
+        }
+      break;
+    case COGL_ATTRIBUTE_NAME_ID_POINT_SIZE_ARRAY:
+      if (G_UNLIKELY (n_components != 1))
+        {
+          g_critical ("The point size attribute can only have one "
+                      "component");
           return FALSE;
         }
       break;
@@ -636,7 +654,8 @@ _cogl_flush_attributes_state (CoglFramebuffer *framebuffer,
    * pixel and the scene is just comprised of simple rectangles still
    * in the journal. For this optimization to work we need to track
    * when the framebuffer really does get drawn to. */
-  _cogl_framebuffer_dirty (framebuffer);
+  _cogl_framebuffer_mark_mid_scene (framebuffer);
+  _cogl_framebuffer_mark_clear_clip_dirty (framebuffer);
 
   if (G_UNLIKELY (!(flags & COGL_DRAW_SKIP_LEGACY_STATE)) &&
       G_UNLIKELY (ctx->legacy_state_set) &&
@@ -656,4 +675,13 @@ _cogl_flush_attributes_state (CoglFramebuffer *framebuffer,
 
   if (copy)
     cogl_object_unref (copy);
+}
+
+int
+_cogl_attribute_get_n_components (CoglAttribute *attribute)
+{
+  if (attribute->is_buffered)
+    return attribute->d.buffered.n_components;
+  else
+    return attribute->d.constant.boxed.size;
 }

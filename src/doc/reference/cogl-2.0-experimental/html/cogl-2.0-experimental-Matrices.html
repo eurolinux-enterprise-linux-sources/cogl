@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Matrices</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Cogl 2.0 Reference Manual">
 <link rel="up" href="cogl-utilities.html" title="Utilities">
 <link rel="prev" href="cogl-2.0-experimental-Color-Type.html" title="Color Type">
 <link rel="next" href="cogl-2.0-experimental-Matrix-Stacks.html" title="Matrix Stacks">
-<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.19.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -188,11 +188,57 @@ The transformation of a vertex (x, y, z, w) by a CoglMatrix is given by:
         <td class="listing_lines" align="right"><pre>1
 2
 3
-4</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="normal">x_new </span><span class="symbol">=</span><span class="normal"> xx </span><span class="symbol">*</span><span class="normal"> x </span><span class="symbol">+</span><span class="normal"> xy </span><span class="symbol">*</span><span class="normal"> y </span><span class="symbol">+</span><span class="normal"> xz </span><span class="symbol">*</span><span class="normal"> z </span><span class="symbol">+</span><span class="normal"> xw </span><span class="symbol">*</span><span class="normal"> w</span>
-<span class="normal">y_new </span><span class="symbol">=</span><span class="normal"> yx </span><span class="symbol">*</span><span class="normal"> x </span><span class="symbol">+</span><span class="normal"> yy </span><span class="symbol">*</span><span class="normal"> y </span><span class="symbol">+</span><span class="normal"> yz </span><span class="symbol">*</span><span class="normal"> z </span><span class="symbol">+</span><span class="normal"> yw </span><span class="symbol">*</span><span class="normal"> w</span>
-<span class="normal">z_new </span><span class="symbol">=</span><span class="normal"> zx </span><span class="symbol">*</span><span class="normal"> x </span><span class="symbol">+</span><span class="normal"> zy </span><span class="symbol">*</span><span class="normal"> y </span><span class="symbol">+</span><span class="normal"> zz </span><span class="symbol">*</span><span class="normal"> z </span><span class="symbol">+</span><span class="normal"> zw </span><span class="symbol">*</span><span class="normal"> w</span>
-<span class="normal">w_new </span><span class="symbol">=</span><span class="normal"> wx </span><span class="symbol">*</span><span class="normal"> x </span><span class="symbol">+</span><span class="normal"> wy </span><span class="symbol">*</span><span class="normal"> y </span><span class="symbol">+</span><span class="normal"> wz </span><span class="symbol">*</span><span class="normal"> z </span><span class="symbol">+</span><span class="normal"> ww </span><span class="symbol">*</span><span class="normal"> w</span></pre></td>
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
+
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+x_new = xx * x + xy * y + xz * z + xw * w
+  y_new = yx * x + yy * y + yz * z + yw * w
+  z_new = zx * x + zy * y + zz * z + zw * w
+  w_new = wx * x + wy * y + wz * z + ww * w</pre></td>
       </tr>
     </tbody>
   </table>
@@ -230,11 +276,59 @@ Resets matrix to the identity matrix:
         <td class="listing_lines" align="right"><pre>1
 2
 3
-4</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="symbol">.</span><span class="normal">xx</span><span class="symbol">=</span><span class="number">1</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">xy</span><span class="symbol">=</span><span class="number">0</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">xz</span><span class="symbol">=</span><span class="number">0</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">xw</span><span class="symbol">=</span><span class="number">0</span><span class="symbol">;</span>
-<span class="symbol">.</span><span class="normal">yx</span><span class="symbol">=</span><span class="number">0</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">yy</span><span class="symbol">=</span><span class="number">1</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">yz</span><span class="symbol">=</span><span class="number">0</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">yw</span><span class="symbol">=</span><span class="number">0</span><span class="symbol">;</span>
-<span class="symbol">.</span><span class="normal">zx</span><span class="symbol">=</span><span class="number">0</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">zy</span><span class="symbol">=</span><span class="number">0</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">zz</span><span class="symbol">=</span><span class="number">1</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">zw</span><span class="symbol">=</span><span class="number">0</span><span class="symbol">;</span>
-<span class="symbol">.</span><span class="normal">wx</span><span class="symbol">=</span><span class="number">0</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">wy</span><span class="symbol">=</span><span class="number">0</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">wz</span><span class="symbol">=</span><span class="number">0</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">ww</span><span class="symbol">=</span><span class="number">1</span><span class="symbol">;</span></pre></td>
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
+
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Constant { color: #0000c0; text-decoration: underline; }
+
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+.xx=<span class="number">1</span>; .xy=<span class="number">0</span>; .xz=<span class="number">0</span>; .xw=<span class="number">0</span>;
+  .yx=<span class="number">0</span>; .yy=<span class="number">1</span>; .yz=<span class="number">0</span>; .yw=<span class="number">0</span>;
+  .zx=<span class="number">0</span>; .zy=<span class="number">0</span>; .zz=<span class="number">1</span>; .zw=<span class="number">0</span>;
+  .wx=<span class="number">0</span>; .wy=<span class="number">0</span>; .wz=<span class="number">0</span>; .ww=<span class="number">1</span>;</pre></td>
       </tr>
     </tbody>
   </table>
@@ -297,11 +391,59 @@ Resets matrix to the (tx, ty, tz) translation matrix:
         <td class="listing_lines" align="right"><pre>1
 2
 3
-4</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="symbol">.</span><span class="normal">xx</span><span class="symbol">=</span><span class="number">1</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">xy</span><span class="symbol">=</span><span class="number">0</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">xz</span><span class="symbol">=</span><span class="number">0</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">xw</span><span class="symbol">=</span><span class="normal">tx</span><span class="symbol">;</span>
-<span class="symbol">.</span><span class="normal">yx</span><span class="symbol">=</span><span class="number">0</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">yy</span><span class="symbol">=</span><span class="number">1</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">yz</span><span class="symbol">=</span><span class="number">0</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">yw</span><span class="symbol">=</span><span class="normal">ty</span><span class="symbol">;</span>
-<span class="symbol">.</span><span class="normal">zx</span><span class="symbol">=</span><span class="number">0</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">zy</span><span class="symbol">=</span><span class="number">0</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">zz</span><span class="symbol">=</span><span class="number">1</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">zw</span><span class="symbol">=</span><span class="normal">tz</span><span class="symbol">;</span>
-<span class="symbol">.</span><span class="normal">wx</span><span class="symbol">=</span><span class="number">0</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">wy</span><span class="symbol">=</span><span class="number">0</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">wz</span><span class="symbol">=</span><span class="number">0</span><span class="symbol">;</span><span class="normal"> </span><span class="symbol">.</span><span class="normal">ww</span><span class="symbol">=</span><span class="number">1</span><span class="symbol">;</span></pre></td>
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
+
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Constant { color: #0000c0; text-decoration: underline; }
+
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+.xx=<span class="number">1</span>; .xy=<span class="number">0</span>; .xz=<span class="number">0</span>; .xw=tx;
+  .yx=<span class="number">0</span>; .yy=<span class="number">1</span>; .yz=<span class="number">0</span>; .yw=ty;
+  .zx=<span class="number">0</span>; .zy=<span class="number">0</span>; .zz=<span class="number">1</span>; .zw=tz;
+  .wx=<span class="number">0</span>; .wy=<span class="number">0</span>; .wz=<span class="number">0</span>; .ww=<span class="number">1</span>;</pre></td>
       </tr>
     </tbody>
   </table>
@@ -407,8 +549,8 @@ the same values as <em class="parameter"><code>matrix</code></em>.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Matrices.html#CoglMatrix" title="CoglMatrix"><span class="type">CoglMatrix</span></a> which should be freed using
-<a class="link" href="cogl-2.0-experimental-Matrices.html#cogl-matrix-free" title="cogl_matrix_free ()"><code class="function">cogl_matrix_free()</code></a>
+<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Matrices.html#CoglMatrix" title="CoglMatrix"><span class="type">CoglMatrix</span></a> which
+should be freed using <a class="link" href="cogl-2.0-experimental-Matrices.html#cogl-matrix-free" title="cogl_matrix_free ()"><code class="function">cogl_matrix_free()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -1017,7 +1159,7 @@ avoid costly inversion calculations.</div>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the inverse was successfully calculated or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>
+<code class="literal">TRUE</code> if the inverse was successfully calculated or <code class="literal">FALSE</code>
 for degenerate transformations that can't be inverted (in this case the
 <em class="parameter"><code>inverse</code></em> matrix will simply be initialized with the identity matrix)</td>
 </tr>
@@ -1120,30 +1262,82 @@ Here's an example with differing input/output strides:
 20
 21
 22
-23</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="keyword">typedef</span><span class="normal"> </span><span class="keyword">struct</span><span class="normal"> </span><span class="cbracket">{</span>
-<span class="normal">  </span><span class="type">float</span><span class="normal"> x</span><span class="symbol">,</span><span class="normal">y</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="usertype">uint8_t</span><span class="normal"> r</span><span class="symbol">,</span><span class="normal">g</span><span class="symbol">,</span><span class="normal">b</span><span class="symbol">,</span><span class="normal">a</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="type">float</span><span class="normal"> s</span><span class="symbol">,</span><span class="normal">t</span><span class="symbol">,</span><span class="normal">p</span><span class="symbol">;</span>
-<span class="cbracket">}</span><span class="normal"> MyInVertex</span><span class="symbol">;</span>
-<span class="keyword">typedef</span><span class="normal"> </span><span class="keyword">struct</span><span class="normal"> </span><span class="cbracket">{</span>
-<span class="normal">  </span><span class="usertype">uint8_t</span><span class="normal"> r</span><span class="symbol">,</span><span class="normal">g</span><span class="symbol">,</span><span class="normal">b</span><span class="symbol">,</span><span class="normal">a</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="type">float</span><span class="normal"> x</span><span class="symbol">,</span><span class="normal">y</span><span class="symbol">,</span><span class="normal">z</span><span class="symbol">;</span>
-<span class="cbracket">}</span><span class="normal"> MyOutVertex</span><span class="symbol">;</span>
-<span class="usertype">MyInVertex</span><span class="normal"> vertices</span><span class="symbol">[</span><span class="normal">N_VERTICES</span><span class="symbol">];</span>
-<span class="usertype">MyOutVertex</span><span class="normal"> results</span><span class="symbol">[</span><span class="normal">N_VERTICES</span><span class="symbol">];</span>
-<span class="usertype">CoglMatrix</span><span class="normal"> matrix</span><span class="symbol">;</span>
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
 
-<span class="function">my_load_vertices</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">vertices</span><span class="symbol">);</span>
-<span class="function">my_get_matrix</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">matrix</span><span class="symbol">);</span>
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Constant { color: #0000c0; text-decoration: underline; }
+.Statement { color: #008080; font-weight: bold; }
+.Type { color: #008000; text-decoration: underline; }
 
-<span class="function"><a href="cogl-2.0-experimental-Matrices.html#cogl-matrix-transform-points">cogl_matrix_transform_points</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">matrix</span><span class="symbol">,</span>
-<span class="normal">                              </span><span class="number">2</span><span class="symbol">,</span>
-<span class="normal">                              </span><span class="keyword">sizeof</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">MyInVertex</span><span class="symbol">),</span>
-<span class="normal">                              </span><span class="symbol">&amp;</span><span class="normal">vertices</span><span class="symbol">[</span><span class="number">0</span><span class="symbol">].</span><span class="normal">x</span><span class="symbol">,</span>
-<span class="normal">                              </span><span class="keyword">sizeof</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">MyOutVertex</span><span class="symbol">),</span>
-<span class="normal">                              </span><span class="symbol">&amp;</span><span class="normal">results</span><span class="symbol">[</span><span class="number">0</span><span class="symbol">].</span><span class="normal">x</span><span class="symbol">,</span>
-<span class="normal">                              N_VERTICES</span><span class="symbol">);</span></pre></td>
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+<span class="type">typedef</span> <span class="type">struct</span> {
+  <span class="type">float</span> x,y;
+  <span class="type">uint8_t</span> r,g,b,a;
+  <span class="type">float</span> s,t,p;
+} MyInVertex;
+<span class="type">typedef</span> <span class="type">struct</span> {
+  <span class="type">uint8_t</span> r,g,b,a;
+  <span class="type">float</span> x,y,z;
+} MyOutVertex;
+MyInVertex vertices[N_VERTICES];
+MyOutVertex results[N_VERTICES];
+CoglMatrix matrix;
+
+my_load_vertices (vertices);
+my_get_matrix (&amp;matrix);
+
+cogl_matrix_transform_points (&amp;matrix,
+                              <span class="number">2</span>,
+                              <span class="keyword">sizeof</span> (MyInVertex),
+                              &amp;vertices[<span class="number">0</span>].x,
+                              <span class="keyword">sizeof</span> (MyOutVertex),
+                              &amp;results[<span class="number">0</span>].x,
+                              N_VERTICES);</pre></td>
       </tr>
     </tbody>
   </table>
@@ -1236,30 +1430,82 @@ Here's an example with differing input/output strides:
 20
 21
 22
-23</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="keyword">typedef</span><span class="normal"> </span><span class="keyword">struct</span><span class="normal"> </span><span class="cbracket">{</span>
-<span class="normal">  </span><span class="type">float</span><span class="normal"> x</span><span class="symbol">,</span><span class="normal">y</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="usertype">uint8_t</span><span class="normal"> r</span><span class="symbol">,</span><span class="normal">g</span><span class="symbol">,</span><span class="normal">b</span><span class="symbol">,</span><span class="normal">a</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="type">float</span><span class="normal"> s</span><span class="symbol">,</span><span class="normal">t</span><span class="symbol">,</span><span class="normal">p</span><span class="symbol">;</span>
-<span class="cbracket">}</span><span class="normal"> MyInVertex</span><span class="symbol">;</span>
-<span class="keyword">typedef</span><span class="normal"> </span><span class="keyword">struct</span><span class="normal"> </span><span class="cbracket">{</span>
-<span class="normal">  </span><span class="usertype">uint8_t</span><span class="normal"> r</span><span class="symbol">,</span><span class="normal">g</span><span class="symbol">,</span><span class="normal">b</span><span class="symbol">,</span><span class="normal">a</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="type">float</span><span class="normal"> x</span><span class="symbol">,</span><span class="normal">y</span><span class="symbol">,</span><span class="normal">z</span><span class="symbol">;</span>
-<span class="cbracket">}</span><span class="normal"> MyOutVertex</span><span class="symbol">;</span>
-<span class="usertype">MyInVertex</span><span class="normal"> vertices</span><span class="symbol">[</span><span class="normal">N_VERTICES</span><span class="symbol">];</span>
-<span class="usertype">MyOutVertex</span><span class="normal"> results</span><span class="symbol">[</span><span class="normal">N_VERTICES</span><span class="symbol">];</span>
-<span class="usertype">CoglMatrix</span><span class="normal"> matrix</span><span class="symbol">;</span>
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
 
-<span class="function">my_load_vertices</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">vertices</span><span class="symbol">);</span>
-<span class="function">my_get_matrix</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">matrix</span><span class="symbol">);</span>
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Constant { color: #0000c0; text-decoration: underline; }
+.Statement { color: #008080; font-weight: bold; }
+.Type { color: #008000; text-decoration: underline; }
 
-<span class="function"><a href="cogl-2.0-experimental-Matrices.html#cogl-matrix-project-points">cogl_matrix_project_points</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">matrix</span><span class="symbol">,</span>
-<span class="normal">                            </span><span class="number">2</span><span class="symbol">,</span>
-<span class="normal">                            </span><span class="keyword">sizeof</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">MyInVertex</span><span class="symbol">),</span>
-<span class="normal">                            </span><span class="symbol">&amp;</span><span class="normal">vertices</span><span class="symbol">[</span><span class="number">0</span><span class="symbol">].</span><span class="normal">x</span><span class="symbol">,</span>
-<span class="normal">                            </span><span class="keyword">sizeof</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">MyOutVertex</span><span class="symbol">),</span>
-<span class="normal">                            </span><span class="symbol">&amp;</span><span class="normal">results</span><span class="symbol">[</span><span class="number">0</span><span class="symbol">].</span><span class="normal">x</span><span class="symbol">,</span>
-<span class="normal">                            N_VERTICES</span><span class="symbol">);</span></pre></td>
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+<span class="type">typedef</span> <span class="type">struct</span> {
+  <span class="type">float</span> x,y;
+  <span class="type">uint8_t</span> r,g,b,a;
+  <span class="type">float</span> s,t,p;
+} MyInVertex;
+<span class="type">typedef</span> <span class="type">struct</span> {
+  <span class="type">uint8_t</span> r,g,b,a;
+  <span class="type">float</span> x,y,z;
+} MyOutVertex;
+MyInVertex vertices[N_VERTICES];
+MyOutVertex results[N_VERTICES];
+CoglMatrix matrix;
+
+my_load_vertices (vertices);
+my_get_matrix (&amp;matrix);
+
+cogl_matrix_project_points (&amp;matrix,
+                            <span class="number">2</span>,
+                            <span class="keyword">sizeof</span> (MyInVertex),
+                            &amp;vertices[<span class="number">0</span>].x,
+                            <span class="keyword">sizeof</span> (MyOutVertex),
+                            &amp;results[<span class="number">0</span>].x,
+                            N_VERTICES);</pre></td>
       </tr>
     </tbody>
   </table>
@@ -1327,7 +1573,7 @@ Determines if the given matrix is an identity matrix.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>matrix</code></em> is an identity matrix else <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>
+<code class="literal">TRUE</code> if <em class="parameter"><code>matrix</code></em> is an identity matrix else <code class="literal">FALSE</code>
 </td>
 </tr>
 </tbody>
@@ -1338,6 +1584,6 @@ Determines if the given matrix is an identity matrix.
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18.1</div>
+          Generated by GTK-Doc V1.19.1</div>
 </body>
 </html>

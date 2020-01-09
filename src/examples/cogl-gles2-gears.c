@@ -35,6 +35,10 @@
  * Jul 13, 2010
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #define GL_GLEXT_PROTOTYPES
 
 #include <math.h>
@@ -109,6 +113,15 @@ static GLuint ModelViewProjectionMatrix_location,
 static GLfloat ProjectionMatrix[16];
 /** The direction of the directional light for the scene */
 static const GLfloat LightSourcePosition[4] = { 5.0, 5.0, 10.0, 1.0};
+
+#ifndef HAVE_SINCOS
+static void
+sincos (double x, double *sinx, double *cosx)
+{
+  *sinx = sin (x);
+  *cosx = cos (x);
+}
+#endif /* HAVE_SINCOS */
 
 /**
  * Fills a gear vertex.
@@ -766,7 +779,7 @@ main (int argc, char **argv)
 
     onscreen = cogl_onscreen_new (data.ctx, 300, 300);
     cogl_onscreen_show (onscreen);
-    data.fb = COGL_FRAMEBUFFER (onscreen);
+    data.fb = onscreen;
 
     data.gles2_ctx = cogl_gles2_context_new (data.ctx, &error);
     if (!data.gles2_ctx)

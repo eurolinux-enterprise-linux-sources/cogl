@@ -32,18 +32,18 @@ test_map_buffer_range (void)
   CoglVertexP2T2 *data;
   CoglAttribute *pos_attribute;
   CoglAttribute *tex_coord_attribute;
+  CoglPrimitive *primitive;
 
   tex = cogl_texture_2d_new_from_data (test_ctx,
                                        2, 2, /* width/height */
                                        COGL_PIXEL_FORMAT_RGBA_8888_PRE,
-                                       COGL_PIXEL_FORMAT_ANY,
                                        2 * 4, /* rowstride */
                                        tex_data,
                                        NULL /* error */);
 
   pipeline = cogl_pipeline_new (test_ctx);
 
-  cogl_pipeline_set_layer_texture (pipeline, 0, COGL_TEXTURE (tex));
+  cogl_pipeline_set_layer_texture (pipeline, 0, tex);
   cogl_pipeline_set_layer_filters (pipeline,
                                    0, /* layer */
                                    COGL_PIPELINE_FILTER_NEAREST,
@@ -61,7 +61,7 @@ test_map_buffer_range (void)
 
   /* Replace the texture coordinates of the third vertex with the
    * coordinates for a green texel */
-  data = cogl_buffer_map_range (COGL_BUFFER (buffer),
+  data = cogl_buffer_map_range (buffer,
                                 sizeof (vertex_data[0]) * 2,
                                 sizeof (vertex_data[0]),
                                 COGL_BUFFER_ACCESS_WRITE,
@@ -74,7 +74,7 @@ test_map_buffer_range (void)
   data->s = 1.0f;
   data->t = 0.0f;
 
-  cogl_buffer_unmap (COGL_BUFFER (buffer));
+  cogl_buffer_unmap (buffer);
 
   pos_attribute =
     cogl_attribute_new (buffer,
@@ -95,14 +95,14 @@ test_map_buffer_range (void)
                             COGL_BUFFER_BIT_COLOR,
                             0, 0, 0, 1);
 
-  cogl_framebuffer_vdraw_attributes (test_fb,
-                                     pipeline,
-                                     COGL_VERTICES_MODE_TRIANGLE_STRIP,
-                                     0, /* first_vertex */
-                                     4, /* n_vertices */
-                                     pos_attribute,
-                                     tex_coord_attribute,
-                                     NULL);
+  primitive =
+    cogl_primitive_new (COGL_VERTICES_MODE_TRIANGLE_STRIP,
+                        4, /* n_vertices */
+                        pos_attribute,
+                        tex_coord_attribute,
+                        NULL);
+  cogl_primitive_draw (primitive, test_fb, pipeline);
+  cogl_object_unref (primitive);
 
   /* Top left pixel should be the one that is replaced to be green */
   test_utils_check_pixel (test_fb, 1, 1, 0x00ff00ff);

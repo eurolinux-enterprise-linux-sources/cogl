@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2008,2009,2010 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  *
@@ -36,7 +42,7 @@ void
 _cogl_pipeline_node_init (CoglNode *node)
 {
   node->parent = NULL;
-  COGL_LIST_INIT (&node->children);
+  _cogl_list_init (&node->children);
 }
 
 void
@@ -59,7 +65,7 @@ _cogl_pipeline_node_set_parent_real (CoglNode *node,
   if (node->parent)
     unparent (node);
 
-  COGL_LIST_INSERT_HEAD (&parent->children, node, list_node);
+  _cogl_list_insert (&parent->children, &node->link);
 
   node->parent = parent;
   node->has_parent_reference = take_strong_reference;
@@ -80,9 +86,9 @@ _cogl_pipeline_node_unparent_real (CoglNode *node)
   if (parent == NULL)
     return;
 
-  _COGL_RETURN_IF_FAIL (!COGL_LIST_EMPTY (&parent->children));
+  _COGL_RETURN_IF_FAIL (!_cogl_list_empty (&parent->children));
 
-  COGL_LIST_REMOVE (node, list_node);
+  _cogl_list_remove (&node->link);
 
   if (node->has_parent_reference)
     cogl_object_unref (parent);
@@ -97,7 +103,7 @@ _cogl_pipeline_node_foreach_child (CoglNode *node,
 {
   CoglNode *child, *next;
 
-  COGL_LIST_FOREACH_SAFE (child, &node->children, list_node, next)
+  _cogl_list_for_each_safe (child, next, &node->children, link)
     callback (child, user_data);
 }
 

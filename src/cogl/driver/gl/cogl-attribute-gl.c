@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2010,2011,2012 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  *
@@ -55,8 +62,8 @@ toggle_builtin_attribute_enabled_cb (int bit_num, void *user_data)
   ForeachChangedBitState *state = user_data;
   CoglContext *context = state->context;
 
-  _COGL_RETURN_VAL_IF_FAIL ((context->private_feature_flags &
-                             COGL_PRIVATE_FEATURE_FIXED_FUNCTION),
+  _COGL_RETURN_VAL_IF_FAIL (_cogl_has_private_feature
+                            (context, COGL_PRIVATE_FEATURE_GL_FIXED),
                             FALSE);
 
 #if defined (HAVE_COGL_GL) || defined (HAVE_COGL_GLES)
@@ -92,8 +99,8 @@ toggle_texcood_attribute_enabled_cb (int bit_num, void *user_data)
   ForeachChangedBitState *state = user_data;
   CoglContext *context = state->context;
 
-  _COGL_RETURN_VAL_IF_FAIL ((context->private_feature_flags &
-                             COGL_PRIVATE_FEATURE_FIXED_FUNCTION),
+  _COGL_RETURN_VAL_IF_FAIL (_cogl_has_private_feature
+                            (context, COGL_PRIVATE_FEATURE_GL_FIXED),
                             FALSE);
 
 #if defined (HAVE_COGL_GL) || defined (HAVE_COGL_GLES)
@@ -251,17 +258,25 @@ setup_legacy_buffered_attribute (CoglContext *ctx,
     case COGL_ATTRIBUTE_NAME_ID_TEXTURE_COORD_ARRAY:
       {
         int layer_number = attribute->name_state->layer_number;
+        const CoglPipelineGetLayerFlags flags =
+          COGL_PIPELINE_GET_LAYER_NO_CREATE;
         CoglPipelineLayer *layer =
-          _cogl_pipeline_get_layer (pipeline, layer_number);
-        int unit = _cogl_pipeline_layer_get_unit_index (layer);
+          _cogl_pipeline_get_layer_with_flags (pipeline, layer_number, flags);
 
-        _cogl_bitmask_set (&ctx->enable_texcoord_attributes_tmp, unit, TRUE);
+        if (layer)
+          {
+            int unit = _cogl_pipeline_layer_get_unit_index (layer);
 
-        GE (ctx, glClientActiveTexture (GL_TEXTURE0 + unit));
-        GE (ctx, glTexCoordPointer (attribute->d.buffered.n_components,
-                                    attribute->d.buffered.type,
-                                    attribute->d.buffered.stride,
-                                    base + attribute->d.buffered.offset));
+            _cogl_bitmask_set (&ctx->enable_texcoord_attributes_tmp,
+                               unit,
+                               TRUE);
+
+            GE (ctx, glClientActiveTexture (GL_TEXTURE0 + unit));
+            GE (ctx, glTexCoordPointer (attribute->d.buffered.n_components,
+                                        attribute->d.buffered.type,
+                                        attribute->d.buffered.stride,
+                                        base + attribute->d.buffered.offset));
+          }
         break;
       }
     case COGL_ATTRIBUTE_NAME_ID_POSITION_ARRAY:
@@ -274,7 +289,7 @@ setup_legacy_buffered_attribute (CoglContext *ctx,
       break;
     case COGL_ATTRIBUTE_NAME_ID_CUSTOM_ARRAY:
 #ifdef COGL_PIPELINE_PROGEND_GLSL
-      if (ctx->driver != COGL_DRIVER_GLES1)
+      if (_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_GL_PROGRAMMABLE))
         setup_generic_buffered_attribute (ctx, pipeline, attribute, base);
 #endif
       break;
@@ -291,7 +306,7 @@ setup_legacy_const_attribute (CoglContext *ctx,
 #ifdef COGL_PIPELINE_PROGEND_GLSL
   if (attribute->name_state->name_id == COGL_ATTRIBUTE_NAME_ID_CUSTOM_ARRAY)
     {
-      if (ctx->driver != COGL_DRIVER_GLES1)
+      if (_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_GL_PROGRAMMABLE))
         setup_generic_const_attribute (ctx, pipeline, attribute);
     }
   else
@@ -316,13 +331,24 @@ setup_legacy_const_attribute (CoglContext *ctx,
         case COGL_ATTRIBUTE_NAME_ID_TEXTURE_COORD_ARRAY:
           {
             int layer_number = attribute->name_state->layer_number;
+            const CoglPipelineGetLayerFlags flags =
+              COGL_PIPELINE_GET_LAYER_NO_CREATE;
             CoglPipelineLayer *layer =
-              _cogl_pipeline_get_layer (pipeline, layer_number);
-            int unit = _cogl_pipeline_layer_get_unit_index (layer);
+              _cogl_pipeline_get_layer_with_flags (pipeline,
+                                                   layer_number,
+                                                   flags);
 
-            GE (ctx, glClientActiveTexture (GL_TEXTURE0 + unit));
+            if (layer)
+              {
+                int unit = _cogl_pipeline_layer_get_unit_index (layer);
 
-            GE (ctx, glMultiTexCoord4f (vector[0], vector[1], vector[2], vector[3]));
+                GE (ctx, glClientActiveTexture (GL_TEXTURE0 + unit));
+
+                GE (ctx, glMultiTexCoord4f (vector[0],
+                                            vector[1],
+                                            vector[2],
+                                            vector[3]));
+              }
             break;
           }
         case COGL_ATTRIBUTE_NAME_ID_POSITION_ARRAY:
@@ -375,26 +401,22 @@ _cogl_gl_flush_attributes_state (CoglFramebuffer *framebuffer,
 {
   CoglContext *ctx = framebuffer->context;
   int i;
-  CoglBool skip_gl_color = FALSE;
+  CoglBool with_color_attrib = FALSE;
+  CoglBool unknown_color_alpha = FALSE;
   CoglPipeline *copy = NULL;
 
-  /* Iterate the attributes to work out whether blending needs to be
-     enabled and how many texture coords there are. We need to do this
-     before flushing the pipeline. */
+  /* Iterate the attributes to see if we have a color attribute which
+   * may affect our decision to enable blending or not.
+   *
+   * We need to do this before flushing the pipeline. */
   for (i = 0; i < n_attributes; i++)
     switch (attributes[i]->name_state->name_id)
       {
       case COGL_ATTRIBUTE_NAME_ID_COLOR_ARRAY:
         if ((flags & COGL_DRAW_COLOR_ATTRIBUTE_IS_OPAQUE) == 0 &&
-            !_cogl_pipeline_get_real_blend_enabled (pipeline))
-          {
-            CoglPipelineBlendEnable blend_enable =
-              COGL_PIPELINE_BLEND_ENABLE_ENABLED;
-            copy = cogl_pipeline_copy (pipeline);
-            _cogl_pipeline_set_blend_enabled (copy, blend_enable);
-            pipeline = copy;
-          }
-        skip_gl_color = TRUE;
+            _cogl_attribute_get_n_components (attributes[i]) == 4)
+          unknown_color_alpha = TRUE;
+        with_color_attrib = TRUE;
         break;
 
       default:
@@ -445,9 +467,11 @@ _cogl_gl_flush_attributes_state (CoglFramebuffer *framebuffer,
        */
     }
 
-  _cogl_pipeline_flush_gl_state (pipeline,
+  _cogl_pipeline_flush_gl_state (ctx,
+                                 pipeline,
                                  framebuffer,
-                                 skip_gl_color);
+                                 with_color_attrib,
+                                 unknown_color_alpha);
 
   _cogl_bitmask_clear_all (&ctx->enable_builtin_attributes_tmp);
   _cogl_bitmask_clear_all (&ctx->enable_texcoord_attributes_tmp);

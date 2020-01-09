@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>GLES 2.0 context</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Cogl 2.0 Reference Manual">
 <link rel="up" href="cogl-integration.html" title="Binding and Integrating">
 <link rel="prev" href="cogl-2.0-experimental-GType-Integration-API.html" title="GType Integration API">
 <link rel="next" href="coglglossary.html" title="Glossaries">
-<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.19.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -60,8 +60,7 @@ const <a class="link" href="cogl-2.0-experimental-GLES-2.0-context.html#CoglGLES
                                                          <em class="parameter"><code>unsigned <span class="type">int</span> handle</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> width</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> height</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglPixelFormat" title="enum CoglPixelFormat"><span class="type">CoglPixelFormat</span></a> internal_format</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Exception-handling.html#CoglError" title="CoglError"><span class="type">CoglError</span></a> **error</code></em>);
+                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglPixelFormat" title="enum CoglPixelFormat"><span class="type">CoglPixelFormat</span></a> format</code></em>);
 <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglBool" title="CoglBool"><span class="returnvalue">CoglBool</span></a>            <a class="link" href="cogl-2.0-experimental-GLES-2.0-context.html#cogl-gles2-texture-get-handle" title="cogl_gles2_texture_get_handle ()">cogl_gles2_texture_get_handle</a>       (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-The-Texture-Interface.html#CoglTexture" title="CoglTexture"><span class="type">CoglTexture</span></a> *texture</code></em>,
                                                          <em class="parameter"><code>unsigned <span class="type">int</span> *handle</code></em>,
                                                          <em class="parameter"><code>unsigned <span class="type">int</span> *target</code></em>);
@@ -196,7 +195,7 @@ using the EGL api, this serves a similar purpose to eglMakeCurrent.
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>Before using this api applications can check for OpenGLES 2.0
 api support by checking for <a class="link" href="cogl-2.0-experimental-The-Top-Level-Context.html#COGL-FEATURE-ID-GLES2-CONTEXT:CAPS"><code class="literal">COGL_FEATURE_ID_GLES2_CONTEXT</code></a> support
-with <a class="link" href="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-has-feature" title="cogl_has_feature ()"><code class="function">cogl_has_feature()</code></a>. This function will return <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> and
+with <a class="link" href="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-has-feature" title="cogl_has_feature ()"><code class="function">cogl_has_feature()</code></a>. This function will return <code class="literal">FALSE</code> and
 return an <a class="link" href="cogl-2.0-experimental-GLES-2.0-context.html#COGL-GLES2-CONTEXT-ERROR-UNSUPPORTED:CAPS"><code class="literal">COGL_GLES2_CONTEXT_ERROR_UNSUPPORTED</code></a> error if the
 feature isn't available.</div>
 <p>
@@ -218,7 +217,7 @@ feature isn't available.</div>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A newly allocated <a class="link" href="cogl-2.0-experimental-GLES-2.0-context.html#CoglGLES2Context" title="CoglGLES2Context"><span class="type">CoglGLES2Context</span></a> or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if there
+<td>A newly allocated <a class="link" href="cogl-2.0-experimental-GLES-2.0-context.html#CoglGLES2Context" title="CoglGLES2Context"><span class="type">CoglGLES2Context</span></a> or <code class="literal">NULL</code> if there
 was an error and <em class="parameter"><code>error</code></em> will be updated in that case.</td>
 </tr>
 </tbody>
@@ -246,8 +245,8 @@ Gets whether the given object references a <a class="link" href="cogl-2.0-experi
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the object references a <a class="link" href="cogl-2.0-experimental-GLES-2.0-context.html#CoglGLES2Context" title="CoglGLES2Context"><span class="type">CoglGLES2Context</span></a>
-and <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
+<code class="literal">TRUE</code> if the object references a <a class="link" href="cogl-2.0-experimental-GLES-2.0-context.html#CoglGLES2Context" title="CoglGLES2Context"><span class="type">CoglGLES2Context</span></a>
+and <code class="literal">FALSE</code> otherwise.</td>
 </tr>
 </tbody>
 </table></div>
@@ -311,7 +310,7 @@ allowed between <a class="link" href="cogl-2.0-experimental-GLES-2.0-context.htm
 </p>
 <p>
 If there is a runtime problem with switching over to the given
-<em class="parameter"><code>gles2_ctx</code></em> then this function will return <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> and return
+<em class="parameter"><code>gles2_ctx</code></em> then this function will return <code class="literal">FALSE</code> and return
 an error through <em class="parameter"><code>error</code></em>.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -350,7 +349,7 @@ framebuffer currently)</td>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if operation was successfull or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>
+<code class="literal">TRUE</code> if operation was successfull or <code class="literal">FALSE</code>
 otherwise and <em class="parameter"><code>error</code></em> will be updated.</td>
 </tr>
 </tbody>
@@ -394,7 +393,7 @@ are not balenced with the number of corresponding calls to
 <p>
 Returns the OpenGL ES 2.0 api vtable for the currently pushed
 <a class="link" href="cogl-2.0-experimental-GLES-2.0-context.html#CoglGLES2Context" title="CoglGLES2Context"><span class="type">CoglGLES2Context</span></a> (last pushed with <a class="link" href="cogl-2.0-experimental-GLES-2.0-context.html#cogl-push-gles2-context" title="cogl_push_gles2_context ()"><code class="function">cogl_push_gles2_context()</code></a>) or
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no <a class="link" href="cogl-2.0-experimental-GLES-2.0-context.html#CoglGLES2Context" title="CoglGLES2Context"><span class="type">CoglGLES2Context</span></a> has been pushed.
+<code class="literal">NULL</code> if no <a class="link" href="cogl-2.0-experimental-GLES-2.0-context.html#CoglGLES2Context" title="CoglGLES2Context"><span class="type">CoglGLES2Context</span></a> has been pushed.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -404,7 +403,7 @@ Returns the OpenGL ES 2.0 api vtable for the currently pushed
 <tbody><tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>The <a class="link" href="cogl-2.0-experimental-GLES-2.0-context.html#CoglGLES2Vtable" title="struct CoglGLES2Vtable"><span class="type">CoglGLES2Vtable</span></a> for the currently pushed
-<a class="link" href="cogl-2.0-experimental-GLES-2.0-context.html#CoglGLES2Context" title="CoglGLES2Context"><span class="type">CoglGLES2Context</span></a> or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if none has been pushed.</td>
+<a class="link" href="cogl-2.0-experimental-GLES-2.0-context.html#CoglGLES2Context" title="CoglGLES2Context"><span class="type">CoglGLES2Context</span></a> or <code class="literal">NULL</code> if none has been pushed.</td>
 </tr></tbody>
 </table></div>
 <p class="since">Since 2.0</p>
@@ -419,8 +418,7 @@ Returns the OpenGL ES 2.0 api vtable for the currently pushed
                                                          <em class="parameter"><code>unsigned <span class="type">int</span> handle</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> width</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> height</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglPixelFormat" title="enum CoglPixelFormat"><span class="type">CoglPixelFormat</span></a> internal_format</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Exception-handling.html#CoglError" title="CoglError"><span class="type">CoglError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglPixelFormat" title="enum CoglPixelFormat"><span class="type">CoglPixelFormat</span></a> format</code></em>);</pre>
 <p>
 Creates a <a class="link" href="cogl-2.0-experimental-2D-textures.html#CoglTexture2D" title="CoglTexture2D"><span class="type">CoglTexture2D</span></a> from an OpenGL ES 2.0 texture handle that
 was created within the given <em class="parameter"><code>gles2_ctx</code></em> via <code class="function">glGenTextures()</code>. The
@@ -475,12 +473,8 @@ api.</div>
 <td>Height of the texture to allocate</td>
 </tr>
 <tr>
-<td><p><span class="term"><em class="parameter"><code>internal_format</code></em> :</span></p></td>
+<td><p><span class="term"><em class="parameter"><code>format</code></em> :</span></p></td>
 <td>The format of the texture</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>A <a class="link" href="cogl-2.0-experimental-Exception-handling.html#CoglError" title="CoglError"><span class="type">CoglError</span></a> for exceptions</td>
 </tr>
 </tbody>
 </table></div>
@@ -501,7 +495,7 @@ also returned.
 </p>
 <p>
 If the <a class="link" href="cogl-2.0-experimental-The-Texture-Interface.html#CoglTexture" title="CoglTexture"><span class="type">CoglTexture</span></a> can not be shared with a <a class="link" href="cogl-2.0-experimental-GLES-2.0-context.html#CoglGLES2Context" title="CoglGLES2Context"><span class="type">CoglGLES2Context</span></a> then
-this function will return <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>.
+this function will return <code class="literal">FALSE</code>.
 </p>
 <p>
 This api does not affect the lifetime of the CoglTexture and you
@@ -519,7 +513,7 @@ GLES2 context.</div>
 <p>
 </p>
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
-<h3 class="title">Note</h3>This function will only return <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> for low-level
+<h3 class="title">Note</h3>This function will only return <code class="literal">TRUE</code> for low-level
 <a class="link" href="cogl-2.0-experimental-The-Texture-Interface.html#CoglTexture" title="CoglTexture"><span class="type">CoglTexture</span></a>s such as <a class="link" href="cogl-2.0-experimental-2D-textures.html#CoglTexture2D" title="CoglTexture2D"><span class="type">CoglTexture2D</span></a> or <a class="link" href="cogl-2.0-experimental-3D-textures.html#CoglTexture3D" title="CoglTexture3D"><span class="type">CoglTexture3D</span></a> but
 not for high level meta textures such as
 <a class="link" href="cogl-2.0-experimental-Sliced-Textures.html#CoglTexture2DSliced" title="CoglTexture2DSliced"><span class="type">CoglTexture2DSliced</span></a>
@@ -556,8 +550,8 @@ a <a class="link" href="cogl-2.0-experimental-GLES-2.0-context.html#CoglGLES2Vta
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if a handle and target could be returned
-otherwise <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> is returned.</td>
+<code class="literal">TRUE</code> if a handle and target could be returned
+otherwise <code class="literal">FALSE</code> is returned.</td>
 </tr>
 </tbody>
 </table></div>
@@ -568,6 +562,6 @@ otherwise <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Ma
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18.1</div>
+          Generated by GTK-Doc V1.19.1</div>
 </body>
 </html>

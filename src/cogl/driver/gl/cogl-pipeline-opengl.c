@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2008,2009,2010 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  *
@@ -25,9 +31,7 @@
  *   Robert Bragg <robert@linux.intel.com>
  */
 
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 #include "cogl-debug.h"
 #include "cogl-util-gl-private.h"
@@ -40,6 +44,8 @@
 #include "cogl-texture-gl-private.h"
 
 #include "cogl-pipeline-progend-glsl-private.h"
+
+#include <test-fixtures/test-unit.h>
 
 #include <glib.h>
 #include <string.h>
@@ -58,7 +64,9 @@
 #ifndef GL_CLAMP_TO_BORDER
 #define GL_CLAMP_TO_BORDER 0x812d
 #endif
-
+#ifndef GL_PROGRAM_POINT_SIZE
+#define GL_PROGRAM_POINT_SIZE 0x8642
+#endif
 
 static void
 texture_unit_init (CoglContext *ctx,
@@ -405,6 +413,11 @@ static void
 flush_depth_state (CoglContext *ctx,
                    CoglDepthState *depth_state)
 {
+  CoglBool depth_writing_enabled = depth_state->write_enabled;
+
+  if (ctx->current_draw_buffer)
+    depth_writing_enabled &= ctx->current_draw_buffer->depth_writing_enabled;
+
   if (ctx->depth_test_enabled_cache != depth_state->test_enabled)
     {
       if (depth_state->test_enabled == TRUE)
@@ -421,18 +434,18 @@ flush_depth_state (CoglContext *ctx,
       ctx->depth_test_function_cache = depth_state->test_function;
     }
 
-  if (ctx->depth_writing_enabled_cache != depth_state->write_enabled)
+  if (ctx->depth_writing_enabled_cache != depth_writing_enabled)
     {
-      GE (ctx, glDepthMask (depth_state->write_enabled ?
+      GE (ctx, glDepthMask (depth_writing_enabled ?
                             GL_TRUE : GL_FALSE));
-      ctx->depth_writing_enabled_cache = depth_state->write_enabled;
+      ctx->depth_writing_enabled_cache = depth_writing_enabled;
     }
 
   if (ctx->driver != COGL_DRIVER_GLES1 &&
       (ctx->depth_range_near_cache != depth_state->range_near ||
        ctx->depth_range_far_cache != depth_state->range_far))
     {
-      if (ctx->driver == COGL_DRIVER_GLES2)
+      if (_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_GL_EMBEDDED))
         GE (ctx, glDepthRangef (depth_state->range_near,
                                 depth_state->range_far));
       else
@@ -444,22 +457,54 @@ flush_depth_state (CoglContext *ctx,
     }
 }
 
+UNIT_TEST (check_gl_blend_enable,
+           0 /* no requirements */,
+           0 /* no failure cases */)
+{
+  CoglPipeline *pipeline = cogl_pipeline_new (test_ctx);
+
+  /* By default blending should be disabled */
+  g_assert_cmpint (test_ctx->gl_blend_enable_cache, ==, 0);
+
+  cogl_framebuffer_draw_rectangle (test_fb, pipeline, 0, 0, 1, 1);
+  _cogl_framebuffer_flush_journal (test_fb);
+
+  /* After drawing an opaque rectangle blending should still be
+   * disabled */
+  g_assert_cmpint (test_ctx->gl_blend_enable_cache, ==, 0);
+
+  cogl_pipeline_set_color4f (pipeline, 0, 0, 0, 0);
+  cogl_framebuffer_draw_rectangle (test_fb, pipeline, 0, 0, 1, 1);
+  _cogl_framebuffer_flush_journal (test_fb);
+
+  /* After drawing a transparent rectangle blending should be enabled */
+  g_assert_cmpint (test_ctx->gl_blend_enable_cache, ==, 1);
+
+  cogl_pipeline_set_blend (pipeline, "RGBA=ADD(SRC_COLOR, 0)", NULL);
+  cogl_framebuffer_draw_rectangle (test_fb, pipeline, 0, 0, 1, 1);
+  _cogl_framebuffer_flush_journal (test_fb);
+
+  /* After setting a blend string that effectively disables blending
+   * then blending should be disabled */
+  g_assert_cmpint (test_ctx->gl_blend_enable_cache, ==, 0);
+}
+
 static void
 _cogl_pipeline_flush_color_blend_alpha_depth_state (
                                             CoglPipeline *pipeline,
                                             unsigned long pipelines_difference,
-                                            CoglBool      skip_gl_color)
+                                            CoglBool      with_color_attrib)
 {
   _COGL_GET_CONTEXT (ctx, NO_RETVAL);
 
   /* On GLES2 we'll flush the color later */
-  if ((ctx->private_feature_flags & COGL_PRIVATE_FEATURE_FIXED_FUNCTION) &&
-      !skip_gl_color)
+  if (_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_GL_FIXED) &&
+      !with_color_attrib)
     {
       if ((pipelines_difference & COGL_PIPELINE_STATE_COLOR) ||
           /* Assume if we were previously told to skip the color, then
            * the current color needs updating... */
-          ctx->current_pipeline_skip_gl_color)
+          ctx->current_pipeline_with_color_attrib)
         {
           CoglPipeline *authority =
             _cogl_pipeline_get_authority (pipeline, COGL_PIPELINE_STATE_COLOR);
@@ -532,7 +577,7 @@ _cogl_pipeline_flush_color_blend_alpha_depth_state (
 
 #if defined (HAVE_COGL_GL) || defined (HAVE_COGL_GLES)
 
-  if ((ctx->private_feature_flags & COGL_PRIVATE_FEATURE_ALPHA_TEST))
+  if (_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_ALPHA_TEST))
     {
       /* Under GLES2 the alpha function is implemented as part of the
          fragment shader */
@@ -652,6 +697,21 @@ _cogl_pipeline_flush_color_blend_alpha_depth_state (
         }
     }
 
+#ifdef HAVE_COGL_GL
+  if (_cogl_has_private_feature
+      (ctx, COGL_PRIVATE_FEATURE_ENABLE_PROGRAM_POINT_SIZE) &&
+      (pipelines_difference & COGL_PIPELINE_STATE_PER_VERTEX_POINT_SIZE))
+    {
+      unsigned long state = COGL_PIPELINE_STATE_PER_VERTEX_POINT_SIZE;
+      CoglPipeline *authority = _cogl_pipeline_get_authority (pipeline, state);
+
+      if (authority->big_state->per_vertex_point_size)
+        GE( ctx, glEnable (GL_PROGRAM_POINT_SIZE) );
+      else
+        GE( ctx, glDisable (GL_PROGRAM_POINT_SIZE) );
+    }
+#endif
+
   if (pipeline->real_blend_enable != ctx->gl_blend_enable_cache)
     {
       if (pipeline->real_blend_enable)
@@ -676,8 +736,7 @@ get_max_activateable_texture_units (void)
       int i;
 
 #ifdef HAVE_COGL_GL
-      if (ctx->driver == COGL_DRIVER_GL ||
-          ctx->driver == COGL_DRIVER_GL3)
+      if (!_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_GL_EMBEDDED))
         {
           /* GL_MAX_TEXTURE_COORDS is provided for both GLSL and ARBfp. It
              defines the number of texture coordinates that can be
@@ -700,7 +759,8 @@ get_max_activateable_texture_units (void)
 #endif /* HAVE_COGL_GL */
 
 #ifdef HAVE_COGL_GLES2
-      if (ctx->driver == COGL_DRIVER_GLES2)
+      if (_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_GL_EMBEDDED) &&
+          _cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_GL_PROGRAMMABLE))
         {
           GE (ctx, glGetIntegerv (GL_MAX_VERTEX_ATTRIBS, values + n_values));
           /* Two of the vertex attribs need to be used for the position
@@ -712,8 +772,8 @@ get_max_activateable_texture_units (void)
         }
 #endif
 
-#if defined (HAVE_COGL_GL) || defined (HAVE_COGL_GLES) /* not GLES2 */
-      if (ctx->driver != COGL_DRIVER_GLES2)
+#if defined (HAVE_COGL_GL) || defined (HAVE_COGL_GLES)
+      if (_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_GL_FIXED))
         {
           /* GL_MAX_TEXTURE_UNITS defines the number of units that are
              usable from the fixed function pipeline, therefore it isn't
@@ -843,7 +903,7 @@ flush_layers_common_gl_state_cb (CoglPipelineLayer *layer, void *user_data)
     }
 
   if ((layers_difference & COGL_PIPELINE_LAYER_STATE_SAMPLER) &&
-      (ctx->private_feature_flags & COGL_PRIVATE_FEATURE_SAMPLER_OBJECTS))
+      _cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_SAMPLER_OBJECTS))
     {
       const CoglSamplerCacheEntry *sampler_state;
 
@@ -858,7 +918,7 @@ flush_layers_common_gl_state_cb (CoglPipelineLayer *layer, void *user_data)
    * glsl progend.
    */
 #if defined (HAVE_COGL_GLES) || defined (HAVE_COGL_GL)
-  if ((ctx->private_feature_flags & COGL_PRIVATE_FEATURE_FIXED_FUNCTION) &&
+  if (_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_GL_FIXED) &&
       (layers_difference & COGL_PIPELINE_LAYER_STATE_POINT_SPRITE_COORDS))
     {
       CoglPipelineState change = COGL_PIPELINE_LAYER_STATE_POINT_SPRITE_COORDS;
@@ -889,7 +949,7 @@ static void
 _cogl_pipeline_flush_common_gl_state (CoglPipeline  *pipeline,
                                       unsigned long  pipelines_difference,
                                       unsigned long *layer_differences,
-                                      CoglBool       skip_gl_color)
+                                      CoglBool       with_color_attrib)
 {
   CoglPipelineFlushLayerState state;
 
@@ -897,7 +957,7 @@ _cogl_pipeline_flush_common_gl_state (CoglPipeline  *pipeline,
 
   _cogl_pipeline_flush_color_blend_alpha_depth_state (pipeline,
                                                       pipelines_difference,
-                                                      skip_gl_color);
+                                                      with_color_attrib);
 
   state.i = 0;
   state.layer_differences = layer_differences;
@@ -1149,10 +1209,13 @@ fragend_add_layer_cb (CoglPipelineLayer *layer,
  *    isn't ideal, and can't be used with CoglVertexBuffers.
  */
 void
-_cogl_pipeline_flush_gl_state (CoglPipeline *pipeline,
+_cogl_pipeline_flush_gl_state (CoglContext *ctx,
+                               CoglPipeline *pipeline,
                                CoglFramebuffer *framebuffer,
-                               CoglBool skip_gl_color)
+                               CoglBool with_color_attrib,
+                               CoglBool unknown_color_alpha)
 {
+  CoglPipeline *current_pipeline = ctx->current_pipeline;
   unsigned long pipelines_difference;
   int n_layers;
   unsigned long *layer_differences;
@@ -1166,29 +1229,61 @@ _cogl_pipeline_flush_gl_state (CoglPipeline *pipeline,
                      "The time spent flushing material state",
                      0 /* no application private data */);
 
-  _COGL_GET_CONTEXT (ctx, NO_RETVAL);
-
   COGL_TIMER_START (_cogl_uprof_context, pipeline_flush_timer);
 
-  if (ctx->current_pipeline == pipeline)
-    {
-      /* Bail out asap if we've been asked to re-flush the already current
-       * pipeline and we can see the pipeline hasn't changed */
-      if (ctx->current_pipeline_age == pipeline->age &&
-          ctx->current_pipeline_skip_gl_color == skip_gl_color)
-        goto done;
-
-      pipelines_difference = ctx->current_pipeline_changes_since_flush;
-    }
-  else if (ctx->current_pipeline)
-    {
-      pipelines_difference = ctx->current_pipeline_changes_since_flush;
-      pipelines_difference |=
-        _cogl_pipeline_compare_differences (ctx->current_pipeline,
-                                            pipeline);
-    }
+  /* Bail out asap if we've been asked to re-flush the already current
+   * pipeline and we can see the pipeline hasn't changed */
+  if (current_pipeline == pipeline &&
+      ctx->current_pipeline_age == pipeline->age &&
+      ctx->current_pipeline_with_color_attrib == with_color_attrib &&
+      ctx->current_pipeline_unknown_color_alpha == unknown_color_alpha)
+    goto done;
   else
-    pipelines_difference = COGL_PIPELINE_STATE_ALL_SPARSE;
+    {
+      /* Update derived state (currently just the 'real_blend_enable'
+       * state) and determine a mask of state that differs between the
+       * current pipeline and the one we are flushing.
+       *
+       * Note updating the derived state is done before doing any
+       * pipeline comparisons so that we can correctly compare the
+       * 'real_blend_enable' state itself.
+       */
+
+      if (current_pipeline == pipeline)
+        {
+          pipelines_difference = ctx->current_pipeline_changes_since_flush;
+
+          if (pipelines_difference & COGL_PIPELINE_STATE_AFFECTS_BLENDING ||
+              pipeline->unknown_color_alpha != unknown_color_alpha)
+            {
+              CoglBool save_real_blend_enable = pipeline->real_blend_enable;
+
+              _cogl_pipeline_update_real_blend_enable (pipeline,
+                                                       unknown_color_alpha);
+
+              if (save_real_blend_enable != pipeline->real_blend_enable)
+                pipelines_difference |= COGL_PIPELINE_STATE_REAL_BLEND_ENABLE;
+            }
+        }
+      else if (current_pipeline)
+        {
+          pipelines_difference = ctx->current_pipeline_changes_since_flush;
+
+          _cogl_pipeline_update_real_blend_enable (pipeline,
+                                                   unknown_color_alpha);
+
+          pipelines_difference |=
+            _cogl_pipeline_compare_differences (ctx->current_pipeline,
+                                                pipeline);
+        }
+      else
+        {
+          _cogl_pipeline_update_real_blend_enable (pipeline,
+                                                   unknown_color_alpha);
+
+          pipelines_difference = COGL_PIPELINE_STATE_ALL;
+        }
+    }
 
   /* Get a layer_differences mask for each layer to be flushed */
   n_layers = cogl_pipeline_get_n_layers (pipeline);
@@ -1225,7 +1320,7 @@ _cogl_pipeline_flush_gl_state (CoglPipeline *pipeline,
   _cogl_pipeline_flush_common_gl_state (pipeline,
                                         pipelines_difference,
                                         layer_differences,
-                                        skip_gl_color);
+                                        with_color_attrib);
 
   /* Now flush the fragment, vertex and program state according to the
    * current progend backend.
@@ -1327,7 +1422,8 @@ _cogl_pipeline_flush_gl_state (CoglPipeline *pipeline,
     cogl_object_unref (ctx->current_pipeline);
   ctx->current_pipeline = pipeline;
   ctx->current_pipeline_changes_since_flush = 0;
-  ctx->current_pipeline_skip_gl_color = skip_gl_color;
+  ctx->current_pipeline_with_color_attrib = with_color_attrib;
+  ctx->current_pipeline_unknown_color_alpha = unknown_color_alpha;
   ctx->current_pipeline_age = pipeline->age;
 
 done:
@@ -1338,7 +1434,7 @@ done:
    * using the glsl progend because the generic attribute values are
    * not stored as part of the program object so they could be
    * overridden by any attribute changes in another program */
-  if (pipeline->progend == COGL_PIPELINE_PROGEND_GLSL && !skip_gl_color)
+  if (pipeline->progend == COGL_PIPELINE_PROGEND_GLSL && !with_color_attrib)
     {
       int attribute;
       CoglPipeline *authority =
@@ -1364,7 +1460,7 @@ done:
 
   /* Handle the fact that OpenGL associates texture filter and wrap
    * modes with the texture objects not the texture units... */
-  if (!(ctx->private_feature_flags & COGL_PRIVATE_FEATURE_SAMPLER_OBJECTS))
+  if (!_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_SAMPLER_OBJECTS))
     foreach_texture_unit_update_filter_and_wrap_modes ();
 
   /* If this pipeline has more than one layer then we always need

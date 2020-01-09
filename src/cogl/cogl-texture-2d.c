@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2009 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  *
@@ -43,6 +50,7 @@
 #ifdef COGL_HAS_EGL_SUPPORT
 #include "cogl-winsys-egl-private.h"
 #endif
+#include "cogl-gtype-private.h"
 
 #include <string.h>
 #include <math.h>
@@ -54,6 +62,8 @@
 static void _cogl_texture_2d_free (CoglTexture2D *tex_2d);
 
 COGL_TEXTURE_DEFINE (Texture2D, texture_2d);
+COGL_GTYPE_DEFINE_CLASS (Texture2D, texture_2d,
+                         COGL_GTYPE_IMPLEMENT_INTERFACE (texture));
 
 static const CoglTextureVtable cogl_texture_2d_vtable;
 
@@ -75,25 +85,6 @@ _cogl_texture_2d_free (CoglTexture2D *tex_2d)
   _cogl_texture_free (COGL_TEXTURE (tex_2d));
 }
 
-static CoglBool
-_cogl_texture_2d_can_create (CoglContext *ctx,
-                             unsigned int width,
-                             unsigned int height,
-                             CoglPixelFormat internal_format)
-{
-  /* If NPOT textures aren't supported then the size must be a power
-     of two */
-  if (!cogl_has_feature (ctx, COGL_FEATURE_ID_TEXTURE_NPOT_BASIC) &&
-      (!_cogl_util_is_pot (width) ||
-       !_cogl_util_is_pot (height)))
-    return FALSE;
-
-  return ctx->driver_vtable->texture_2d_can_create (ctx,
-                                                    width,
-                                                    height,
-                                                    internal_format);
-}
-
 void
 _cogl_texture_2d_set_auto_mipmap (CoglTexture *tex,
                                   CoglBool value)
@@ -107,19 +98,19 @@ CoglTexture2D *
 _cogl_texture_2d_create_base (CoglContext *ctx,
                               int width,
                               int height,
-                              CoglPixelFormat internal_format)
+                              CoglPixelFormat internal_format,
+                              CoglTextureLoader *loader)
 {
   CoglTexture2D *tex_2d = g_new (CoglTexture2D, 1);
   CoglTexture *tex = COGL_TEXTURE (tex_2d);
 
-  _cogl_texture_init (tex, ctx, width, height, &cogl_texture_2d_vtable);
+  _cogl_texture_init (tex, ctx, width, height, internal_format, loader,
+                      &cogl_texture_2d_vtable);
 
   tex_2d->mipmaps_dirty = TRUE;
   tex_2d->auto_mipmap = TRUE;
 
   tex_2d->is_foreign = FALSE;
-
-  tex_2d->internal_format = internal_format;
 
   ctx->driver_vtable->texture_2d_init (tex_2d);
 
@@ -129,16 +120,17 @@ _cogl_texture_2d_create_base (CoglContext *ctx,
 CoglTexture2D *
 cogl_texture_2d_new_with_size (CoglContext *ctx,
                                int width,
-                               int height,
-                               CoglPixelFormat internal_format)
+                               int height)
 {
-  /* Since no data, we need some internal format */
-  if (internal_format == COGL_PIXEL_FORMAT_ANY)
-    internal_format = COGL_PIXEL_FORMAT_RGBA_8888_PRE;
+  CoglTextureLoader *loader;
 
-  return  _cogl_texture_2d_create_base (ctx,
-                                        width, height,
-                                        internal_format);
+  loader = _cogl_texture_create_loader ();
+  loader->src_type = COGL_TEXTURE_SOURCE_TYPE_SIZED;
+  loader->src.sized.width = width;
+  loader->src.sized.height = height;
+
+  return _cogl_texture_2d_create_base (ctx, width, height,
+                                       COGL_PIXEL_FORMAT_RGBA_8888_PRE, loader);
 }
 
 static CoglBool
@@ -146,39 +138,57 @@ _cogl_texture_2d_allocate (CoglTexture *tex,
                            CoglError **error)
 {
   CoglContext *ctx = tex->context;
+
   return ctx->driver_vtable->texture_2d_allocate (tex, error);
 }
 
 CoglTexture2D *
-cogl_texture_2d_new_from_bitmap (CoglBitmap *bmp,
-                                 CoglPixelFormat internal_format,
-                                 CoglError **error)
+_cogl_texture_2d_new_from_bitmap (CoglBitmap *bmp,
+                                  CoglBool can_convert_in_place)
 {
-  CoglContext *ctx;
+  CoglTextureLoader *loader;
 
   _COGL_RETURN_VAL_IF_FAIL (bmp != NULL, NULL);
 
-  ctx = _cogl_bitmap_get_context (bmp);
+  loader = _cogl_texture_create_loader ();
+  loader->src_type = COGL_TEXTURE_SOURCE_TYPE_BITMAP;
+  loader->src.bitmap.bitmap = cogl_object_ref (bmp);
+  loader->src.bitmap.can_convert_in_place = can_convert_in_place;
 
-  internal_format =
-    _cogl_texture_determine_internal_format (cogl_bitmap_get_format (bmp),
-                                             internal_format);
+  return  _cogl_texture_2d_create_base (_cogl_bitmap_get_context (bmp),
+                                        cogl_bitmap_get_width (bmp),
+                                        cogl_bitmap_get_height (bmp),
+                                        cogl_bitmap_get_format (bmp),
+                                        loader);
+}
 
-  if (!_cogl_texture_2d_can_create (ctx,
-                                    cogl_bitmap_get_width (bmp),
-                                    cogl_bitmap_get_height (bmp),
-                                    internal_format))
-    {
-      _cogl_set_error (error, COGL_TEXTURE_ERROR,
-                       COGL_TEXTURE_ERROR_SIZE,
-                       "Failed to create texture 2d due to size/format"
-                       " constraints");
-      return NULL;
-    }
+CoglTexture2D *
+cogl_texture_2d_new_from_bitmap (CoglBitmap *bmp)
+{
+  return _cogl_texture_2d_new_from_bitmap (bmp,
+                                           FALSE); /* can't convert in place */
+}
 
-  return ctx->driver_vtable->texture_2d_new_from_bitmap (bmp,
-                                                         internal_format,
-                                                         error);
+CoglTexture2D *
+cogl_texture_2d_new_from_file (CoglContext *ctx,
+                               const char *filename,
+                               CoglError **error)
+{
+  CoglBitmap *bmp;
+  CoglTexture2D *tex_2d = NULL;
+
+  _COGL_RETURN_VAL_IF_FAIL (error == NULL || *error == NULL, NULL);
+
+  bmp = _cogl_bitmap_from_file (ctx, filename, error);
+  if (bmp == NULL)
+    return NULL;
+
+  tex_2d = _cogl_texture_2d_new_from_bitmap (bmp,
+                                             TRUE); /* can convert in-place */
+
+  cogl_object_unref (bmp);
+
+  return tex_2d;
 }
 
 CoglTexture2D *
@@ -186,7 +196,6 @@ cogl_texture_2d_new_from_data (CoglContext *ctx,
                                int width,
                                int height,
                                CoglPixelFormat format,
-                               CoglPixelFormat internal_format,
                                int rowstride,
                                const uint8_t *data,
                                CoglError **error)
@@ -208,11 +217,16 @@ cogl_texture_2d_new_from_data (CoglContext *ctx,
                                   rowstride,
                                   (uint8_t *) data);
 
-  tex_2d = cogl_texture_2d_new_from_bitmap (bmp,
-                                            internal_format,
-                                            error);
+  tex_2d = cogl_texture_2d_new_from_bitmap (bmp);
 
   cogl_object_unref (bmp);
+
+  if (tex_2d &&
+      !cogl_texture_allocate (COGL_TEXTURE (tex_2d), error))
+    {
+      cogl_object_unref (tex_2d);
+      return NULL;
+    }
 
   return tex_2d;
 }
@@ -229,99 +243,209 @@ _cogl_egl_texture_2d_new_from_image (CoglContext *ctx,
                                      EGLImageKHR image,
                                      CoglError **error)
 {
+  CoglTextureLoader *loader;
+  CoglTexture2D *tex;
+
   _COGL_RETURN_VAL_IF_FAIL (_cogl_context_get_winsys (ctx)->constraints &
                             COGL_RENDERER_CONSTRAINT_USES_EGL,
                             NULL);
 
-  _COGL_RETURN_VAL_IF_FAIL (ctx->private_feature_flags &
-                        COGL_PRIVATE_FEATURE_TEXTURE_2D_FROM_EGL_IMAGE,
-                        NULL);
+  _COGL_RETURN_VAL_IF_FAIL (_cogl_has_private_feature
+                            (ctx,
+                             COGL_PRIVATE_FEATURE_TEXTURE_2D_FROM_EGL_IMAGE),
+                            NULL);
 
-  if (ctx->driver_vtable->egl_texture_2d_new_from_image)
-    return ctx->driver_vtable->egl_texture_2d_new_from_image (ctx,
-                                                              width,
-                                                              height,
-                                                              format,
-                                                              image,
-                                                              error);
-  else
+  loader = _cogl_texture_create_loader ();
+  loader->src_type = COGL_TEXTURE_SOURCE_TYPE_EGL_IMAGE;
+  loader->src.egl_image.image = image;
+  loader->src.egl_image.width = width;
+  loader->src.egl_image.height = height;
+  loader->src.egl_image.format = format;
+
+  tex = _cogl_texture_2d_create_base (ctx, width, height, format, loader);
+
+  if (!cogl_texture_allocate (COGL_TEXTURE (tex), error))
     {
-      _cogl_set_error (error,
-                       COGL_SYSTEM_ERROR,
-                       COGL_SYSTEM_ERROR_UNSUPPORTED,
-                       "Creating 2D textures from EGL images is not "
-                       "supported by the current driver");
+      cogl_object_unref (tex);
       return NULL;
     }
+
+  return tex;
 }
 #endif /* defined (COGL_HAS_EGL_SUPPORT) && defined (EGL_KHR_image_base) */
 
 #ifdef COGL_HAS_WAYLAND_EGL_SERVER_SUPPORT
+static void
+shm_buffer_get_cogl_pixel_format (struct wl_shm_buffer *shm_buffer,
+                                  CoglPixelFormat *format_out,
+                                  CoglTextureComponents *components_out)
+{
+  CoglPixelFormat format;
+  CoglTextureComponents components = COGL_TEXTURE_COMPONENTS_RGBA;
+
+  switch (wl_shm_buffer_get_format (shm_buffer))
+    {
+#if G_BYTE_ORDER == G_BIG_ENDIAN
+    case WL_SHM_FORMAT_ARGB8888:
+      format = COGL_PIXEL_FORMAT_ARGB_8888_PRE;
+      break;
+    case WL_SHM_FORMAT_XRGB8888:
+      format = COGL_PIXEL_FORMAT_ARGB_8888;
+      components = COGL_TEXTURE_COMPONENTS_RGB;
+      break;
+#elif G_BYTE_ORDER == G_LITTLE_ENDIAN
+    case WL_SHM_FORMAT_ARGB8888:
+      format = COGL_PIXEL_FORMAT_BGRA_8888_PRE;
+      break;
+    case WL_SHM_FORMAT_XRGB8888:
+      format = COGL_PIXEL_FORMAT_BGRA_8888;
+      components = COGL_TEXTURE_COMPONENTS_RGB;
+      break;
+#endif
+    default:
+      g_warn_if_reached ();
+      format = COGL_PIXEL_FORMAT_ARGB_8888;
+    }
+
+  if (format_out)
+    *format_out = format;
+  if (components_out)
+    *components_out = components;
+}
+
+CoglBool
+cogl_wayland_texture_set_region_from_shm_buffer (CoglTexture *texture,
+                                                 int src_x,
+                                                 int src_y,
+                                                 int width,
+                                                 int height,
+                                                 struct wl_shm_buffer *
+                                                   shm_buffer,
+                                                 int dst_x,
+                                                 int dst_y,
+                                                 int level,
+                                                 CoglError **error)
+{
+  const uint8_t *data = wl_shm_buffer_get_data (shm_buffer);
+  int32_t stride = wl_shm_buffer_get_stride (shm_buffer);
+  CoglPixelFormat format;
+  int bpp;
+
+  shm_buffer_get_cogl_pixel_format (shm_buffer, &format, NULL);
+  bpp = _cogl_pixel_format_get_bytes_per_pixel (format);
+
+  return _cogl_texture_set_region (COGL_TEXTURE (texture),
+                                   width, height,
+                                   format,
+                                   stride,
+                                   data + src_x * bpp + src_y * stride,
+                                   dst_x, dst_y,
+                                   level,
+                                   error);
+}
+
 CoglTexture2D *
 cogl_wayland_texture_2d_new_from_buffer (CoglContext *ctx,
-                                         struct wl_buffer *buffer,
+                                         struct wl_resource *buffer,
                                          CoglError **error)
 {
-  if (wl_buffer_is_shm (buffer))
+  struct wl_shm_buffer *shm_buffer;
+  CoglTexture2D *tex = NULL;
+
+  shm_buffer = wl_shm_buffer_get (buffer);
+
+  if (shm_buffer)
     {
-      int stride = wl_shm_buffer_get_stride (buffer);
+      int stride = wl_shm_buffer_get_stride (shm_buffer);
+      int width = wl_shm_buffer_get_width (shm_buffer);
+      int height = wl_shm_buffer_get_height (shm_buffer);
       CoglPixelFormat format;
-      CoglPixelFormat internal_format = COGL_PIXEL_FORMAT_ANY;
+      CoglTextureComponents components;
+      CoglBitmap *bmp;
 
-      switch (wl_shm_buffer_get_format (buffer))
+      shm_buffer_get_cogl_pixel_format (shm_buffer, &format, &components);
+
+      bmp = cogl_bitmap_new_for_data (ctx,
+                                      width, height,
+                                      format,
+                                      stride,
+                                      wl_shm_buffer_get_data (shm_buffer));
+
+      tex = cogl_texture_2d_new_from_bitmap (bmp);
+
+      cogl_texture_set_components (COGL_TEXTURE (tex), components);
+
+      cogl_object_unref (bmp);
+
+      if (!cogl_texture_allocate (COGL_TEXTURE (tex), error))
         {
-#if G_BYTE_ORDER == G_BIG_ENDIAN
-          case WL_SHM_FORMAT_ARGB8888:
-            format = COGL_PIXEL_FORMAT_ARGB_8888_PRE;
-            break;
-          case WL_SHM_FORMAT_XRGB32:
-            format = COGL_PIXEL_FORMAT_ARGB_8888;
-            internal_format = COGL_PIXEL_FORMAT_RGB_888;
-            break;
-#elif G_BYTE_ORDER == G_LITTLE_ENDIAN
-          case WL_SHM_FORMAT_ARGB8888:
-            format = COGL_PIXEL_FORMAT_BGRA_8888_PRE;
-            break;
-          case WL_SHM_FORMAT_XRGB8888:
-            format = COGL_PIXEL_FORMAT_BGRA_8888;
-            internal_format = COGL_PIXEL_FORMAT_BGR_888;
-            break;
-#endif
-          default:
-            g_warn_if_reached ();
-            format = COGL_PIXEL_FORMAT_ARGB_8888;
+          cogl_object_unref (tex);
+          return NULL;
         }
-
-      return cogl_texture_2d_new_from_data (ctx,
-                                            buffer->width,
-                                            buffer->height,
-                                            format,
-                                            internal_format,
-                                            stride,
-                                            wl_shm_buffer_get_data (buffer),
-                                            error);
+      else
+        return tex;
     }
   else
     {
-      EGLImageKHR image;
-      CoglTexture2D *tex;
+      int format, width, height;
 
-      _COGL_RETURN_VAL_IF_FAIL (_cogl_context_get_winsys (ctx)->constraints &
-                                COGL_RENDERER_CONSTRAINT_USES_EGL,
-                                NULL);
-      image = _cogl_egl_create_image (ctx,
-                                      EGL_WAYLAND_BUFFER_WL,
-                                      buffer,
-                                      NULL);
-      tex = _cogl_egl_texture_2d_new_from_image (ctx,
-                                                 buffer->width,
-                                                 buffer->height,
-                                                 COGL_PIXEL_FORMAT_ARGB_8888_PRE,
-                                                 image,
-                                                 error);
-      _cogl_egl_destroy_image (ctx, image);
-      return tex;
+      if (_cogl_egl_query_wayland_buffer (ctx,
+                                          buffer,
+                                          EGL_TEXTURE_FORMAT,
+                                          &format) &&
+          _cogl_egl_query_wayland_buffer (ctx,
+                                          buffer,
+                                          EGL_WIDTH,
+                                          &width) &&
+          _cogl_egl_query_wayland_buffer (ctx,
+                                          buffer,
+                                          EGL_HEIGHT,
+                                          &height))
+        {
+          EGLImageKHR image;
+          CoglPixelFormat internal_format;
+
+          _COGL_RETURN_VAL_IF_FAIL (_cogl_context_get_winsys (ctx)->constraints &
+                                    COGL_RENDERER_CONSTRAINT_USES_EGL,
+                                    NULL);
+
+          switch (format)
+            {
+            case EGL_TEXTURE_RGB:
+              internal_format = COGL_PIXEL_FORMAT_RGB_888;
+              break;
+            case EGL_TEXTURE_RGBA:
+              internal_format = COGL_PIXEL_FORMAT_RGBA_8888_PRE;
+              break;
+            default:
+              _cogl_set_error (error,
+                               COGL_SYSTEM_ERROR,
+                               COGL_SYSTEM_ERROR_UNSUPPORTED,
+                               "Can't create texture from unknown "
+                               "wayland buffer format %d\n", format);
+              return NULL;
+            }
+
+          image = _cogl_egl_create_image (ctx,
+                                          EGL_WAYLAND_BUFFER_WL,
+                                          buffer,
+                                          NULL);
+          tex = _cogl_egl_texture_2d_new_from_image (ctx,
+                                                     width, height,
+                                                     internal_format,
+                                                     image,
+                                                     error);
+          _cogl_egl_destroy_image (ctx, image);
+          return tex;
+        }
     }
+
+  _cogl_set_error (error,
+                   COGL_SYSTEM_ERROR,
+                   COGL_SYSTEM_ERROR_UNSUPPORTED,
+                   "Can't create texture from unknown "
+                   "wayland buffer type\n");
+  return NULL;
 }
 #endif /* COGL_HAS_WAYLAND_EGL_SERVER_SUPPORT */
 

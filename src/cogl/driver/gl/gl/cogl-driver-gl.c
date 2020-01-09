@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2007,2008,2009 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  */
@@ -68,6 +75,10 @@ _cogl_driver_pixel_format_from_gl_internal (CoglContext *context,
       *out_format = COGL_PIXEL_FORMAT_G_8;
       return TRUE;
 
+    case GL_RG:
+      *out_format = COGL_PIXEL_FORMAT_RG_88;
+      return TRUE;
+
     case GL_RGB: case GL_RGB4: case GL_RGB5: case GL_RGB8:
     case GL_RGB10: case GL_RGB12: case GL_RGB16: case GL_R3_G3_B2:
 
@@ -105,8 +116,8 @@ _cogl_driver_pixel_format_to_gl (CoglContext *context,
       /* If the driver doesn't natively support alpha textures then we
        * will use a red component texture with a swizzle to implement
        * the texture */
-      if ((context->private_feature_flags &
-           COGL_PRIVATE_FEATURE_ALPHA_TEXTURES) == 0)
+      if (_cogl_has_private_feature
+          (context, COGL_PRIVATE_FEATURE_ALPHA_TEXTURES) == 0)
         {
           glintformat = GL_RED;
           glformat = GL_RED;
@@ -121,6 +132,26 @@ _cogl_driver_pixel_format_to_gl (CoglContext *context,
     case COGL_PIXEL_FORMAT_G_8:
       glintformat = GL_LUMINANCE;
       glformat = GL_LUMINANCE;
+      gltype = GL_UNSIGNED_BYTE;
+      break;
+
+    case COGL_PIXEL_FORMAT_RG_88:
+      if (cogl_has_feature (context, COGL_FEATURE_ID_TEXTURE_RG))
+        {
+          glintformat = GL_RG;
+          glformat = GL_RG;
+        }
+      else
+        {
+          /* If red-green textures aren't supported then we'll use RGB
+           * as an internal format. Note this should only end up
+           * mattering for downloading the data because Cogl will
+           * refuse to allocate a texture with RG components if RG
+           * textures aren't supported */
+          glintformat = GL_RGB;
+          glformat = GL_RGB;
+          required_format = COGL_PIXEL_FORMAT_RGB_888;
+        }
       gltype = GL_UNSIGNED_BYTE;
       break;
 
@@ -259,39 +290,6 @@ _cogl_driver_pixel_format_to_gl (CoglContext *context,
 }
 
 static CoglBool
-parse_gl_version (const char *version_string,
-                  int *major_out,
-                  int *minor_out)
-{
-  const char *major_end, *minor_end;
-  int major = 0, minor = 0;
-
-  /* Extract the major number */
-  for (major_end = version_string; *major_end >= '0'
-	 && *major_end <= '9'; major_end++)
-    major = (major * 10) + *major_end - '0';
-  /* If there were no digits or the major number isn't followed by a
-     dot then it is invalid */
-  if (major_end == version_string || *major_end != '.')
-    return FALSE;
-
-  /* Extract the minor number */
-  for (minor_end = major_end + 1; *minor_end >= '0'
-	 && *minor_end <= '9'; minor_end++)
-    minor = (minor * 10) + *minor_end - '0';
-  /* If there were no digits or there is an unexpected character then
-     it is invalid */
-  if (minor_end == major_end + 1
-      || (*minor_end && *minor_end != ' ' && *minor_end != '.'))
-    return FALSE;
-
-  *major_out = major;
-  *minor_out = minor;
-
-  return TRUE;
-}
-
-static CoglBool
 _cogl_get_gl_version (CoglContext *ctx,
                       int *major_out,
                       int *minor_out)
@@ -302,7 +300,7 @@ _cogl_get_gl_version (CoglContext *ctx,
   if ((version_string = _cogl_context_get_gl_version (ctx)) == NULL)
     return FALSE;
 
-  return parse_gl_version (version_string, major_out, minor_out);
+  return _cogl_gl_util_parse_gl_version (version_string, major_out, minor_out);
 }
 
 static CoglBool
@@ -356,10 +354,12 @@ static CoglBool
 _cogl_driver_update_features (CoglContext *ctx,
                               CoglError **error)
 {
-  CoglPrivateFeatureFlags private_flags = 0;
   CoglFeatureFlags flags = 0;
+  unsigned long private_features
+    [COGL_FLAGS_N_LONGS_FOR_SIZE (COGL_N_PRIVATE_FEATURES)] = { 0 };
   char **gl_extensions;
   int gl_major = 0, gl_minor = 0;
+  int i;
 
   /* We have to special case getting the pointer to the glGetString*
      functions because we need to use them to determine what functions
@@ -411,8 +411,17 @@ _cogl_driver_update_features (CoglContext *ctx,
     {
       const char *glsl_version =
         (char *)ctx->glGetString (GL_SHADING_LANGUAGE_VERSION);
-      parse_gl_version (glsl_version, &ctx->glsl_major, &ctx->glsl_minor);
+      _cogl_gl_util_parse_gl_version (glsl_version,
+                                      &ctx->glsl_major,
+                                      &ctx->glsl_minor);
     }
+
+  if (COGL_CHECK_GL_VERSION (ctx->glsl_major, ctx->glsl_minor, 1, 2))
+    /* We want to use version 120 if it is available so that the
+     * gl_PointCoord can be used. */
+    ctx->glsl_version_to_use = 120;
+  else
+    ctx->glsl_version_to_use = 110;
 
   flags = (COGL_FEATURE_TEXTURE_READ_PIXELS
            | COGL_FEATURE_UNSIGNED_INT_INDICES
@@ -446,17 +455,21 @@ _cogl_driver_update_features (CoglContext *ctx,
     }
 
   if (_cogl_check_extension ("GL_MESA_pack_invert", gl_extensions))
-    private_flags |= COGL_PRIVATE_FEATURE_MESA_PACK_INVERT;
+    COGL_FLAGS_SET (private_features,
+                    COGL_PRIVATE_FEATURE_MESA_PACK_INVERT, TRUE);
 
   if (ctx->glGenRenderbuffers)
     {
       flags |= COGL_FEATURE_OFFSCREEN;
       COGL_FLAGS_SET (ctx->features, COGL_FEATURE_ID_OFFSCREEN, TRUE);
-      private_flags |= COGL_PRIVATE_FEATURE_QUERY_FRAMEBUFFER_BITS;
+      COGL_FLAGS_SET (private_features,
+                      COGL_PRIVATE_FEATURE_QUERY_FRAMEBUFFER_BITS,
+                      TRUE);
     }
 
   if (ctx->glBlitFramebuffer)
-    private_flags |= COGL_PRIVATE_FEATURE_OFFSCREEN_BLIT;
+    COGL_FLAGS_SET (private_features,
+                    COGL_PRIVATE_FEATURE_OFFSCREEN_BLIT, TRUE);
 
   if (ctx->glRenderbufferStorageMultisampleIMG)
     {
@@ -474,11 +487,12 @@ _cogl_driver_update_features (CoglContext *ctx,
 
   if (COGL_CHECK_GL_VERSION (gl_major, gl_minor, 2, 1) ||
       _cogl_check_extension ("GL_EXT_pixel_buffer_object", gl_extensions))
-    private_flags |= COGL_PRIVATE_FEATURE_PBOS;
+    COGL_FLAGS_SET (private_features, COGL_PRIVATE_FEATURE_PBOS, TRUE);
 
   if (COGL_CHECK_GL_VERSION (gl_major, gl_minor, 1, 4) ||
       _cogl_check_extension ("GL_EXT_blend_color", gl_extensions))
-    private_flags |= COGL_PRIVATE_FEATURE_BLEND_CONSTANT;
+    COGL_FLAGS_SET (private_features,
+                    COGL_PRIVATE_FEATURE_BLEND_CONSTANT, TRUE);
 
   if (ctx->glGenPrograms)
     {
@@ -538,7 +552,7 @@ _cogl_driver_update_features (CoglContext *ctx,
 
   if (ctx->glGenBuffers)
     {
-      private_flags |= COGL_PRIVATE_FEATURE_VBOS;
+      COGL_FLAGS_SET (private_features, COGL_PRIVATE_FEATURE_VBOS, TRUE);
       flags |= (COGL_FEATURE_MAP_BUFFER_FOR_READ |
                 COGL_FEATURE_MAP_BUFFER_FOR_WRITE);
       COGL_FLAGS_SET (ctx->features,
@@ -561,50 +575,83 @@ _cogl_driver_update_features (CoglContext *ctx,
     }
 
   if (ctx->glEGLImageTargetTexture2D)
-    private_flags |= COGL_PRIVATE_FEATURE_TEXTURE_2D_FROM_EGL_IMAGE;
+    COGL_FLAGS_SET (private_features,
+                    COGL_PRIVATE_FEATURE_TEXTURE_2D_FROM_EGL_IMAGE, TRUE);
 
   if (_cogl_check_extension ("GL_EXT_packed_depth_stencil", gl_extensions))
-    private_flags |= COGL_PRIVATE_FEATURE_EXT_PACKED_DEPTH_STENCIL;
+    COGL_FLAGS_SET (private_features,
+                    COGL_PRIVATE_FEATURE_EXT_PACKED_DEPTH_STENCIL, TRUE);
 
   if (ctx->glGenSamplers)
-    private_flags |= COGL_PRIVATE_FEATURE_SAMPLER_OBJECTS;
+    COGL_FLAGS_SET (private_features,
+                    COGL_PRIVATE_FEATURE_SAMPLER_OBJECTS, TRUE);
 
   if (COGL_CHECK_GL_VERSION (gl_major, gl_minor, 3, 3) ||
       _cogl_check_extension ("GL_ARB_texture_swizzle", gl_extensions) ||
       _cogl_check_extension ("GL_EXT_texture_swizzle", gl_extensions))
-    private_flags |= COGL_PRIVATE_FEATURE_TEXTURE_SWIZZLE;
+    COGL_FLAGS_SET (private_features,
+                    COGL_PRIVATE_FEATURE_TEXTURE_SWIZZLE, TRUE);
+
+  /* The per-vertex point size is only available via GLSL with the
+   * gl_PointSize builtin. This is only available in GL 2.0 (not the
+   * GLSL extensions) */
+  if (COGL_CHECK_GL_VERSION (gl_major, gl_minor, 2, 0))
+    {
+      COGL_FLAGS_SET (ctx->features,
+                      COGL_FEATURE_ID_PER_VERTEX_POINT_SIZE,
+                      TRUE);
+      COGL_FLAGS_SET (private_features,
+                      COGL_PRIVATE_FEATURE_ENABLE_PROGRAM_POINT_SIZE, TRUE);
+    }
 
   if (ctx->driver == COGL_DRIVER_GL)
     {
       int max_clip_planes = 0;
 
       /* Features which are not available in GL 3 */
-      private_flags |= (COGL_PRIVATE_FEATURE_FIXED_FUNCTION |
-                        COGL_PRIVATE_FEATURE_ALPHA_TEST |
-                        COGL_PRIVATE_FEATURE_QUADS |
-                        COGL_PRIVATE_FEATURE_ALPHA_TEXTURES);
+      COGL_FLAGS_SET (private_features, COGL_PRIVATE_FEATURE_GL_FIXED, TRUE);
+      COGL_FLAGS_SET (private_features, COGL_PRIVATE_FEATURE_ALPHA_TEST, TRUE);
+      COGL_FLAGS_SET (private_features, COGL_PRIVATE_FEATURE_QUADS, TRUE);
+      COGL_FLAGS_SET (private_features,
+                      COGL_PRIVATE_FEATURE_ALPHA_TEXTURES, TRUE);
 
       GE( ctx, glGetIntegerv (GL_MAX_CLIP_PLANES, &max_clip_planes) );
       if (max_clip_planes >= 4)
-        private_flags |= COGL_PRIVATE_FEATURE_FOUR_CLIP_PLANES;
+        COGL_FLAGS_SET (private_features,
+                        COGL_PRIVATE_FEATURE_FOUR_CLIP_PLANES, TRUE);
     }
 
-  private_flags |= (COGL_PRIVATE_FEATURE_READ_PIXELS_ANY_FORMAT |
-                    COGL_PRIVATE_FEATURE_ANY_GL |
-                    COGL_PRIVATE_FEATURE_FORMAT_CONVERSION |
-                    COGL_PRIVATE_FEATURE_BLEND_CONSTANT |
-                    COGL_PRIVATE_FEATURE_BUILTIN_POINT_SIZE_UNIFORM |
-                    COGL_PRIVATE_FEATURE_QUERY_TEXTURE_PARAMETERS |
-                    COGL_PRIVATE_FEATURE_TEXTURE_MAX_LEVEL);
+  COGL_FLAGS_SET (private_features,
+                  COGL_PRIVATE_FEATURE_READ_PIXELS_ANY_FORMAT, TRUE);
+  COGL_FLAGS_SET (private_features, COGL_PRIVATE_FEATURE_ANY_GL, TRUE);
+  COGL_FLAGS_SET (private_features,
+                  COGL_PRIVATE_FEATURE_FORMAT_CONVERSION, TRUE);
+  COGL_FLAGS_SET (private_features, COGL_PRIVATE_FEATURE_BLEND_CONSTANT, TRUE);
+  COGL_FLAGS_SET (private_features,
+                  COGL_PRIVATE_FEATURE_BUILTIN_POINT_SIZE_UNIFORM, TRUE);
+  COGL_FLAGS_SET (private_features,
+                  COGL_PRIVATE_FEATURE_QUERY_TEXTURE_PARAMETERS, TRUE);
+  COGL_FLAGS_SET (private_features,
+                  COGL_PRIVATE_FEATURE_TEXTURE_MAX_LEVEL, TRUE);
+
+  if (ctx->glFenceSync)
+    COGL_FLAGS_SET (ctx->features, COGL_FEATURE_ID_FENCE, TRUE);
+
+  if (COGL_CHECK_GL_VERSION (gl_major, gl_minor, 3, 0) ||
+      _cogl_check_extension ("GL_ARB_texture_rg", gl_extensions))
+    COGL_FLAGS_SET (ctx->features,
+                    COGL_FEATURE_ID_TEXTURE_RG,
+                    TRUE);
 
   /* Cache features */
-  ctx->private_feature_flags |= private_flags;
+  for (i = 0; i < G_N_ELEMENTS (private_features); i++)
+    ctx->private_features[i] |= private_features[i];
   ctx->feature_flags |= flags;
 
   g_strfreev (gl_extensions);
 
-  if ((private_flags & (COGL_PRIVATE_FEATURE_ALPHA_TEXTURES |
-                        COGL_PRIVATE_FEATURE_TEXTURE_SWIZZLE)) == 0)
+  if (!COGL_FLAGS_GET (private_features, COGL_PRIVATE_FEATURE_ALPHA_TEXTURES) &&
+      !COGL_FLAGS_GET (private_features, COGL_PRIVATE_FEATURE_TEXTURE_SWIZZLE))
     {
       _cogl_set_error (error,
                        COGL_DRIVER_ERROR,
@@ -637,10 +684,6 @@ _cogl_driver_gl =
     _cogl_texture_2d_gl_can_create,
     _cogl_texture_2d_gl_init,
     _cogl_texture_2d_gl_allocate,
-    _cogl_texture_2d_gl_new_from_bitmap,
-#if defined (COGL_HAS_EGL_SUPPORT) && defined (EGL_KHR_image_base)
-    _cogl_egl_texture_2d_gl_new_from_image,
-#endif
     _cogl_texture_2d_gl_copy_from_framebuffer,
     _cogl_texture_2d_gl_get_gl_handle,
     _cogl_texture_2d_gl_generate_mipmap,

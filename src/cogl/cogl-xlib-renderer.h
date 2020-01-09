@@ -1,24 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2011 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #if !defined(__COGL_XLIB_H_INSIDE__) && !defined(COGL_COMPILATION)
@@ -30,7 +35,23 @@
 
 #include <X11/Xlib.h>
 
+/* NB: this is a top-level header that can be included directly but we
+ * want to be careful not to define __COGL_H_INSIDE__ when this is
+ * included internally while building Cogl itself since
+ * __COGL_H_INSIDE__ is used in headers to guard public vs private api
+ * definitions
+ */
+#ifndef COGL_COMPILATION
+
+/* Note: When building Cogl .gir we explicitly define
+ * __COGL_H_INSIDE__ */
+#ifndef __COGL_H_INSIDE__
 #define __COGL_H_INSIDE__
+#define __COGL_XLIB_RENDERER_H_MUST_UNDEF_COGL_H_INSIDE__
+#endif
+
+#endif /* COGL_COMPILATION */
+
 #include <cogl/cogl-renderer.h>
 
 COGL_BEGIN_DECLS
@@ -149,5 +170,18 @@ Display *
 cogl_xlib_renderer_get_display (CoglRenderer *renderer);
 
 COGL_END_DECLS
+
+/* The gobject introspection scanner seems to parse public headers in
+ * isolation which means we need to be extra careful about how we
+ * define and undefine __COGL_H_INSIDE__ used to detect when internal
+ * headers are incorrectly included by developers. In the gobject
+ * introspection case we have to manually define __COGL_H_INSIDE__ as
+ * a commandline argument for the scanner which means we must be
+ * careful not to undefine it in a header...
+ */
+#ifdef __COGL_XLIB_RENDERER_H_MUST_UNDEF_COGL_H_INSIDE__
+#undef __COGL_H_INSIDE__
+#undef __COGL_XLIB_RENDERER_H_MUST_UNDEF_COGL_H_INSIDE__
+#endif
 
 #endif /* __COGL_XLIB_RENDERER_H__ */

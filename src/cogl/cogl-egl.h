@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2007,2008,2009,2010 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  */
@@ -24,18 +31,34 @@
 #ifndef __COGL_EGL_H__
 #define __COGL_EGL_H__
 
-#ifdef COGL_HAS_EGL_SUPPORT
+/* NB: this is a top-level header that can be included directly but we
+ * want to be careful not to define __COGL_H_INSIDE__ when this is
+ * included internally while building Cogl itself since
+ * __COGL_H_INSIDE__ is used in headers to guard public vs private api
+ * definitions
+ */
+#ifndef COGL_COMPILATION
 
-#include "cogl-egl-defines.h"
+/* Note: When building Cogl .gir we explicitly define
+ * __COGL_EGL_H_INSIDE__ */
+#ifndef __COGL_EGL_H_INSIDE__
+#define __COGL_EGL_H_INSIDE__
+#endif
+
+/* Note: When building Cogl .gir we explicitly define
+ * __COGL_H_INSIDE__ */
+#ifndef __COGL_H_INSIDE__
+#define __COGL_H_INSIDE__
+#define __COGL_MUST_UNDEF_COGL_H_INSIDE__
+#endif
+
+#endif /* COGL_COMPILATION */
+
+
+#include <cogl/cogl-egl-defines.h>
+#include <cogl/cogl-types.h>
 
 COGL_BEGIN_DECLS
-
-#define NativeDisplayType EGLNativeDisplayType
-#define NativeWindowType EGLNativeWindowType
-
-#ifndef GL_OES_EGL_image
-#define GLeglImageOES void *
-#endif
 
 /**
  * cogl_egl_context_get_egl_display:
@@ -46,6 +69,9 @@ COGL_BEGIN_DECLS
  * handle that was setup internally. The result is undefined if Cogl
  * is not using EGL.
  *
+ * Note: The current window system backend can be checked using
+ * cogl_renderer_get_winsys_id().
+ *
  * Return value: The internally setup EGLDisplay handle.
  * Since: 1.8
  * Stability: unstable
@@ -53,8 +79,40 @@ COGL_BEGIN_DECLS
 EGLDisplay
 cogl_egl_context_get_egl_display (CoglContext *context);
 
+/**
+ * cogl_egl_context_get_egl_context:
+ * @context: A #CoglContext pointer
+ *
+ * If you have done a runtime check to determine that Cogl is using
+ * EGL internally then this API can be used to retrieve the EGLContext
+ * handle that was setup internally. The result is undefined if Cogl
+ * is not using EGL.
+ *
+ * Note: The current window system backend can be checked using
+ * cogl_renderer_get_winsys_id().
+ *
+ * Return value: The internally setup EGLDisplay handle.
+ * Since: 1.18
+ * Stability: unstable
+ */
+EGLContext
+cogl_egl_context_get_egl_context (CoglContext *context);
+
+
 COGL_END_DECLS
 
-#endif /* COGL_HAS_EGL_SUPPORT */
-
+/* The gobject introspection scanner seems to parse public headers in
+ * isolation which means we need to be extra careful about how we
+ * define and undefine __COGL_H_INSIDE__ used to detect when internal
+ * headers are incorrectly included by developers. In the gobject
+ * introspection case we have to manually define __COGL_H_INSIDE__ as
+ * a commandline argument for the scanner which means we must be
+ * careful not to undefine it in a header...
+ */
+#ifdef __COGL_MUST_UNDEF_COGL_H_INSIDE__
+#undef __COGL_H_INSIDE__
+#undef __COGL_EGL_H_INSIDE__
+#undef __COGL_MUST_UNDEF_COGL_H_INSIDE__
 #endif
+
+#endif /* __COGL_EGL_H__ */

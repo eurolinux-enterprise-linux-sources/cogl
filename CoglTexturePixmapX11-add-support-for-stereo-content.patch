@@ -1,28 +1,30 @@
-From e0243443ccb12eb1a9f62d9b4258bb111551998c Mon Sep 17 00:00:00 2001
+From 4d8771a8c2ea11e37db8f86153286c741576b8ca Mon Sep 17 00:00:00 2001
 From: "Owen W. Taylor" <otaylor@fishsoup.net>
 Date: Sat, 26 Apr 2014 16:38:58 -0400
-Subject: [PATCH 6/8] CoglTexturePixmapX11: add support for stereo content
+Subject: [PATCH] CoglTexturePixmapX11: add support for stereo content
 
 Add cogl_texture_pixmap_x11_new_left() and
 cogl_texture_pixmap_x11_new_right() (which takes the left texture
 as an argument) for texture pixmap rendering with stereo content.
 The underlying GLXPixmap is created using a stereo visual and shared
 between the left and right textures.
+
+Reviewed-by: Robert Bragg <robert.bragg@intel.com>
 ---
  cogl/cogl-glx-display-private.h               |   3 +-
  cogl/winsys/cogl-texture-pixmap-x11-private.h |  18 ++++
- cogl/winsys/cogl-texture-pixmap-x11.c         |  92 +++++++++++++++++++--
+ cogl/winsys/cogl-texture-pixmap-x11.c         |  99 ++++++++++++++++++++--
  cogl/winsys/cogl-texture-pixmap-x11.h         |  56 +++++++++++++
  cogl/winsys/cogl-winsys-egl-x11.c             |   4 +-
  cogl/winsys/cogl-winsys-glx.c                 | 113 ++++++++++++++++++--------
  cogl/winsys/cogl-winsys-private.h             |   4 +-
- 7 files changed, 246 insertions(+), 44 deletions(-)
+ 7 files changed, 253 insertions(+), 44 deletions(-)
 
 diff --git a/cogl/cogl-glx-display-private.h b/cogl/cogl-glx-display-private.h
-index 69b1570..9f7ad47 100644
+index 20b7e67..133c118 100644
 --- a/cogl/cogl-glx-display-private.h
 +++ b/cogl/cogl-glx-display-private.h
-@@ -33,10 +33,11 @@ typedef struct _CoglGLXCachedConfig
+@@ -39,10 +39,11 @@ typedef struct _CoglGLXCachedConfig
    int depth;
    CoglBool found;
    GLXFBConfig fb_config;
@@ -36,10 +38,10 @@ index 69b1570..9f7ad47 100644
  typedef struct _CoglGLXDisplay
  {
 diff --git a/cogl/winsys/cogl-texture-pixmap-x11-private.h b/cogl/winsys/cogl-texture-pixmap-x11-private.h
-index b99dfa6..ce79bd3 100644
+index 948e67b..5da998f 100644
 --- a/cogl/winsys/cogl-texture-pixmap-x11-private.h
 +++ b/cogl/winsys/cogl-texture-pixmap-x11-private.h
-@@ -48,10 +48,27 @@ struct _CoglDamageRectangle
+@@ -55,10 +55,27 @@ struct _CoglDamageRectangle
    unsigned int y2;
  };
  
@@ -67,17 +69,17 @@ index b99dfa6..ce79bd3 100644
    Pixmap pixmap;
    CoglTexture *tex;
  
-@@ -75,4 +92,5 @@ struct _CoglTexturePixmapX11
+@@ -82,4 +99,5 @@ struct _CoglTexturePixmapX11
    CoglBool use_winsys_texture;
  };
  
 +
  #endif /* __COGL_TEXTURE_PIXMAP_X11_PRIVATE_H */
 diff --git a/cogl/winsys/cogl-texture-pixmap-x11.c b/cogl/winsys/cogl-texture-pixmap-x11.c
-index 71d00ea..baf27e1 100644
+index 6c1edeb..398c357 100644
 --- a/cogl/winsys/cogl-texture-pixmap-x11.c
 +++ b/cogl/winsys/cogl-texture-pixmap-x11.c
-@@ -274,11 +274,12 @@ set_damage_object_internal (CoglContext *ctx,
+@@ -284,11 +284,12 @@ set_damage_object_internal (CoglContext *ctx,
                                     tex_pixmap);
  }
  
@@ -95,7 +97,7 @@ index 71d00ea..baf27e1 100644
  {
    CoglTexturePixmapX11 *tex_pixmap = g_new (CoglTexturePixmapX11, 1);
    Display *display = cogl_xlib_renderer_get_display (ctxt->display->renderer);
-@@ -308,6 +309,8 @@ cogl_texture_pixmap_x11_new (CoglContext *ctxt,
+@@ -327,6 +328,8 @@ cogl_texture_pixmap_x11_new (CoglContext *ctxt,
                        &cogl_texture_pixmap_x11_vtable);
  
    tex_pixmap->pixmap = pixmap;
@@ -104,7 +106,7 @@ index 71d00ea..baf27e1 100644
    tex_pixmap->image = NULL;
    tex_pixmap->shm_info.shmid = -1;
    tex_pixmap->tex = NULL;
-@@ -366,6 +369,52 @@ cogl_texture_pixmap_x11_new (CoglContext *ctxt,
+@@ -387,6 +390,59 @@ cogl_texture_pixmap_x11_new (CoglContext *ctxt,
    return _cogl_texture_pixmap_x11_object_new (tex_pixmap);
  }
  
@@ -136,6 +138,7 @@ index 71d00ea..baf27e1 100644
 +{
 +  CoglTexture *texture_left = COGL_TEXTURE (tfp_left);
 +  CoglTexturePixmapX11 *tfp_right;
++  CoglPixelFormat internal_format;
 +
 +  g_return_val_if_fail (tfp_left->stereo_mode == COGL_TEXTURE_PIXMAP_LEFT, NULL);
 +
@@ -143,13 +146,19 @@ index 71d00ea..baf27e1 100644
 +  tfp_right->stereo_mode = COGL_TEXTURE_PIXMAP_RIGHT;
 +  tfp_right->left = cogl_object_ref (tfp_left);
 +
++  internal_format = (tfp_left->depth >= 32
++		     ? COGL_PIXEL_FORMAT_RGBA_8888_PRE
++		     : COGL_PIXEL_FORMAT_RGB_888);
 +  _cogl_texture_init (COGL_TEXTURE (tfp_right),
 +		      texture_left->context,
 +		      texture_left->width,
 +		      texture_left->height,
++		      internal_format,
++		      NULL, /* no loader */
 +		      &cogl_texture_pixmap_x11_vtable);
 +
-+  _cogl_texture_set_allocated (COGL_TEXTURE (tfp_right), TRUE);
++  _cogl_texture_set_allocated (COGL_TEXTURE (tfp_right), internal_format,
++                               texture_left->width, texture_left->height);
 +
 +  return _cogl_texture_pixmap_x11_object_new (tfp_right);
 +}
@@ -157,7 +166,7 @@ index 71d00ea..baf27e1 100644
  static CoglBool
  _cogl_texture_pixmap_x11_allocate (CoglTexture *tex,
                                     CoglError **error)
-@@ -457,6 +506,9 @@ cogl_texture_pixmap_x11_update_area (CoglTexturePixmapX11 *tex_pixmap,
+@@ -478,6 +534,9 @@ cogl_texture_pixmap_x11_update_area (CoglTexturePixmapX11 *tex_pixmap,
       texture because we can't determine which will be needed until we
       actually render something */
  
@@ -167,7 +176,7 @@ index 71d00ea..baf27e1 100644
    if (tex_pixmap->winsys)
      {
        const CoglWinsysVtable *winsys;
-@@ -471,6 +523,9 @@ cogl_texture_pixmap_x11_update_area (CoglTexturePixmapX11 *tex_pixmap,
+@@ -492,6 +551,9 @@ cogl_texture_pixmap_x11_update_area (CoglTexturePixmapX11 *tex_pixmap,
  CoglBool
  cogl_texture_pixmap_x11_is_using_tfp_extension (CoglTexturePixmapX11 *tex_pixmap)
  {
@@ -177,7 +186,7 @@ index 71d00ea..baf27e1 100644
    return !!tex_pixmap->winsys;
  }
  
-@@ -484,6 +539,8 @@ cogl_texture_pixmap_x11_set_damage_object (CoglTexturePixmapX11 *tex_pixmap,
+@@ -505,6 +567,8 @@ cogl_texture_pixmap_x11_set_damage_object (CoglTexturePixmapX11 *tex_pixmap,
  
    _COGL_GET_CONTEXT (ctxt, NO_RETVAL);
  
@@ -186,7 +195,7 @@ index 71d00ea..baf27e1 100644
    damage_base = _cogl_xlib_get_damage_base ();
    if (damage_base >= 0)
      set_damage_object_internal (ctxt, tex_pixmap, damage, report_level);
-@@ -648,12 +705,16 @@ static void
+@@ -717,12 +781,16 @@ static void
  _cogl_texture_pixmap_x11_update (CoglTexturePixmapX11 *tex_pixmap,
                                   CoglBool needs_mipmap)
  {
@@ -204,7 +213,7 @@ index 71d00ea..baf27e1 100644
          {
            _cogl_texture_pixmap_x11_set_use_winsys_texture (tex_pixmap, TRUE);
            return;
-@@ -670,8 +731,13 @@ _cogl_texture_pixmap_x11_update (CoglTexturePixmapX11 *tex_pixmap,
+@@ -739,8 +807,13 @@ _cogl_texture_pixmap_x11_update (CoglTexturePixmapX11 *tex_pixmap,
  static CoglTexture *
  _cogl_texture_pixmap_x11_get_texture (CoglTexturePixmapX11 *tex_pixmap)
  {
@@ -218,7 +227,7 @@ index 71d00ea..baf27e1 100644
  
    /* We try getting the texture twice, once without flushing the
       updates and once with. If pre_paint has been called already then
-@@ -688,7 +754,7 @@ _cogl_texture_pixmap_x11_get_texture (CoglTexturePixmapX11 *tex_pixmap)
+@@ -757,7 +830,7 @@ _cogl_texture_pixmap_x11_get_texture (CoglTexturePixmapX11 *tex_pixmap)
          {
            const CoglWinsysVtable *winsys =
              _cogl_texture_pixmap_x11_get_winsys (tex_pixmap);
@@ -227,7 +236,7 @@ index 71d00ea..baf27e1 100644
          }
        else
          tex = tex_pixmap->tex;
-@@ -696,7 +762,7 @@ _cogl_texture_pixmap_x11_get_texture (CoglTexturePixmapX11 *tex_pixmap)
+@@ -765,7 +838,7 @@ _cogl_texture_pixmap_x11_get_texture (CoglTexturePixmapX11 *tex_pixmap)
        if (tex)
          return tex;
  
@@ -236,7 +245,7 @@ index 71d00ea..baf27e1 100644
      }
  
    g_assert_not_reached ();
-@@ -978,6 +1044,16 @@ _cogl_texture_pixmap_x11_free (CoglTexturePixmapX11 *tex_pixmap)
+@@ -1047,6 +1120,16 @@ _cogl_texture_pixmap_x11_free (CoglTexturePixmapX11 *tex_pixmap)
  
    _COGL_GET_CONTEXT (ctxt, NO_RETVAL);
  
@@ -254,10 +263,10 @@ index 71d00ea..baf27e1 100644
  
    set_damage_object_internal (ctxt, tex_pixmap, 0, 0);
 diff --git a/cogl/winsys/cogl-texture-pixmap-x11.h b/cogl/winsys/cogl-texture-pixmap-x11.h
-index 5d78af3..a3652a4 100644
+index 35155cd..6340bb5 100644
 --- a/cogl/winsys/cogl-texture-pixmap-x11.h
 +++ b/cogl/winsys/cogl-texture-pixmap-x11.h
-@@ -103,6 +103,62 @@ cogl_texture_pixmap_x11_new (CoglContext *context,
+@@ -138,6 +138,62 @@ cogl_texture_pixmap_x11_new (CoglContext *context,
                               CoglError **error);
  
  /**
@@ -321,10 +330,10 @@ index 5d78af3..a3652a4 100644
   * @texture: A #CoglTexturePixmapX11 instance
   * @x: x coordinate of the area to update
 diff --git a/cogl/winsys/cogl-winsys-egl-x11.c b/cogl/winsys/cogl-winsys-egl-x11.c
-index 3e91b99..6752029 100644
+index 26c9606..0e55d41 100644
 --- a/cogl/winsys/cogl-winsys-egl-x11.c
 +++ b/cogl/winsys/cogl-winsys-egl-x11.c
-@@ -760,6 +760,7 @@ _cogl_winsys_texture_pixmap_x11_free (CoglTexturePixmapX11 *tex_pixmap)
+@@ -784,6 +784,7 @@ _cogl_winsys_texture_pixmap_x11_free (CoglTexturePixmapX11 *tex_pixmap)
  
  static CoglBool
  _cogl_winsys_texture_pixmap_x11_update (CoglTexturePixmapX11 *tex_pixmap,
@@ -332,7 +341,7 @@ index 3e91b99..6752029 100644
                                          CoglBool needs_mipmap)
  {
    if (needs_mipmap)
-@@ -774,7 +775,8 @@ _cogl_winsys_texture_pixmap_x11_damage_notify (CoglTexturePixmapX11 *tex_pixmap)
+@@ -798,7 +799,8 @@ _cogl_winsys_texture_pixmap_x11_damage_notify (CoglTexturePixmapX11 *tex_pixmap)
  }
  
  static CoglTexture *
@@ -343,10 +352,10 @@ index 3e91b99..6752029 100644
    CoglTexturePixmapEGL *egl_tex_pixmap = tex_pixmap->winsys;
  
 diff --git a/cogl/winsys/cogl-winsys-glx.c b/cogl/winsys/cogl-winsys-glx.c
-index bff5178..334691c 100644
+index bf2b5be..0487b79 100644
 --- a/cogl/winsys/cogl-winsys-glx.c
 +++ b/cogl/winsys/cogl-winsys-glx.c
-@@ -89,16 +89,21 @@ typedef struct _CoglOnscreenGLX
+@@ -97,16 +97,21 @@ typedef struct _CoglOnscreenGLX
    CoglBool pending_resize_notify;
  } CoglOnscreenGLX;
  
@@ -372,7 +381,7 @@ index bff5178..334691c 100644
  } CoglTexturePixmapGLX;
  
  /* Define a set of arrays containing the functions required from GL
-@@ -1965,6 +1970,7 @@ _cogl_winsys_xlib_get_visual_info (void)
+@@ -2101,6 +2106,7 @@ _cogl_winsys_xlib_get_visual_info (void)
  static CoglBool
  get_fbconfig_for_depth (CoglContext *context,
                          unsigned int depth,
@@ -380,7 +389,7 @@ index bff5178..334691c 100644
                          GLXFBConfig *fbconfig_ret,
                          CoglBool *can_mipmap_ret)
  {
-@@ -1982,11 +1988,12 @@ get_fbconfig_for_depth (CoglContext *context,
+@@ -2118,11 +2124,12 @@ get_fbconfig_for_depth (CoglContext *context,
    glx_renderer = context->display->renderer->winsys;
    glx_display = context->display->winsys;
  
@@ -395,7 +404,7 @@ index bff5178..334691c 100644
        {
          *fbconfig_ret = glx_display->glx_cached_configs[i].fb_config;
          *can_mipmap_ret = glx_display->glx_cached_configs[i].can_mipmap;
-@@ -2030,6 +2037,13 @@ get_fbconfig_for_depth (CoglContext *context,
+@@ -2166,6 +2173,13 @@ get_fbconfig_for_depth (CoglContext *context,
        if (value != depth && (value - alpha) != depth)
          continue;
  
@@ -409,7 +418,7 @@ index bff5178..334691c 100644
        if (glx_renderer->glx_major == 1 && glx_renderer->glx_minor >= 4)
          {
            glx_renderer->glXGetFBConfigAttrib (dpy,
-@@ -2187,7 +2201,9 @@ try_create_glx_pixmap (CoglContext *context,
+@@ -2323,7 +2337,9 @@ try_create_glx_pixmap (CoglContext *context,
    glx_renderer = renderer->winsys;
    dpy = xlib_renderer->xdpy;
  
@@ -420,7 +429,7 @@ index bff5178..334691c 100644
                                 &glx_tex_pixmap->can_mipmap))
      {
        COGL_NOTE (TEXTURE_PIXMAP, "No suitable FBConfig found for depth %i",
-@@ -2276,10 +2292,13 @@ _cogl_winsys_texture_pixmap_x11_create (CoglTexturePixmapX11 *tex_pixmap)
+@@ -2412,10 +2428,13 @@ _cogl_winsys_texture_pixmap_x11_create (CoglTexturePixmapX11 *tex_pixmap)
    glx_tex_pixmap->can_mipmap = FALSE;
    glx_tex_pixmap->has_mipmap_space = FALSE;
  
@@ -437,7 +446,7 @@ index bff5178..334691c 100644
  
    tex_pixmap->winsys = glx_tex_pixmap;
  
-@@ -2306,10 +2325,14 @@ free_glx_pixmap (CoglContext *context,
+@@ -2442,10 +2461,14 @@ free_glx_pixmap (CoglContext *context,
    xlib_renderer = _cogl_xlib_renderer_get_data (renderer);
    glx_renderer = renderer->winsys;
  
@@ -453,7 +462,7 @@ index bff5178..334691c 100644
  
    /* FIXME - we need to trap errors and synchronize here because
     * of ordering issues between the XPixmap destruction and the
-@@ -2334,7 +2357,8 @@ free_glx_pixmap (CoglContext *context,
+@@ -2470,7 +2493,8 @@ free_glx_pixmap (CoglContext *context,
    _cogl_xlib_renderer_untrap_errors (renderer, &trap_state);
  
    glx_tex_pixmap->glx_pixmap = None;
@@ -463,7 +472,7 @@ index bff5178..334691c 100644
  }
  
  static void
-@@ -2349,8 +2373,11 @@ _cogl_winsys_texture_pixmap_x11_free (CoglTexturePixmapX11 *tex_pixmap)
+@@ -2485,8 +2509,11 @@ _cogl_winsys_texture_pixmap_x11_free (CoglTexturePixmapX11 *tex_pixmap)
  
    free_glx_pixmap (COGL_TEXTURE (tex_pixmap)->context, glx_tex_pixmap);
  
@@ -477,7 +486,7 @@ index bff5178..334691c 100644
  
    tex_pixmap->winsys = NULL;
    g_free (glx_tex_pixmap);
-@@ -2358,13 +2385,27 @@ _cogl_winsys_texture_pixmap_x11_free (CoglTexturePixmapX11 *tex_pixmap)
+@@ -2494,13 +2521,27 @@ _cogl_winsys_texture_pixmap_x11_free (CoglTexturePixmapX11 *tex_pixmap)
  
  static CoglBool
  _cogl_winsys_texture_pixmap_x11_update (CoglTexturePixmapX11 *tex_pixmap,
@@ -505,7 +514,7 @@ index bff5178..334691c 100644
    /* If we don't have a GLX pixmap then fallback */
    if (glx_tex_pixmap->glx_pixmap == None)
      return FALSE;
-@@ -2372,7 +2413,7 @@ _cogl_winsys_texture_pixmap_x11_update (CoglTexturePixmapX11 *tex_pixmap,
+@@ -2508,7 +2549,7 @@ _cogl_winsys_texture_pixmap_x11_update (CoglTexturePixmapX11 *tex_pixmap,
    glx_renderer = ctx->display->renderer->winsys;
  
    /* Lazily create a texture to hold the pixmap */
@@ -514,7 +523,7 @@ index bff5178..334691c 100644
      {
        CoglPixelFormat texture_format;
        CoglError *error = NULL;
-@@ -2383,14 +2424,14 @@ _cogl_winsys_texture_pixmap_x11_update (CoglTexturePixmapX11 *tex_pixmap,
+@@ -2519,14 +2560,14 @@ _cogl_winsys_texture_pixmap_x11_update (CoglTexturePixmapX11 *tex_pixmap,
  
        if (should_use_rectangle (ctx))
          {
@@ -522,16 +531,16 @@ index bff5178..334691c 100644
 +          texture_info->glx_tex = COGL_TEXTURE (
              cogl_texture_rectangle_new_with_size (ctx,
                                                    tex->width,
-                                                   tex->height,
-                                                   texture_format,
-                                                   &error));
+                                                   tex->height));
  
--          if (glx_tex_pixmap->glx_tex)
-+          if (texture_info->glx_tex)
+           _cogl_texture_set_internal_format (tex, texture_format);
+ 
+-          if (cogl_texture_allocate (glx_tex_pixmap->glx_tex, &error))
++          if (cogl_texture_allocate (texture_info->glx_tex, &error))
              COGL_NOTE (TEXTURE_PIXMAP, "Created a texture rectangle for %p",
                         tex_pixmap);
            else
-@@ -2405,13 +2446,13 @@ _cogl_winsys_texture_pixmap_x11_update (CoglTexturePixmapX11 *tex_pixmap,
+@@ -2541,14 +2582,14 @@ _cogl_winsys_texture_pixmap_x11_update (CoglTexturePixmapX11 *tex_pixmap,
          }
        else
          {
@@ -539,15 +548,16 @@ index bff5178..334691c 100644
 +          texture_info->glx_tex = COGL_TEXTURE (
              cogl_texture_2d_new_with_size (ctx,
                                             tex->width,
-                                            tex->height,
-                                            texture_format));
+                                            tex->height));
+ 
+           _cogl_texture_set_internal_format (tex, texture_format);
  
 -          if (cogl_texture_allocate (glx_tex_pixmap->glx_tex, &error))
 +          if (cogl_texture_allocate (texture_info->glx_tex, &error))
              COGL_NOTE (TEXTURE_PIXMAP, "Created a texture 2d for %p",
                         tex_pixmap);
            else
-@@ -2449,36 +2490,37 @@ _cogl_winsys_texture_pixmap_x11_update (CoglTexturePixmapX11 *tex_pixmap,
+@@ -2586,36 +2627,37 @@ _cogl_winsys_texture_pixmap_x11_update (CoglTexturePixmapX11 *tex_pixmap,
                           "updates for %p because creating the GLXPixmap "
                           "with mipmap support failed", tex_pixmap);
  
@@ -593,7 +603,7 @@ index bff5178..334691c 100644
                                       NULL);
  
        /* According to the recommended usage in the spec for
-@@ -2491,10 +2533,10 @@ _cogl_winsys_texture_pixmap_x11_update (CoglTexturePixmapX11 *tex_pixmap,
+@@ -2628,10 +2670,10 @@ _cogl_winsys_texture_pixmap_x11_update (CoglTexturePixmapX11 *tex_pixmap,
         * on Mesa and NVidia drivers and it is also what Compiz does so
         * it is probably ok */
  
@@ -607,7 +617,7 @@ index bff5178..334691c 100644
      }
  
    return TRUE;
-@@ -2505,15 +2547,20 @@ _cogl_winsys_texture_pixmap_x11_damage_notify (CoglTexturePixmapX11 *tex_pixmap)
+@@ -2642,15 +2684,20 @@ _cogl_winsys_texture_pixmap_x11_damage_notify (CoglTexturePixmapX11 *tex_pixmap)
  {
    CoglTexturePixmapGLX *glx_tex_pixmap = tex_pixmap->winsys;
  
@@ -630,12 +640,12 @@ index bff5178..334691c 100644
 +    return glx_tex_pixmap->left.glx_tex;
  }
  
- static void
+ static CoglWinsysVtable _cogl_winsys_vtable =
 diff --git a/cogl/winsys/cogl-winsys-private.h b/cogl/winsys/cogl-winsys-private.h
-index 7cd2b24..31a1af9 100644
+index d6ff165..2c9cc98 100644
 --- a/cogl/winsys/cogl-winsys-private.h
 +++ b/cogl/winsys/cogl-winsys-private.h
-@@ -172,13 +172,15 @@ typedef struct _CoglWinsysVtable
+@@ -166,13 +166,15 @@ typedef struct _CoglWinsysVtable
  
    CoglBool
    (*texture_pixmap_x11_update) (CoglTexturePixmapX11 *tex_pixmap,
@@ -653,5 +663,5 @@ index 7cd2b24..31a1af9 100644
  
    void
 -- 
-1.9.3
+2.1.0
 

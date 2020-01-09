@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
- * Copyright (C) 2007,2008,2009 Intel Corporation.
+ * Copyright (C) 2007,2008,2009,2013 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  */
@@ -44,12 +51,14 @@
 #include "cogl-pipeline-opengl-private.h"
 #include "cogl-framebuffer-private.h"
 #include "cogl-onscreen-private.h"
-#include "cogl2-path.h"
 #include "cogl-attribute-private.h"
 #include "cogl1-context.h"
 #include "cogl-gpu-info-private.h"
 #include "cogl-config-private.h"
 #include "cogl-error-private.h"
+#include "cogl-gtype-private.h"
+
+#include "cogl/deprecated/cogl-framebuffer-deprecated.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -70,6 +79,7 @@
 static void _cogl_context_free (CoglContext *context);
 
 COGL_OBJECT_DEFINE (Context, context);
+COGL_GTYPE_DEFINE_CLASS (Context, context);
 
 extern void
 _cogl_create_context_driver (CoglContext *context);
@@ -80,10 +90,10 @@ static void
 _cogl_init_feature_overrides (CoglContext *ctx)
 {
   if (G_UNLIKELY (COGL_DEBUG_ENABLED (COGL_DEBUG_DISABLE_VBOS)))
-    ctx->private_feature_flags &= ~COGL_PRIVATE_FEATURE_VBOS;
+    COGL_FLAGS_SET (ctx->private_features, COGL_PRIVATE_FEATURE_VBOS, FALSE);
 
   if (G_UNLIKELY (COGL_DEBUG_ENABLED (COGL_DEBUG_DISABLE_PBOS)))
-    ctx->private_feature_flags &= ~COGL_PRIVATE_FEATURE_PBOS;
+    COGL_FLAGS_SET (ctx->private_features, COGL_PRIVATE_FEATURE_PBOS, FALSE);
 
   if (G_UNLIKELY (COGL_DEBUG_ENABLED (COGL_DEBUG_DISABLE_ARBFP)))
     {
@@ -95,6 +105,9 @@ _cogl_init_feature_overrides (CoglContext *ctx)
     {
       ctx->feature_flags &= ~COGL_FEATURE_SHADERS_GLSL;
       COGL_FLAGS_SET (ctx->features, COGL_FEATURE_ID_GLSL, FALSE);
+      COGL_FLAGS_SET (ctx->features,
+                      COGL_FEATURE_ID_PER_VERTEX_POINT_SIZE,
+                      FALSE);
     }
 
   if (G_UNLIKELY (COGL_DEBUG_ENABLED (COGL_DEBUG_DISABLE_NPOT_TEXTURES)))
@@ -133,8 +146,8 @@ cogl_context_new (CoglDisplay *display,
                   CoglError **error)
 {
   CoglContext *context;
-  GLubyte default_texture_data[] = { 0xff, 0xff, 0xff, 0x0 };
-  CoglBitmap *default_texture_bitmap;
+  uint8_t white_pixel[] = { 0xff, 0xff, 0xff, 0xff };
+  CoglBitmap *white_pixel_bitmap;
   const CoglWinsysVtable *winsys;
   int i;
   CoglError *internal_error = NULL;
@@ -177,7 +190,7 @@ cogl_context_new (CoglDisplay *display,
   /* Init default values */
   memset (context->features, 0, sizeof (context->features));
   context->feature_flags = 0;
-  context->private_feature_flags = 0;
+  memset (context->private_features, 0, sizeof (context->private_features));
 
   context->rectangle_state = COGL_WINSYS_RECTANGLE_STATE_UNKNOWN;
 
@@ -193,6 +206,7 @@ cogl_context_new (CoglDisplay *display,
         }
 
       display = cogl_display_new (renderer, NULL);
+      cogl_object_unref(renderer);
     }
   else
     cogl_object_ref (display);
@@ -215,6 +229,9 @@ cogl_context_new (CoglDisplay *display,
    * access these from the context. */
   context->driver_vtable = display->renderer->driver_vtable;
   context->texture_driver = display->renderer->texture_driver;
+
+  for (i = 0; i < G_N_ELEMENTS (context->private_features); i++)
+    context->private_features[i] |= display->renderer->private_features[i];
 
   winsys = _cogl_context_get_winsys (context);
   if (!winsys->context_init (context, error))
@@ -279,7 +296,7 @@ cogl_context_new (CoglDisplay *display,
   context->texture_units =
     g_array_new (FALSE, FALSE, sizeof (CoglTextureUnit));
 
-  if ((context->private_feature_flags & COGL_PRIVATE_FEATURE_ANY_GL))
+  if (_cogl_has_private_feature (context, COGL_PRIVATE_FEATURE_ANY_GL))
     {
       /* See cogl-pipeline.c for more details about why we leave texture unit 1
        * active by default... */
@@ -312,7 +329,8 @@ cogl_context_new (CoglDisplay *display,
   context->swap_callback_closures =
     g_hash_table_new (g_direct_hash, g_direct_equal);
 
-  COGL_TAILQ_INIT (&context->onscreen_events_queue);
+  _cogl_list_init (&context->onscreen_events_queue);
+  _cogl_list_init (&context->onscreen_dirty_queue);
 
   g_queue_init (&context->gles2_context_stack);
 
@@ -324,7 +342,7 @@ cogl_context_new (CoglDisplay *display,
 
   context->current_pipeline = NULL;
   context->current_pipeline_changes_since_flush = 0;
-  context->current_pipeline_skip_gl_color = FALSE;
+  context->current_pipeline_with_color_attrib = FALSE;
 
   _cogl_bitmask_init (&context->enabled_builtin_attributes);
   _cogl_bitmask_init (&context->enable_builtin_attributes_tmp);
@@ -373,7 +391,7 @@ cogl_context_new (CoglDisplay *display,
       cogl_object_unref (COGL_FRAMEBUFFER (window));
     }
 
-  context->current_path = cogl2_path_new ();
+  context->current_path = NULL;
   context->stencil_pipeline = cogl_pipeline_new (context);
 
   context->in_begin_gl_block = FALSE;
@@ -390,7 +408,7 @@ cogl_context_new (CoglDisplay *display,
   context->blit_texture_pipeline = NULL;
 
 #if defined (HAVE_COGL_GL) || defined (HAVE_COGL_GLES)
-  if ((context->private_feature_flags & COGL_PRIVATE_FEATURE_ALPHA_TEST))
+  if (_cogl_has_private_feature (context, COGL_PRIVATE_FEATURE_ALPHA_TEST))
     /* The default for GL_ALPHA_TEST is to always pass which is equivalent to
      * the test being disabled therefore we assume that for all drivers there
      * will be no performance impact if we always leave the test enabled which
@@ -422,41 +440,49 @@ cogl_context_new (CoglDisplay *display,
   _cogl_matrix_entry_cache_init (&context->builtin_flushed_projection);
   _cogl_matrix_entry_cache_init (&context->builtin_flushed_modelview);
 
-  default_texture_bitmap =
-    cogl_bitmap_new_for_data (context,
-                              1, 1, /* width/height */
-                              COGL_PIXEL_FORMAT_RGBA_8888_PRE,
-                              4, /* rowstride */
-                              default_texture_data);
-
   /* Create default textures used for fall backs */
   context->default_gl_texture_2d_tex =
-    cogl_texture_2d_new_from_bitmap (default_texture_bitmap,
-                                     /* internal format */
-                                     COGL_PIXEL_FORMAT_RGBA_8888_PRE,
-                                     NULL);
+    cogl_texture_2d_new_from_data (context,
+                                   1, 1,
+                                   COGL_PIXEL_FORMAT_RGBA_8888_PRE,
+                                   0, /* rowstride */
+                                   white_pixel,
+                                   NULL); /* abort on error */
 
   /* If 3D or rectangle textures aren't supported then these will
    * return errors that we can simply ignore. */
   internal_error = NULL;
   context->default_gl_texture_3d_tex =
-    cogl_texture_3d_new_from_bitmap (default_texture_bitmap,
-                                     1, /* height */
-                                     1, /* depth */
-                                     COGL_PIXEL_FORMAT_RGBA_8888_PRE,
-                                     &internal_error);
+    cogl_texture_3d_new_from_data (context,
+                                   1, 1, 1, /* width, height, depth */
+                                   COGL_PIXEL_FORMAT_RGBA_8888_PRE,
+                                   0, /* rowstride */
+                                   0, /* image stride */
+                                   white_pixel,
+                                   &internal_error);
   if (internal_error)
     cogl_error_free (internal_error);
+
+  /* TODO: add cogl_texture_rectangle_new_from_data() */
+  white_pixel_bitmap =
+    cogl_bitmap_new_for_data (context,
+                              1, 1, /* width/height */
+                              COGL_PIXEL_FORMAT_RGBA_8888_PRE,
+                              4, /* rowstride */
+                              white_pixel);
 
   internal_error = NULL;
   context->default_gl_texture_rect_tex =
-    cogl_texture_rectangle_new_from_bitmap (default_texture_bitmap,
-                                            COGL_PIXEL_FORMAT_RGBA_8888_PRE,
-                                            &internal_error);
+    cogl_texture_rectangle_new_from_bitmap (white_pixel_bitmap);
+
+  /* XXX: we need to allocate the texture now because the white_pixel
+   * data is on the stack */
+  cogl_texture_allocate (COGL_TEXTURE (context->default_gl_texture_rect_tex),
+                         &internal_error);
   if (internal_error)
     cogl_error_free (internal_error);
 
-  cogl_object_unref (default_texture_bitmap);
+  cogl_object_unref (white_pixel_bitmap);
 
   cogl_push_source (context->opaque_color_pipeline);
 
@@ -473,9 +499,11 @@ cogl_context_new (CoglDisplay *display,
      pipeline to track whether any layers have point sprite coords
      enabled. We don't need to do this for GL3 or GLES2 because point
      sprites are handled using a builtin varying in the shader. */
-  if ((context->private_feature_flags & COGL_PRIVATE_FEATURE_FIXED_FUNCTION) &&
+  if (_cogl_has_private_feature (context, COGL_PRIVATE_FEATURE_GL_FIXED) &&
       cogl_has_feature (context, COGL_FEATURE_ID_POINT_SPRITE))
     GE (context, glEnable (GL_POINT_SPRITE));
+
+  _cogl_list_init (&context->fences);
 
   return context;
 }
@@ -607,18 +635,11 @@ cogl_context_get_display (CoglContext *context)
   return context->display;
 }
 
-#ifdef COGL_HAS_EGL_SUPPORT
-EGLDisplay
-cogl_egl_context_get_egl_display (CoglContext *context)
+CoglRenderer *
+cogl_context_get_renderer (CoglContext *context)
 {
-  const CoglWinsysVtable *winsys = _cogl_context_get_winsys (context);
-
-  /* This should only be called for EGL contexts */
-  _COGL_RETURN_VAL_IF_FAIL (winsys->context_egl_get_egl_display != NULL, NULL);
-
-  return winsys->context_egl_get_egl_display (context);
+  return context->display->renderer;
 }
-#endif
 
 CoglBool
 _cogl_context_update_features (CoglContext *context,

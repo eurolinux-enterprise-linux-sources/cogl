@@ -46,7 +46,7 @@ paint_cb (void *user_data)
     cogl_pop_gles2_context (data->ctx);
 
     /* Draw scene with Cogl */
-    cogl_framebuffer_draw_primitive (data->fb, data->pipeline, data->triangle);
+    cogl_primitive_draw (data->triangle, data->fb, data->pipeline);
 
     cogl_onscreen_swap_buffers (COGL_ONSCREEN (data->fb));
 
@@ -70,7 +70,7 @@ main (int argc, char **argv)
     CoglOnscreen *onscreen;
     CoglError *error = NULL;
     CoglVertexP2C4 triangle_vertices[] = {
-        {0, 0.7, 0xff, 0x00, 0x00, 0x80},
+        {0, 0.7, 0xff, 0x00, 0x00, 0xff},
         {-0.7, -0.7, 0x00, 0xff, 0x00, 0xff},
         {0.7, -0.7, 0x00, 0x00, 0xff, 0xff}
     };
@@ -87,7 +87,7 @@ main (int argc, char **argv)
 
     onscreen = cogl_onscreen_new (data.ctx, 640, 480);
     cogl_onscreen_show (onscreen);
-    data.fb = COGL_FRAMEBUFFER (onscreen);
+    data.fb = onscreen;
 
     /* Prepare onscreen primitive */
     data.triangle = cogl_primitive_new_p2c4 (data.ctx,
@@ -96,11 +96,10 @@ main (int argc, char **argv)
     data.pipeline = cogl_pipeline_new (data.ctx);
 
     data.offscreen_texture =
-      cogl_texture_new_with_size (OFFSCREEN_WIDTH,
-                                  OFFSCREEN_HEIGHT,
-                                  COGL_TEXTURE_NO_SLICING,
-                                  COGL_PIXEL_FORMAT_ANY);
-    data.offscreen = cogl_offscreen_new_to_texture (data.offscreen_texture);
+      cogl_texture_2d_new_with_size (data.ctx,
+                                     OFFSCREEN_WIDTH,
+                                     OFFSCREEN_HEIGHT);
+    data.offscreen = cogl_offscreen_new_with_texture (data.offscreen_texture);
 
     data.gles2_ctx = cogl_gles2_context_new (data.ctx, &error);
     if (!data.gles2_ctx) {

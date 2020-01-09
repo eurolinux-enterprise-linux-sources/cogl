@@ -54,9 +54,13 @@ main (int argc, char **argv)
   UNPORTED_TEST (test_materials);
   ADD_TEST (test_pipeline_user_matrix, 0, 0);
   ADD_TEST (test_blend_strings, 0, 0);
+  ADD_TEST (test_blend, 0, 0);
   ADD_TEST (test_premult, 0, 0);
   UNPORTED_TEST (test_readpixels);
+#ifdef COGL_HAS_COGL_PATH_SUPPORT
   ADD_TEST (test_path, 0, 0);
+  ADD_TEST (test_path_clip, 0, 0);
+#endif
   ADD_TEST (test_depth_test, 0, 0);
   ADD_TEST (test_color_mask, 0, 0);
   ADD_TEST (test_backface_culling, 0, TEST_REQUIREMENT_NPOT);
@@ -95,20 +99,27 @@ main (int argc, char **argv)
   ADD_TEST (test_snippets, TEST_REQUIREMENT_GLSL, 0);
   ADD_TEST (test_custom_attributes, TEST_REQUIREMENT_GLSL, 0);
 
-  ADD_TEST (test_bitmask, 0, 0);
-
   ADD_TEST (test_offscreen, 0, 0);
   ADD_TEST (test_framebuffer_get_bits,
             TEST_REQUIREMENT_OFFSCREEN | TEST_REQUIREMENT_GL,
             0);
 
   ADD_TEST (test_point_size, 0, 0);
+  ADD_TEST (test_point_size_attribute,
+            TEST_REQUIREMENT_PER_VERTEX_POINT_SIZE, 0);
+  ADD_TEST (test_point_size_attribute_snippet,
+            TEST_REQUIREMENT_PER_VERTEX_POINT_SIZE |
+            TEST_REQUIREMENT_GLSL, 0);
   ADD_TEST (test_point_sprite,
             TEST_REQUIREMENT_POINT_SPRITE,
             0);
   ADD_TEST (test_point_sprite_orientation,
             TEST_REQUIREMENT_POINT_SPRITE,
             TEST_KNOWN_FAILURE);
+  ADD_TEST (test_point_sprite_glsl,
+            TEST_REQUIREMENT_POINT_SPRITE |
+            TEST_REQUIREMENT_GLSL,
+            0);
 
   ADD_TEST (test_version, 0, 0);
 
@@ -120,6 +131,9 @@ main (int argc, char **argv)
 
   ADD_TEST (test_copy_replace_texture, 0, 0);
 
+  ADD_TEST (test_pipeline_cache_unrefs_texture, 0, 0);
+  ADD_TEST (test_pipeline_shader_state, TEST_REQUIREMENT_GLSL, 0);
+
   UNPORTED_TEST (test_viewport);
 
   ADD_TEST (test_gles2_context, TEST_REQUIREMENT_GLES2_CONTEXT, 0);
@@ -129,6 +143,13 @@ main (int argc, char **argv)
             0);
 
   ADD_TEST (test_euler_quaternion, 0, 0);
+  ADD_TEST (test_color_hsl, 0, 0);
+
+  ADD_TEST (test_fence, TEST_REQUIREMENT_FENCE, 0);
+
+  ADD_TEST (test_texture_no_allocate, 0, 0);
+
+  ADD_TEST (test_texture_rg, TEST_REQUIREMENT_TEXTURE_RG, 0);
 
   g_printerr ("Unknown test name \"%s\"\n", argv[1]);
 

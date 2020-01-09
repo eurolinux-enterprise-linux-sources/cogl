@@ -20,7 +20,8 @@ endif
 
 common_ldadd = \
 	$(COGL_DEP_LIBS) \
-	$(top_builddir)/cogl/libcogl.la
+	$(top_builddir)/cogl/libcogl.la \
+	$(LIBM)
 
 if !USE_GLIB
 common_ldadd += $(top_builddir)/deps/glib/libglib.la
@@ -32,7 +33,7 @@ cogl_info_SOURCES = cogl-info.c
 cogl_info_LDADD = $(common_ldadd)
 
 if USE_GLIB
-programs += cogl-hello cogl-msaa cogl-gles2-context
+programs += cogl-hello cogl-msaa cogl-gles2-context cogl-point-sprites
 examples_datadir = $(pkgdatadir)/examples-data
 examples_data_DATA =
 
@@ -40,6 +41,8 @@ cogl_hello_SOURCES = cogl-hello.c
 cogl_hello_LDADD = $(common_ldadd)
 cogl_msaa_SOURCES = cogl-msaa.c
 cogl_msaa_LDADD = $(common_ldadd)
+cogl_point_sprites_SOURCES = cogl-point-sprites.c
+cogl_point_sprites_LDADD = $(common_ldadd)
 
 if BUILD_COGL_PANGO
 programs += cogl-crate
@@ -47,6 +50,13 @@ cogl_crate_SOURCES = cogl-crate.c
 cogl_crate_LDADD = $(common_ldadd) $(COGL_PANGO_DEP_LIBS) $(top_builddir)/cogl-pango/libcogl-pango.la
 cogl_crate_CFLAGS = $(AM_CFLAGS) $(COGL_PANGO_DEP_CFLAGS)
 examples_data_DATA += crate.jpg
+endif
+
+if BUILD_COGL_GST
+programs += cogl-basic-video-player
+cogl_basic_video_player_SOURCES = cogl-basic-video-player.c
+cogl_basic_video_player_LDADD = $(common_ldadd) $(COGL_GST_DEP_LIBS) $(top_builddir)/cogl-gst/libcogl-gst.la
+cogl_basic_video_player_CFLAGS = $(AM_CFLAGS) $(COGL_GST_DEP_CFLAGS) -I$(top_builddir)/cogl-gst
 endif
 
 if X11_TESTS
@@ -76,11 +86,25 @@ endif
 
 endif #USE_GLIB
 
+# XXX although emscripten "supports sdl" we can't build cogl-sdl-hello
+# un-modified for emscripten since emscripten doesn't support
+# SDL_WaitEvent() and we need to use some special emscripten apis
+# to create a mainloop....
+if USING_EMSCRIPTEN
+
+programs += cogl-emscripten-hello
+cogl_emscripten_hello_SOURCES = cogl-emscripten-hello.c
+cogl_emscripten_hello_LDADD = $(common_ldadd)
+
+else # USING_EMSCRIPTEN
+
 if SUPPORT_SDL
 programs += cogl-sdl-hello
 cogl_sdl_hello_SOURCES = cogl-sdl-hello.c
 cogl_sdl_hello_LDADD = $(common_ldadd)
 endif
+
+endif # USING_EMSCRIPTEN
 
 if SUPPORT_SDL2
 programs += cogl-sdl2-hello
@@ -88,6 +112,12 @@ cogl_sdl2_hello_SOURCES = cogl-sdl2-hello.c
 cogl_sdl2_hello_LDADD = $(common_ldadd)
 endif
 
+if USING_EMSCRIPTEN
+%.html: %.o $(top_builddir)/cogl/.libs/libcogl2.so $(top_builddir)/deps/glib/.libs/libglib.a
+	$(CC) $(AM_CFLAGS) $(CFLAGS) --js-library $(top_srcdir)/examples/emscripten-example-js-library.js -o $@ $^
+
+all-local: $(addsuffix .html, $(programs))
+endif
 
 if INSTALL_EXAMPLES
 bin_PROGRAMS = $(programs)
@@ -96,7 +126,10 @@ noinst_PROGRAMS = $(programs)
 endif
 
 EXTRA_DIST = \
+	cogl-gjs.js \
 	crate.jpg \
+	emscripten-example-js.h \
+	emscripten-example-js-library.js \
 	android/hello/AndroidManifest.xml \
 	android/hello/jni/Application.mk \
 	android/hello/jni/Android.mk \

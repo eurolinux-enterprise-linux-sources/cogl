@@ -39,7 +39,7 @@ create_bitmap (void)
                                       BITMAP_SIZE,
                                       BITMAP_SIZE,
                                       COGL_PIXEL_FORMAT_RGBA_8888);
-  buffer = COGL_BUFFER (cogl_bitmap_get_buffer (bitmap));
+  buffer = cogl_bitmap_get_buffer (bitmap);
 
   g_assert (cogl_is_pixel_buffer (buffer));
   g_assert (cogl_is_buffer (buffer));
@@ -56,7 +56,7 @@ static CoglBitmap *
 create_and_fill_bitmap (void)
 {
   CoglBitmap *bitmap = create_bitmap ();
-  CoglBuffer *buffer = COGL_BUFFER (cogl_bitmap_get_buffer (bitmap));
+  CoglBuffer *buffer = cogl_bitmap_get_buffer (bitmap);
   uint8_t *map;
   unsigned int stride;
 
@@ -69,7 +69,7 @@ create_and_fill_bitmap (void)
 
   generate_bitmap_data (map, stride);
 
-  cogl_buffer_unmap (COGL_BUFFER (buffer));
+  cogl_buffer_unmap (buffer);
 
   return bitmap;
 }
@@ -79,13 +79,11 @@ create_texture_from_bitmap (CoglBitmap *bitmap)
 {
   CoglTexture2D *texture;
 
-  texture = cogl_texture_2d_new_from_bitmap (bitmap,
-                                             COGL_PIXEL_FORMAT_RGBA_8888,
-                                             NULL); /* don't catch errors */
+  texture = cogl_texture_2d_new_from_bitmap (bitmap);
 
   g_assert (texture != NULL);
 
-  return COGL_TEXTURE (texture);
+  return texture;
 }
 
 static CoglPipeline *
@@ -168,7 +166,7 @@ void
 test_pixel_buffer_set_data (void)
 {
   CoglBitmap *bitmap = create_bitmap ();
-  CoglBuffer *buffer = COGL_BUFFER (cogl_bitmap_get_buffer (bitmap));
+  CoglBuffer *buffer = cogl_bitmap_get_buffer (bitmap);
   CoglPipeline *pipeline;
   CoglTexture *texture;
   uint8_t *data;
@@ -221,14 +219,13 @@ create_white_texture (void)
                                            BITMAP_SIZE,
                                            BITMAP_SIZE,
                                            COGL_PIXEL_FORMAT_RGBA_8888,
-                                           COGL_PIXEL_FORMAT_ANY,
                                            BITMAP_SIZE * 4, /* rowstride */
                                            data,
                                            NULL); /* don't catch errors */
 
   g_free (data);
 
-  return COGL_TEXTURE (texture);
+  return texture;
 }
 
 void

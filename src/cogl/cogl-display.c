@@ -1,24 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2011 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * Authors:
  *   Robert Bragg <robert@linux.intel.com>
@@ -39,10 +44,12 @@
 #ifdef COGL_HAS_WAYLAND_EGL_SERVER_SUPPORT
 #include "cogl-wayland-server.h"
 #endif
+#include "cogl-gtype-private.h"
 
 static void _cogl_display_free (CoglDisplay *display);
 
 COGL_OBJECT_DEFINE (Display, display);
+COGL_GTYPE_DEFINE_CLASS (Display, display);
 
 static const CoglWinsysVtable *
 _cogl_display_get_winsys (CoglDisplay *display)
@@ -95,25 +102,43 @@ cogl_display_new (CoglRenderer *renderer,
   if (!cogl_renderer_connect (display->renderer, &error))
     g_error ("Failed to connect to renderer: %s\n", error->message);
 
-  display->onscreen_template = onscreen_template;
-  if (onscreen_template)
-    cogl_object_ref (onscreen_template);
-  else
-    display->onscreen_template = cogl_onscreen_template_new (NULL);
-
   display->setup = FALSE;
 
 #ifdef COGL_HAS_EGL_PLATFORM_GDL_SUPPORT
   display->gdl_plane = GDL_PLANE_ID_UPP_C;
 #endif
 
-  return _cogl_display_object_new (display);
+  display = _cogl_display_object_new (display);
+
+  cogl_display_set_onscreen_template (display, onscreen_template);
+
+  return display;
 }
 
 CoglRenderer *
 cogl_display_get_renderer (CoglDisplay *display)
 {
   return display->renderer;
+}
+
+void
+cogl_display_set_onscreen_template (CoglDisplay *display,
+                                    CoglOnscreenTemplate *onscreen_template)
+{
+  _COGL_RETURN_IF_FAIL (display->setup == FALSE);
+
+  if (onscreen_template)
+    cogl_object_ref (onscreen_template);
+
+  if (display->onscreen_template)
+    cogl_object_unref (display->onscreen_template);
+
+  display->onscreen_template = onscreen_template;
+
+  /* NB: we want to maintain the invariable that there is always an
+   * onscreen template associated with a CoglDisplay... */
+  if (!onscreen_template)
+    display->onscreen_template = cogl_onscreen_template_new (NULL);
 }
 
 CoglBool

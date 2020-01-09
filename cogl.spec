@@ -1,19 +1,18 @@
+%if 0%{?fedora}
+%global with_wayland 1
+%endif
+
+#global with_tests 1
+
 Name:          cogl
-Version:       1.14.0
-Release:       6%{?dist}
+Version:       1.18.2
+Release:       10%{?dist}
 Summary:       A library for using 3D graphics hardware to draw pretty pictures
 
 Group:         Development/Libraries
 License:       LGPLv2+
 URL:           http://www.clutter-project.org/
-Source0:       http://download.gnome.org/sources/cogl/1.14/cogl-%{version}.tar.xz
-# Updates to a git snapshot of the 1.4 branch of Cogl as of 2013-05-01,
-# since there is no 1.4.1 yet. Fixes, among other things
-# https://bugzilla.gnome.org/show_bug.cgi?id=699431
-# extra BRs just because we're touching Makefile.am in this patch
-Patch0: cogl-1.14.0-21-ge26464f.patch
-# Don't disable copy_sub_buffer on llvmpipe
-Patch1: cogl-1.14.0-swrast-copy-sub-buffer.patch
+Source0:       http://download.gnome.org/sources/cogl/1.18/cogl-%{version}.tar.xz
 
 # Support for quadbuffer stereo (patches upstream as of the Cogl 1.20
 # development branch)
@@ -23,6 +22,7 @@ Patch11: CoglTexturePixmapX11-add-support-for-stereo-content.patch
 BuildRequires: autoconf automake libtool gettext-devel
 
 BuildRequires: cairo-devel
+BuildRequires: chrpath
 BuildRequires: gdk-pixbuf2-devel
 BuildRequires: glib2-devel
 BuildRequires: gobject-introspection-devel
@@ -33,10 +33,22 @@ BuildRequires: libXdamage-devel
 BuildRequires: libXext-devel
 BuildRequires: libXfixes-devel
 BuildRequires: mesa-libGL-devel
+BuildRequires: mesa-libgbm-devel
 BuildRequires: pango-devel
 BuildRequires: pkgconfig
 
-Conflicts: mesa-dri-drivers < 9.2.5-1
+%if 0%{?with_wayland}
+BuildRequires: libwayland-server-devel
+BuildRequires: libwayland-client-devel
+BuildRequires: libwayland-cursor-devel
+BuildRequires: libwayland-egl-devel
+BuildRequires: libxkbcommon-devel
+%endif
+
+%if 0%{?fedora}
+# From rhughes-f20-gnome-3-12 copr
+Obsoletes:     compat-cogl116 < 1.18
+%endif
 
 %description
 Cogl is a small open source library for using 3D graphics hardware to draw
@@ -58,10 +70,7 @@ options we are interested in for the future.
 %package devel
 Summary:       %{name} development environment
 Group:         Development/Libraries
-Requires:      %{name} = %{version}-%{release}
-Requires:      pkgconfig glib2-devel pango-devel cairo-devel
-Requires:      mesa-libGL-devel
-Requires:      gobject-introspection-devel
+Requires:      %{name}%{?_isa} = %{version}-%{release}
 
 %description devel
 Header files and libraries for building and developing apps with %{name}.
@@ -75,10 +84,17 @@ BuildArch:     noarch
 %description   doc
 This package contains documentation for %{name}.
 
+%if 0%{?with_tests}
+%package       tests
+Summary:       Tests for %{name}
+Group:         Development/Tools
+
+%description   tests
+This package contains the installable tests for %{cogl}.
+%endif
+
 %prep
 %setup -q
-%patch0 -p1
-%patch1 -p1
 
 %patch10 -p1
 %patch11 -p1
@@ -86,18 +102,35 @@ This package contains documentation for %{name}.
 %build
 CFLAGS="$RPM_OPT_FLAGS -fPIC"
 autoreconf -vif
-%configure --enable-cairo=yes --enable-gdk-pixbuf=yes --enable-cogl-pango=yes --enable-glx=yes --enable-gtk-doc --enable-introspection=yes
+%configure \
+  --enable-cairo=yes \
+  --enable-cogl-pango=yes \
+  --enable-gdk-pixbuf=yes \
+  --enable-glx=yes \
+  --enable-gtk-doc \
+  --enable-introspection=yes \
+  --enable-kms-egl-platform \
+%if 0%{?with_wayland}
+  --enable-wayland-egl-platform \
+  --enable-wayland-egl-server \
+%endif
+  --enable-xlib-egl-platform \
+  %{?with_tests:--enable-installed-tests}
 
-make V=1
+make %{?_smp_mflags} V=1
 
 %install
 make install DESTDIR=%{buildroot} INSTALL='install -p'
 
 #Remove libtool archives.
-find %{buildroot} -name '*.la' -exec rm -f {} ';'
+find %{buildroot} -name '*.la' -delete
 
 # This gets installed by mistake
 rm %{buildroot}%{_datadir}/cogl/examples-data/crate.jpg
+
+# Remove lib64 rpaths
+chrpath --delete $RPM_BUILD_ROOT%{_libdir}/libcogl-path.so
+chrpath --delete $RPM_BUILD_ROOT%{_libdir}/libcogl-pango.so
 
 %find_lang %{name}
 
@@ -107,7 +140,7 @@ rm %{buildroot}%{_datadir}/cogl/examples-data/crate.jpg
 
 %files -f %{name}.lang
 %doc COPYING NEWS README ChangeLog
-%{_libdir}/libcogl*.so.*
+%{_libdir}/libcogl*.so.20*
 %{_libdir}/girepository-1.0/Cogl*.typelib
 
 %files devel
@@ -120,27 +153,102 @@ rm %{buildroot}%{_datadir}/cogl/examples-data/crate.jpg
 %{_datadir}/gtk-doc/html/cogl
 %{_datadir}/gtk-doc/html/cogl-2.0-experimental
 
+%if 0%{?with_tests}
+%files tests
+%{_datadir}/installed-tests/%{name}
+%{_libexecdir}/installed-tests/%{name}
+%endif
+
 %changelog
-* Thu Jul 17 2014 Owen Taylor <otaylor@redhat.com> 1.14.1-6
-- Add patches for quadbuffer stereo suppport
-  Resolves: rhbz#1108890
+* Thu Apr  9 2015 Rui Matos <rmatos@redhat.com> - 1.18.2-10
+- Rebase to 1.18.2 - Resolves: rhbz#1174508
 
-* Wed Jan 29 2014 Adam Jackson <ajax@redhat.com> 1.14.0-5.2
-- Ensure the glBlitFramebuffer case is not hit for swrast, since that's
-  still broken.
+* Sun Nov 16 2014 Kalev Lember <kalevlember@gmail.com> - 1.18.2-9
+- Obsolete compat-cogl116 from rhughes-f20-gnome-3-12 copr
 
-* Tue Jan 28 2014 Adam Jackson <ajax@redhat.com> 1.14.0-5.1
-- Enable GLX_MESA_copy_sub_buffer on llvmpipe, since RHEL's Mesa includes
-  a fix for that; also conflict with Mesas that don't.
+* Thu Nov 13 2014 Kalev Lember <kalevlember@gmail.com> - 1.18.2-8
+- Disable cogl-gst as long as we don't have clutter-gst3 (#1158676)
 
-* Fri Jan 24 2014 Daniel Mach <dmach@redhat.com> - 1.14.0-5
-- Mass rebuild 2014-01-24
+* Sat Nov 01 2014 Richard Hughes <rhughes@redhat.com> - 1.18.2-7
+- Fix compile on RHEL, harder
 
-* Fri Dec 27 2013 Daniel Mach <dmach@redhat.com> - 1.14.0-4
-- Mass rebuild 2013-12-27
+* Mon Oct 27 2014 Richard Hughes <rhughes@redhat.com> - 1.18.2-6
+- Fix compile on RHEL
+
+* Fri Aug 22 2014 Kalev Lember <kalevlember@gmail.com> - 1.18.2-5
+- Remove lib64 rpaths (#1132876)
+
+* Sat Aug 16 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org>
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
+
+* Tue Jul 22 2014 Kalev Lember <kalevlember@gmail.com> - 1.18.2-3
+- Rebuilt for gobject-introspection 1.41.4
+
+* Fri Jul 11 2014 Peter Robinson <pbrobinson@fedoraproject.org> 1.18.2-2
+- Run make check but don't fail build on it
+
+* Fri Jul 04 2014 Kalev Lember <kalevlember@gmail.com> - 1.18.2-1
+- Update to 1.18.2
+
+* Sat Jun 07 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.18.0-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
+
+* Fri May 23 2014 Kalev Lember <kalevlember@gmail.com> - 1.18.0-3
+- Backport an upstream fix for a totem crash
+
+* Thu May 08 2014 Adam Jackson <ajax@redhat.com>
+- Add optional installed-tests subpackage
+
+* Mon Apr 28 2014 Richard Hughes <rhughes@redhat.com> - 1.18.0-2
+- Build with --enable-cogl-gst
+
+* Fri Mar 21 2014 Kalev Lember <kalevlember@gmail.com> - 1.18.0-1
+- Update to 1.18.0
+
+* Fri Mar 21 2014 Kalev Lember <kalevlember@gmail.com> - 1.17.5-1.gitbb10532
+- Update to 1.17.5 git snapshot
+
+* Fri Feb 21 2014 Kalev Lember <kalevlember@gmail.com> - 1.17.4-2
+- Drop compat-libcogl19
+
+* Thu Feb 20 2014 Kalev Lember <kalevlember@gmail.com> - 1.17.4-1
+- Update to 1.17.4, which includes soname bump
+- Build a temporary compat-libcogl19 subpackage to ease the rebuilds
+
+* Wed Feb 05 2014 Richard Hughes <rhughes@redhat.com> - 1.17.2-1
+- Update to 1.17.2
+
+* Tue Jan 21 2014 Richard Hughes <rhughes@redhat.com> - 1.16.2-1
+- Update to 1.16.2
+
+* Wed Sep 25 2013 Dan Horák <dan[at]danny.cz> - 1.16.0-2
+- fix build on big endians (#1011893)
+
+* Tue Sep 24 2013 Kalev Lember <kalevlember@gmail.com> - 1.16.0-1
+- Update to 1.16.0
+
+* Thu Sep 12 2013 Kalev Lember <kalevlember@gmail.com> - 1.15.10-3
+- More configure options for enabling the gnome-shell Wayland compositor
+- Enable parallel build
+
+* Tue Sep 10 2013 Matthias Clasen <mclasen@redhat.com> - 1.15.10-2
+- Add configure options that are needed to enable the gnome-shell
+  Wayland compositor
+
+* Mon Sep 02 2013 Kalev Lember <kalevlember@gmail.com> - 1.15.10-1
+- Update to 1.15.10
+
+* Thu Aug 22 2013 Kalev Lember <kalevlember@gmail.com> - 1.15.8-1
+- Update to 1.15.8
+
+* Fri Aug 09 2013 Kalev Lember <kalevlember@gmail.com> - 1.15.4-1
+- Update to 1.15.4
+
+* Sat Aug 03 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.14.0-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
 
 * Wed Jun 12 2013 Kalev Lember <kalevlember@gmail.com> 1.14.0-3
-- Disable the wayland backend for F19 (#973542)
+- Rebuilt
 
 * Wed May 22 2013 Adam Jackson <ajax@redhat.com> 1.14.0-2
 - cogl-1.14.0-21-ge26464f.patch: Sync with 1.14 branch for a crash fix.

@@ -1,23 +1,30 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2007,2008,2009 Intel Corporation.
  * Copyright (C) 2010 Red Hat, Inc.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  *
@@ -56,6 +63,7 @@
 #include "cogl-sub-texture.h"
 #include "cogl-primitive-texture.h"
 #include "cogl-error-private.h"
+#include "cogl-gtype-private.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -65,6 +73,8 @@
 #ifndef GL_RED
 #define GL_RED 0x1903
 #endif
+
+COGL_GTYPE_DEFINE_INTERFACE (Texture, texture);
 
 uint32_t
 cogl_texture_error_quark (void)
@@ -102,40 +112,13 @@ cogl_is_texture (void *object)
   return FALSE;
 }
 
-void *
-cogl_texture_ref (void *object)
-{
-  if (!cogl_is_texture (object))
-    return NULL;
-
-  _COGL_OBJECT_DEBUG_REF (CoglTexture, object);
-
-  cogl_object_ref (object);
-
-  return object;
-}
-
-void
-cogl_texture_unref (void *object)
-{
-  if (!cogl_is_texture (object))
-    {
-      g_warning (G_STRINGIFY (cogl_texture_unref)
-                 ": Ignoring unref of CoglObject "
-                 "due to type mismatch");
-      return;
-    }
-
-  _COGL_OBJECT_DEBUG_UNREF (CoglTexture, object);
-
-  cogl_object_unref (object);
-}
-
 void
 _cogl_texture_init (CoglTexture *texture,
                     CoglContext *context,
                     int width,
                     int height,
+                    CoglPixelFormat src_format,
+                    CoglTextureLoader *loader,
                     const CoglTextureVtable *vtable)
 {
   texture->context = context;
@@ -145,11 +128,59 @@ _cogl_texture_init (CoglTexture *texture,
   texture->allocated = FALSE;
   texture->vtable = vtable;
   texture->framebuffers = NULL;
+
+  texture->loader = loader;
+
+  _cogl_texture_set_internal_format (texture, src_format);
+
+  /* Although we want to initialize texture::components according
+   * to the source format, we always want the internal layout to
+   * be considered premultiplied by default.
+   *
+   * NB: this ->premultiplied state is user configurable so to avoid
+   * awkward documentation, setting this to 'true' does not depend on
+   * ->components having an alpha component (we will simply ignore the
+   * premultiplied status later if there is no alpha component).
+   * This way we don't have to worry about updating the
+   * ->premultiplied state in _set_components().  Similarly we don't
+   * have to worry about updating the ->components state in
+   * _set_premultiplied().
+   */
+  texture->premultiplied = TRUE;
+}
+
+static void
+_cogl_texture_free_loader (CoglTexture *texture)
+{
+  if (texture->loader)
+    {
+      CoglTextureLoader *loader = texture->loader;
+      switch (loader->src_type)
+        {
+        case COGL_TEXTURE_SOURCE_TYPE_SIZED:
+        case COGL_TEXTURE_SOURCE_TYPE_EGL_IMAGE:
+        case COGL_TEXTURE_SOURCE_TYPE_GL_FOREIGN:
+          break;
+        case COGL_TEXTURE_SOURCE_TYPE_BITMAP:
+          cogl_object_unref (loader->src.bitmap.bitmap);
+          break;
+        }
+      g_slice_free (CoglTextureLoader, loader);
+      texture->loader = NULL;
+    }
+}
+
+CoglTextureLoader *
+_cogl_texture_create_loader (void)
+{
+  return g_slice_new0 (CoglTextureLoader);
 }
 
 void
 _cogl_texture_free (CoglTexture *texture)
 {
+  _cogl_texture_free_loader (texture);
+
   g_free (texture);
 }
 
@@ -164,120 +195,6 @@ _cogl_texture_needs_premult_conversion (CoglPixelFormat src_format,
           (dst_format & COGL_PREMULT_BIT));
 }
 
-CoglPixelFormat
-_cogl_texture_determine_internal_format (CoglPixelFormat src_format,
-                                         CoglPixelFormat dst_format)
-{
-  /* If the application hasn't specified a specific format then we'll
-   * pick the most appropriate. By default Cogl will use a
-   * premultiplied internal format. Later we will add control over
-   * this. */
-  if (dst_format == COGL_PIXEL_FORMAT_ANY)
-    {
-      if (COGL_PIXEL_FORMAT_CAN_HAVE_PREMULT (src_format))
-        return src_format | COGL_PREMULT_BIT;
-      else
-        return src_format;
-    }
-  else
-    /* XXX: It might be nice to make this match the component ordering
-       of the source format when the formats are otherwise the same
-       because on GL there is no way to specify the ordering of the
-       internal format. However when using GLES with the
-       GL_EXT_texture_format_BGRA8888 the order of the internal format
-       becomes important because it must exactly match the format of
-       the uploaded data. That means that if someone creates a texture
-       with some RGBA data and then later tries to upload BGRA data we
-       do actually have to swizzle the components */
-    return dst_format;
-}
-
-CoglBitmap *
-_cogl_texture_prepare_for_upload (CoglBitmap *src_bmp,
-                                  CoglPixelFormat dst_format,
-                                  CoglPixelFormat *dst_format_out,
-                                  GLenum *out_glintformat,
-                                  GLenum *out_glformat,
-                                  GLenum *out_gltype,
-                                  CoglError **error)
-{
-  CoglContext *ctx = _cogl_bitmap_get_context (src_bmp);
-  CoglPixelFormat src_format = cogl_bitmap_get_format (src_bmp);
-  CoglBitmap *dst_bmp;
-
-  dst_format = _cogl_texture_determine_internal_format (src_format,
-                                                        dst_format);
-
-  /* OpenGL supports specifying a different format for the internal
-     format when uploading texture data. We should use this to convert
-     formats because it is likely to be faster and support more types
-     than the Cogl bitmap code. However under GLES the internal format
-     must be the same as the bitmap format and it only supports a
-     limited number of formats so we must convert using the Cogl
-     bitmap code instead */
-
-  /* If the driver doesn't natively support alpha textures then it
-   * won't work correctly to convert to/from component-alpha
-   * textures */
-
-  if ((ctx->private_feature_flags & COGL_PRIVATE_FEATURE_FORMAT_CONVERSION) &&
-      ((ctx->private_feature_flags & COGL_PRIVATE_FEATURE_ALPHA_TEXTURES) ||
-       (src_format != COGL_PIXEL_FORMAT_A_8 &&
-        dst_format != COGL_PIXEL_FORMAT_A_8) ||
-       src_format == dst_format))
-    {
-      /* If the source format does not have the same premult flag as the
-         dst format then we need to copy and convert it */
-      if (_cogl_texture_needs_premult_conversion (src_format,
-                                                  dst_format))
-        {
-          dst_bmp = _cogl_bitmap_convert (src_bmp,
-                                          src_format ^ COGL_PREMULT_BIT,
-                                          error);
-
-          if (dst_bmp == NULL)
-            return NULL;
-        }
-      else
-        dst_bmp = cogl_object_ref (src_bmp);
-
-      /* Use the source format from the src bitmap type and the internal
-         format from the dst format type so that GL can do the
-         conversion */
-      ctx->driver_vtable->pixel_format_to_gl (ctx,
-                                              src_format,
-                                              NULL, /* internal format */
-                                              out_glformat,
-                                              out_gltype);
-      ctx->driver_vtable->pixel_format_to_gl (ctx,
-                                              dst_format,
-                                              out_glintformat,
-                                              NULL,
-                                              NULL);
-
-    }
-  else
-    {
-      CoglPixelFormat closest_format;
-
-      closest_format = ctx->driver_vtable->pixel_format_to_gl (ctx,
-                                                               dst_format,
-                                                               out_glintformat,
-                                                               out_glformat,
-                                                               out_gltype);
-
-      if (closest_format != src_format)
-        dst_bmp = _cogl_bitmap_convert (src_bmp, closest_format, error);
-      else
-        dst_bmp = cogl_object_ref (src_bmp);
-    }
-
-  if (dst_format_out)
-    *dst_format_out = dst_format;
-
-  return dst_bmp;
-}
-
 CoglBool
 _cogl_texture_is_foreign (CoglTexture *texture)
 {
@@ -285,19 +202,6 @@ _cogl_texture_is_foreign (CoglTexture *texture)
     return texture->vtable->is_foreign (texture);
   else
     return FALSE;
-}
-
-CoglTexture *
-cogl_texture_new_from_sub_texture (CoglTexture *full_texture,
-                                   int sub_x,
-                                   int sub_y,
-                                   int sub_width,
-                                   int sub_height)
-{
-  _COGL_GET_CONTEXT (ctx, NULL);
-  return COGL_TEXTURE (cogl_sub_texture_new (ctx,
-                                             full_texture, sub_x, sub_y,
-                                             sub_width, sub_height));
 }
 
 unsigned int
@@ -313,22 +217,11 @@ cogl_texture_get_height (CoglTexture *texture)
 }
 
 CoglPixelFormat
-cogl_texture_get_format (CoglTexture *texture)
+_cogl_texture_get_format (CoglTexture *texture)
 {
+  if (!texture->allocated)
+    cogl_texture_allocate (texture, NULL);
   return texture->vtable->get_format (texture);
-}
-
-unsigned int
-cogl_texture_get_rowstride (CoglTexture *texture)
-{
-  CoglPixelFormat format = cogl_texture_get_format (texture);
-  /* FIXME: This function should go away. It previously just returned
-     the rowstride that was used to upload the data as far as I can
-     tell. This is not helpful */
-
-  /* Just guess at a suitable rowstride */
-  return (_cogl_pixel_format_get_bytes_per_pixel (format)
-          * cogl_texture_get_width (texture));
 }
 
 int
@@ -395,6 +288,8 @@ _cogl_texture_get_level_size (CoglTexture *texture,
 CoglBool
 cogl_texture_is_sliced (CoglTexture *texture)
 {
+  if (!texture->allocated)
+    cogl_texture_allocate (texture, NULL);
   return texture->vtable->is_sliced (texture);
 }
 
@@ -405,6 +300,8 @@ cogl_texture_is_sliced (CoglTexture *texture)
 CoglBool
 _cogl_texture_can_hardware_repeat (CoglTexture *texture)
 {
+  if (!texture->allocated)
+    cogl_texture_allocate (texture, NULL);
   return texture->vtable->can_hardware_repeat (texture);
 }
 
@@ -431,6 +328,9 @@ cogl_texture_get_gl_texture (CoglTexture *texture,
 			     GLuint *out_gl_handle,
 			     GLenum *out_gl_target)
 {
+  if (!texture->allocated)
+    cogl_texture_allocate (texture, NULL);
+
   return texture->vtable->get_gl_texture (texture,
                                           out_gl_handle, out_gl_target);
 }
@@ -493,7 +393,7 @@ _cogl_texture_set_region_from_bitmap (CoglTexture *texture,
   /* Note that we don't prepare the bitmap for upload here because
      some backends may be internally using a different format for the
      actual GL texture than that reported by
-     cogl_texture_get_format. For example the atlas textures are
+     _cogl_texture_get_format. For example the atlas textures are
      always stored in an RGBA texture even if the texture format is
      advertised as RGB. */
 
@@ -827,7 +727,7 @@ _cogl_texture_draw_and_read (CoglTexture *texture,
    *
    * TODO: verify if this is still an issue
    */
-  if ((cogl_texture_get_format (texture) & COGL_A_BIT)/* && a_bits == 0*/)
+  if ((_cogl_texture_get_format (texture) & COGL_A_BIT)/* && a_bits == 0*/)
     {
       uint8_t *srcdata;
       uint8_t *dstdata;
@@ -921,27 +821,29 @@ EXIT:
 }
 
 static CoglBool
-get_texture_bits_via_offscreen (CoglTexture    *texture,
-                                int             x,
-                                int             y,
-                                int             width,
-                                int             height,
-                                uint8_t         *dst_bits,
-                                unsigned int    dst_rowstride,
-                                CoglPixelFormat dst_format)
+get_texture_bits_via_offscreen (CoglTexture *meta_texture,
+                                CoglTexture *sub_texture,
+                                int x,
+                                int y,
+                                int width,
+                                int height,
+                                uint8_t *dst_bits,
+                                unsigned int dst_rowstride,
+                                CoglPixelFormat closest_format)
 {
-  CoglContext *ctx = texture->context;
+  CoglContext *ctx = sub_texture->context;
   CoglOffscreen *offscreen;
   CoglFramebuffer *framebuffer;
   CoglBitmap *bitmap;
   CoglBool ret;
   CoglError *ignore_error = NULL;
+  CoglPixelFormat real_format;
 
   if (!cogl_has_feature (ctx, COGL_FEATURE_ID_OFFSCREEN))
     return FALSE;
 
-  offscreen = _cogl_offscreen_new_to_texture_full
-                                      (texture,
+  offscreen = _cogl_offscreen_new_with_texture_full
+                                      (sub_texture,
                                        COGL_OFFSCREEN_DISABLE_DEPTH_AND_STENCIL,
                                        0);
 
@@ -952,9 +854,23 @@ get_texture_bits_via_offscreen (CoglTexture    *texture,
       return FALSE;
     }
 
+  /* Currently the framebuffer's internal format corresponds to the
+   * internal format of @sub_texture but in the case of atlas textures
+   * it's possible that this format doesn't reflect the correct
+   * premultiplied alpha status or what components are valid since
+   * atlas textures are always stored in a shared texture with a
+   * format of _RGBA_8888.
+   *
+   * Here we override the internal format to make sure the
+   * framebuffer's internal format matches the internal format of the
+   * parent meta_texture instead.
+   */
+  real_format = _cogl_texture_get_format (meta_texture);
+  _cogl_framebuffer_set_internal_format (framebuffer, real_format);
+
   bitmap = cogl_bitmap_new_for_data (ctx,
                                      width, height,
-                                     dst_format,
+                                     closest_format,
                                      dst_rowstride,
                                      dst_bits);
   ret = _cogl_framebuffer_read_pixels_into_bitmap (framebuffer,
@@ -1023,6 +939,7 @@ get_texture_bits_via_copy (CoglTexture *texture,
 
 typedef struct
 {
+  CoglTexture *meta_texture;
   int orig_width;
   int orig_height;
   CoglBitmap *target_bmp;
@@ -1032,17 +949,18 @@ typedef struct
 } CoglTextureGetData;
 
 static void
-texture_get_cb (CoglTexture *texture,
+texture_get_cb (CoglTexture *subtexture,
                 const float *subtexture_coords,
                 const float *virtual_coords,
                 void        *user_data)
 {
   CoglTextureGetData *tg_data = user_data;
-  CoglPixelFormat format = cogl_bitmap_get_format (tg_data->target_bmp);
-  int bpp = _cogl_pixel_format_get_bytes_per_pixel (format);
+  CoglTexture *meta_texture = tg_data->meta_texture;
+  CoglPixelFormat closest_format = cogl_bitmap_get_format (tg_data->target_bmp);
+  int bpp = _cogl_pixel_format_get_bytes_per_pixel (closest_format);
   unsigned int rowstride = cogl_bitmap_get_rowstride (tg_data->target_bmp);
-  int subtexture_width = cogl_texture_get_width (texture);
-  int subtexture_height = cogl_texture_get_height (texture);
+  int subtexture_width = cogl_texture_get_width (subtexture);
+  int subtexture_height = cogl_texture_get_height (subtexture);
 
   int x_in_subtexture = (int) (0.5 + subtexture_width * subtexture_coords[0]);
   int y_in_subtexture = (int) (0.5 + subtexture_height * subtexture_coords[1]);
@@ -1063,33 +981,35 @@ texture_get_cb (CoglTexture *texture,
   /* If we can read everything as a single slice, then go ahead and do that
    * to avoid allocating an FBO. We'll leave it up to the GL implementation to
    * do glGetTexImage as efficiently as possible. (GLES doesn't have that,
-   * so we'll fall through) */
+   * so we'll fall through)
+   */
   if (x_in_subtexture == 0 && y_in_subtexture == 0 &&
       width == subtexture_width && height == subtexture_height)
     {
-      if (texture->vtable->get_data (texture,
-                                     format,
-                                     rowstride,
-                                     dst_bits))
+      if (subtexture->vtable->get_data (subtexture,
+                                        closest_format,
+                                        rowstride,
+                                        dst_bits))
         return;
     }
 
   /* Next best option is a FBO and glReadPixels */
-  if (get_texture_bits_via_offscreen (texture,
+  if (get_texture_bits_via_offscreen (meta_texture,
+                                      subtexture,
                                       x_in_subtexture, y_in_subtexture,
                                       width, height,
                                       dst_bits,
                                       rowstride,
-                                      format))
+                                      closest_format))
     return;
 
   /* Getting ugly: read the entire texture, copy out the part we want */
-  if (get_texture_bits_via_copy (texture,
+  if (get_texture_bits_via_copy (subtexture,
                                  x_in_subtexture, y_in_subtexture,
                                  width, height,
                                  dst_bits,
                                  rowstride,
-                                 format))
+                                 closest_format))
     return;
 
   /* No luck, the caller will fall back to the draw-to-backbuffer and
@@ -1117,7 +1037,7 @@ cogl_texture_get_data (CoglTexture *texture,
 
   CoglTextureGetData tg_data;
 
-  texture_format = cogl_texture_get_format (texture);
+  texture_format = _cogl_texture_get_format (texture);
 
   /* Default to internal format if none specified */
   if (format == COGL_PIXEL_FORMAT_ANY)
@@ -1154,7 +1074,7 @@ cogl_texture_get_data (CoglTexture *texture,
    * this case the driver will be faking the alpha textures with a
    * red-component texture and it won't swizzle to the correct format
    * while reading */
-  if ((ctx->private_feature_flags & COGL_PRIVATE_FEATURE_ALPHA_TEXTURES) == 0)
+  if (!_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_ALPHA_TEXTURES))
     {
       if (texture_format == COGL_PIXEL_FORMAT_A_8)
         {
@@ -1203,6 +1123,7 @@ cogl_texture_get_data (CoglTexture *texture,
                                           &ignore_error);
   if (tg_data.target_bits)
     {
+      tg_data.meta_texture = texture;
       tg_data.orig_width = tex_width;
       tg_data.orig_height = tex_height;
       tg_data.target_bmp = target_bmp;
@@ -1446,9 +1367,17 @@ _cogl_texture_spans_foreach_in_region (CoglSpan *x_spans,
 
 void
 _cogl_texture_set_allocated (CoglTexture *texture,
-                             CoglBool allocated)
+                             CoglPixelFormat internal_format,
+                             int width,
+                             int height)
 {
-  texture->allocated = allocated;
+  _cogl_texture_set_internal_format (texture, internal_format);
+
+  texture->width = width;
+  texture->height = height;
+  texture->allocated = TRUE;
+
+  _cogl_texture_free_loader (texture);
 }
 
 CoglBool
@@ -1458,7 +1387,154 @@ cogl_texture_allocate (CoglTexture *texture,
   if (texture->allocated)
     return TRUE;
 
+  if (texture->components == COGL_TEXTURE_COMPONENTS_RG &&
+      !cogl_has_feature (texture->context, COGL_FEATURE_ID_TEXTURE_RG))
+    _cogl_set_error (error,
+                     COGL_TEXTURE_ERROR,
+                     COGL_TEXTURE_ERROR_FORMAT,
+                     "A red-green texture was requested but the driver "
+                     "does not support them");
+
   texture->allocated = texture->vtable->allocate (texture, error);
 
   return texture->allocated;
+}
+
+void
+_cogl_texture_set_internal_format (CoglTexture *texture,
+                                   CoglPixelFormat internal_format)
+{
+  texture->premultiplied = FALSE;
+
+  if (internal_format == COGL_PIXEL_FORMAT_ANY)
+    internal_format = COGL_PIXEL_FORMAT_RGBA_8888_PRE;
+
+  if (internal_format == COGL_PIXEL_FORMAT_A_8)
+    {
+      texture->components = COGL_TEXTURE_COMPONENTS_A;
+      return;
+    }
+  else if (internal_format == COGL_PIXEL_FORMAT_RG_88)
+    {
+      texture->components = COGL_TEXTURE_COMPONENTS_RG;
+      return;
+    }
+  else if (internal_format & COGL_DEPTH_BIT)
+    {
+      texture->components = COGL_TEXTURE_COMPONENTS_DEPTH;
+      return;
+    }
+  else if (internal_format & COGL_A_BIT)
+    {
+      texture->components = COGL_TEXTURE_COMPONENTS_RGBA;
+      if (internal_format & COGL_PREMULT_BIT)
+        texture->premultiplied = TRUE;
+      return;
+    }
+  else
+    texture->components = COGL_TEXTURE_COMPONENTS_RGB;
+}
+
+CoglPixelFormat
+_cogl_texture_determine_internal_format (CoglTexture *texture,
+                                         CoglPixelFormat src_format)
+{
+  switch (texture->components)
+    {
+    case COGL_TEXTURE_COMPONENTS_DEPTH:
+      if (src_format & COGL_DEPTH_BIT)
+        return src_format;
+      else
+        {
+          CoglContext *ctx = texture->context;
+
+          if (_cogl_has_private_feature (ctx,
+                  COGL_PRIVATE_FEATURE_EXT_PACKED_DEPTH_STENCIL) ||
+              _cogl_has_private_feature (ctx,
+                  COGL_PRIVATE_FEATURE_OES_PACKED_DEPTH_STENCIL))
+            {
+              return COGL_PIXEL_FORMAT_DEPTH_24_STENCIL_8;
+            }
+          else
+            return COGL_PIXEL_FORMAT_DEPTH_16;
+        }
+    case COGL_TEXTURE_COMPONENTS_A:
+      return COGL_PIXEL_FORMAT_A_8;
+    case COGL_TEXTURE_COMPONENTS_RG:
+      return COGL_PIXEL_FORMAT_RG_88;
+    case COGL_TEXTURE_COMPONENTS_RGB:
+      if (src_format != COGL_PIXEL_FORMAT_ANY &&
+          !(src_format & COGL_A_BIT) && !(src_format & COGL_DEPTH_BIT))
+        return src_format;
+      else
+        return COGL_PIXEL_FORMAT_RGB_888;
+    case COGL_TEXTURE_COMPONENTS_RGBA:
+      {
+        CoglPixelFormat format;
+
+        if (src_format != COGL_PIXEL_FORMAT_ANY &&
+            (src_format & COGL_A_BIT) && src_format != COGL_PIXEL_FORMAT_A_8)
+          format = src_format;
+        else
+          format = COGL_PIXEL_FORMAT_RGBA_8888;
+
+        if (texture->premultiplied)
+          {
+            if (COGL_PIXEL_FORMAT_CAN_HAVE_PREMULT (format))
+              return format |= COGL_PREMULT_BIT;
+            else
+              return COGL_PIXEL_FORMAT_RGBA_8888_PRE;
+          }
+        else
+          return format & ~COGL_PREMULT_BIT;
+      }
+    }
+
+  g_return_val_if_reached (COGL_PIXEL_FORMAT_RGBA_8888_PRE);
+}
+
+void
+cogl_texture_set_components (CoglTexture *texture,
+                             CoglTextureComponents components)
+{
+  _COGL_RETURN_IF_FAIL (!texture->allocated);
+
+  if (texture->components == components)
+    return;
+
+  texture->components = components;
+}
+
+CoglTextureComponents
+cogl_texture_get_components (CoglTexture *texture)
+{
+  return texture->components;
+}
+
+void
+cogl_texture_set_premultiplied (CoglTexture *texture,
+                                CoglBool premultiplied)
+{
+  _COGL_RETURN_IF_FAIL (!texture->allocated);
+
+  premultiplied = !!premultiplied;
+
+  if (texture->premultiplied == premultiplied)
+    return;
+
+  texture->premultiplied = premultiplied;
+}
+
+CoglBool
+cogl_texture_get_premultiplied (CoglTexture *texture)
+{
+  return texture->premultiplied;
+}
+
+void
+_cogl_texture_copy_internal_format (CoglTexture *src,
+                                    CoglTexture *dest)
+{
+  cogl_texture_set_components (dest, src->components);
+  cogl_texture_set_premultiplied (dest, src->premultiplied);
 }

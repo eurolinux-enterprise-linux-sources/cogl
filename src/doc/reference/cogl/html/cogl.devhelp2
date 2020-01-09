@@ -67,44 +67,44 @@
     <keyword type="enum" name="enum CoglBufferBit" link="cogl-General-API.html#CoglBufferBit" since="1.0"/>
     <keyword type="enum" name="enum CoglAttributeType" link="cogl-General-API.html#CoglAttributeType" since="1.0"/>
     <keyword type="enum" name="enum CoglFeatureFlags" link="cogl-General-API.html#CoglFeatureFlags" since="0.8"/>
-    <keyword type="function" name="cogl_get_features ()" link="cogl-General-API.html#cogl-get-features" since="0.8"/>
-    <keyword type="function" name="cogl_features_available ()" link="cogl-General-API.html#cogl-features-available"/>
+    <keyword type="function" name="cogl_get_features ()" link="cogl-General-API.html#cogl-get-features" deprecated="1.10: Use cogl_foreach_feature() instead" since="0.8"/>
+    <keyword type="function" name="cogl_features_available ()" link="cogl-General-API.html#cogl-features-available" deprecated="1.10: Use cogl_has_feature() instead"/>
     <keyword type="function" name="cogl_get_proc_address ()" link="cogl-General-API.html#cogl-get-proc-address"/>
-    <keyword type="function" name="cogl_get_option_group ()" link="cogl-General-API.html#cogl-get-option-group" since="1.0"/>
-    <keyword type="function" name="cogl_push_matrix ()" link="cogl-General-API.html#cogl-push-matrix"/>
-    <keyword type="function" name="cogl_pop_matrix ()" link="cogl-General-API.html#cogl-pop-matrix"/>
-    <keyword type="function" name="cogl_scale ()" link="cogl-General-API.html#cogl-scale"/>
-    <keyword type="function" name="cogl_translate ()" link="cogl-General-API.html#cogl-translate"/>
-    <keyword type="function" name="cogl_rotate ()" link="cogl-General-API.html#cogl-rotate"/>
-    <keyword type="function" name="cogl_transform ()" link="cogl-General-API.html#cogl-transform" since="1.4"/>
-    <keyword type="function" name="cogl_frustum ()" link="cogl-General-API.html#cogl-frustum" since="0.8.2"/>
-    <keyword type="function" name="cogl_perspective ()" link="cogl-General-API.html#cogl-perspective"/>
-    <keyword type="function" name="cogl_ortho ()" link="cogl-General-API.html#cogl-ortho" since="1.0"/>
-    <keyword type="function" name="cogl_get_modelview_matrix ()" link="cogl-General-API.html#cogl-get-modelview-matrix"/>
-    <keyword type="function" name="cogl_set_modelview_matrix ()" link="cogl-General-API.html#cogl-set-modelview-matrix"/>
-    <keyword type="function" name="cogl_get_projection_matrix ()" link="cogl-General-API.html#cogl-get-projection-matrix"/>
-    <keyword type="function" name="cogl_set_projection_matrix ()" link="cogl-General-API.html#cogl-set-projection-matrix"/>
-    <keyword type="function" name="cogl_set_viewport ()" link="cogl-General-API.html#cogl-set-viewport" since="1.2"/>
-    <keyword type="function" name="cogl_get_viewport ()" link="cogl-General-API.html#cogl-get-viewport"/>
-    <keyword type="function" name="cogl_clear ()" link="cogl-General-API.html#cogl-clear"/>
-    <keyword type="function" name="cogl_set_backface_culling_enabled ()" link="cogl-General-API.html#cogl-set-backface-culling-enabled"/>
-    <keyword type="function" name="cogl_get_backface_culling_enabled ()" link="cogl-General-API.html#cogl-get-backface-culling-enabled"/>
+    <keyword type="function" name="cogl_get_option_group ()" link="cogl-General-API.html#cogl-get-option-group" deprecated="1.16: Not replaced" since="1.0"/>
+    <keyword type="function" name="cogl_push_matrix ()" link="cogl-General-API.html#cogl-push-matrix" deprecated="1.10: Use cogl_framebuffer_push_matrix() instead"/>
+    <keyword type="function" name="cogl_pop_matrix ()" link="cogl-General-API.html#cogl-pop-matrix" deprecated="1.10: Use cogl_framebuffer_pop_matrix() instead"/>
+    <keyword type="function" name="cogl_scale ()" link="cogl-General-API.html#cogl-scale" deprecated="1.10: Use cogl_framebuffer_pop_matrix() instead"/>
+    <keyword type="function" name="cogl_translate ()" link="cogl-General-API.html#cogl-translate" deprecated="1.10: Use cogl_framebuffer_translate() instead"/>
+    <keyword type="function" name="cogl_rotate ()" link="cogl-General-API.html#cogl-rotate" deprecated="1.10: Use cogl_framebuffer_rotate() instead"/>
+    <keyword type="function" name="cogl_transform ()" link="cogl-General-API.html#cogl-transform" deprecated="1.10: Use cogl_framebuffer_transform() instead" since="1.4"/>
+    <keyword type="function" name="cogl_frustum ()" link="cogl-General-API.html#cogl-frustum" deprecated="1.10: Use cogl_framebuffer_frustum() instead" since="0.8.2"/>
+    <keyword type="function" name="cogl_perspective ()" link="cogl-General-API.html#cogl-perspective" deprecated="1.10: Use cogl_framebuffer_perspective() instead"/>
+    <keyword type="function" name="cogl_ortho ()" link="cogl-General-API.html#cogl-ortho" deprecated="1.10: Use cogl_framebuffer_orthographic() instead" since="1.0"/>
+    <keyword type="function" name="cogl_get_modelview_matrix ()" link="cogl-General-API.html#cogl-get-modelview-matrix" deprecated=""/>
+    <keyword type="function" name="cogl_set_modelview_matrix ()" link="cogl-General-API.html#cogl-set-modelview-matrix" deprecated=""/>
+    <keyword type="function" name="cogl_get_projection_matrix ()" link="cogl-General-API.html#cogl-get-projection-matrix" deprecated=""/>
+    <keyword type="function" name="cogl_set_projection_matrix ()" link="cogl-General-API.html#cogl-set-projection-matrix" deprecated=""/>
+    <keyword type="function" name="cogl_set_viewport ()" link="cogl-General-API.html#cogl-set-viewport" deprecated="1.8: Use cogl_framebuffer_set_viewport() instead" since="1.2"/>
+    <keyword type="function" name="cogl_get_viewport ()" link="cogl-General-API.html#cogl-get-viewport" deprecated=""/>
+    <keyword type="function" name="cogl_clear ()" link="cogl-General-API.html#cogl-clear" deprecated="1.16: Use cogl_framebuffer_clear() api instead"/>
+    <keyword type="function" name="cogl_set_backface_culling_enabled ()" link="cogl-General-API.html#cogl-set-backface-culling-enabled" deprecated="1.16: Use cogl_pipeline_set_cull_face_mode() instead"/>
+    <keyword type="function" name="cogl_get_backface_culling_enabled ()" link="cogl-General-API.html#cogl-get-backface-culling-enabled" deprecated="1.16: Use cogl_pipeline_get_cull_face_mode() instead"/>
     <keyword type="enum" name="enum CoglFogMode" link="cogl-General-API.html#CoglFogMode" since="1.0"/>
-    <keyword type="function" name="cogl_set_fog ()" link="cogl-General-API.html#cogl-set-fog"/>
-    <keyword type="function" name="cogl_disable_fog ()" link="cogl-General-API.html#cogl-disable-fog"/>
-    <keyword type="function" name="cogl_set_source ()" link="cogl-General-API.html#cogl-set-source" since="1.0"/>
-    <keyword type="function" name="cogl_set_source_color ()" link="cogl-General-API.html#cogl-set-source-color" since="1.0"/>
-    <keyword type="function" name="cogl_set_source_color4ub ()" link="cogl-General-API.html#cogl-set-source-color4ub" since="1.0"/>
-    <keyword type="function" name="cogl_set_source_color4f ()" link="cogl-General-API.html#cogl-set-source-color4f" since="1.0"/>
-    <keyword type="function" name="cogl_set_source_texture ()" link="cogl-General-API.html#cogl-set-source-texture" since="1.0"/>
-    <keyword type="function" name="cogl_get_source ()" link="cogl-General-API.html#cogl-get-source" since="1.6"/>
-    <keyword type="function" name="cogl_push_source ()" link="cogl-General-API.html#cogl-push-source" since="1.6"/>
-    <keyword type="function" name="cogl_pop_source ()" link="cogl-General-API.html#cogl-pop-source" since="1.6"/>
+    <keyword type="function" name="cogl_set_fog ()" link="cogl-General-API.html#cogl-set-fog" deprecated="1.16: Use #CoglSnippet shader api for fog"/>
+    <keyword type="function" name="cogl_disable_fog ()" link="cogl-General-API.html#cogl-disable-fog" deprecated="1.16: Use #CoglSnippet shader api for fog"/>
+    <keyword type="function" name="cogl_set_source ()" link="cogl-General-API.html#cogl-set-source" deprecated="" since="1.0"/>
+    <keyword type="function" name="cogl_set_source_color ()" link="cogl-General-API.html#cogl-set-source-color" deprecated="" since="1.0"/>
+    <keyword type="function" name="cogl_set_source_color4ub ()" link="cogl-General-API.html#cogl-set-source-color4ub" deprecated="" since="1.0"/>
+    <keyword type="function" name="cogl_set_source_color4f ()" link="cogl-General-API.html#cogl-set-source-color4f" deprecated="" since="1.0"/>
+    <keyword type="function" name="cogl_set_source_texture ()" link="cogl-General-API.html#cogl-set-source-texture" deprecated="" since="1.0"/>
+    <keyword type="function" name="cogl_get_source ()" link="cogl-General-API.html#cogl-get-source" deprecated="" since="1.6"/>
+    <keyword type="function" name="cogl_push_source ()" link="cogl-General-API.html#cogl-push-source" deprecated="" since="1.6"/>
+    <keyword type="function" name="cogl_pop_source ()" link="cogl-General-API.html#cogl-pop-source" deprecated="" since="1.6"/>
     <keyword type="enum" name="enum CoglReadPixelsFlags" link="cogl-General-API.html#CoglReadPixelsFlags" since="1.0"/>
-    <keyword type="function" name="cogl_read_pixels ()" link="cogl-General-API.html#cogl-read-pixels"/>
+    <keyword type="function" name="cogl_read_pixels ()" link="cogl-General-API.html#cogl-read-pixels" deprecated="1.16: Use cogl_framebuffer_read_pixels() instead"/>
     <keyword type="function" name="cogl_flush ()" link="cogl-General-API.html#cogl-flush" since="1.0"/>
-    <keyword type="function" name="cogl_begin_gl ()" link="cogl-General-API.html#cogl-begin-gl" since="1.0"/>
-    <keyword type="function" name="cogl_end_gl ()" link="cogl-General-API.html#cogl-end-gl" since="1.0"/>
+    <keyword type="function" name="cogl_begin_gl ()" link="cogl-General-API.html#cogl-begin-gl" deprecated="1.16: Use the #CoglGLES2Context api instead" since="1.0"/>
+    <keyword type="function" name="cogl_end_gl ()" link="cogl-General-API.html#cogl-end-gl" deprecated="1.16: Use the #CoglGLES2Context api instead" since="1.0"/>
     <keyword type="struct" name="struct CoglColor" link="cogl-Color-Type.html#CoglColor" since="1.0"/>
     <keyword type="function" name="cogl_color_new ()" link="cogl-Color-Type.html#cogl-color-new" since="1.0"/>
     <keyword type="function" name="cogl_color_copy ()" link="cogl-Color-Type.html#cogl-color-copy" since="1.0"/>
@@ -141,18 +141,20 @@
     <keyword type="function" name="cogl_color_premultiply ()" link="cogl-Color-Type.html#cogl-color-premultiply" since="1.0"/>
     <keyword type="function" name="cogl_color_unpremultiply ()" link="cogl-Color-Type.html#cogl-color-unpremultiply" since="1.4"/>
     <keyword type="function" name="cogl_color_equal ()" link="cogl-Color-Type.html#cogl-color-equal" since="1.0"/>
+    <keyword type="function" name="cogl_color_init_from_hsl ()" link="cogl-Color-Type.html#cogl-color-init-from-hsl" since="1.16"/>
+    <keyword type="function" name="cogl_color_to_hsl ()" link="cogl-Color-Type.html#cogl-color-to-hsl" since="1.16"/>
     <keyword type="struct" name="struct CoglTextureVertex" link="cogl-Textures.html#CoglTextureVertex"/>
     <keyword type="enum" name="enum CoglTextureFlags" link="cogl-Textures.html#CoglTextureFlags" since="1.0"/>
-    <keyword type="function" name="cogl_texture_new_with_size ()" link="cogl-Textures.html#cogl-texture-new-with-size" since="0.8"/>
-    <keyword type="function" name="cogl_texture_new_from_file ()" link="cogl-Textures.html#cogl-texture-new-from-file" since="0.8"/>
-    <keyword type="function" name="cogl_texture_new_from_data ()" link="cogl-Textures.html#cogl-texture-new-from-data" since="0.8"/>
-    <keyword type="function" name="cogl_texture_new_from_foreign ()" link="cogl-Textures.html#cogl-texture-new-from-foreign" since="0.8"/>
-    <keyword type="function" name="cogl_texture_new_from_bitmap ()" link="cogl-Textures.html#cogl-texture-new-from-bitmap" since="1.0"/>
-    <keyword type="function" name="cogl_texture_new_from_sub_texture ()" link="cogl-Textures.html#cogl-texture-new-from-sub-texture" since="1.2"/>
+    <keyword type="function" name="cogl_texture_new_with_size ()" link="cogl-Textures.html#cogl-texture-new-with-size" deprecated="" since="0.8"/>
+    <keyword type="function" name="cogl_texture_new_from_file ()" link="cogl-Textures.html#cogl-texture-new-from-file" deprecated="" since="0.8"/>
+    <keyword type="function" name="cogl_texture_new_from_data ()" link="cogl-Textures.html#cogl-texture-new-from-data" deprecated="" since="0.8"/>
+    <keyword type="function" name="cogl_texture_new_from_foreign ()" link="cogl-Textures.html#cogl-texture-new-from-foreign" deprecated="" since="0.8"/>
+    <keyword type="function" name="cogl_texture_new_from_bitmap ()" link="cogl-Textures.html#cogl-texture-new-from-bitmap" deprecated="" since="1.0"/>
+    <keyword type="function" name="cogl_texture_new_from_sub_texture ()" link="cogl-Textures.html#cogl-texture-new-from-sub-texture" deprecated="1.18: Use cogl_sub_texture_new()" since="1.2"/>
     <keyword type="function" name="cogl_is_texture ()" link="cogl-Textures.html#cogl-is-texture"/>
     <keyword type="function" name="cogl_texture_get_width ()" link="cogl-Textures.html#cogl-texture-get-width"/>
     <keyword type="function" name="cogl_texture_get_height ()" link="cogl-Textures.html#cogl-texture-get-height"/>
-    <keyword type="function" name="cogl_texture_get_format ()" link="cogl-Textures.html#cogl-texture-get-format"/>
+    <keyword type="function" name="cogl_texture_get_format ()" link="cogl-Textures.html#cogl-texture-get-format" deprecated="1.18: This api is misleading"/>
     <keyword type="function" name="cogl_texture_get_rowstride ()" link="cogl-Textures.html#cogl-texture-get-rowstride" deprecated=""/>
     <keyword type="function" name="cogl_texture_get_max_waste ()" link="cogl-Textures.html#cogl-texture-get-max-waste"/>
     <keyword type="function" name="cogl_texture_is_sliced ()" link="cogl-Textures.html#cogl-texture-is-sliced"/>
@@ -161,113 +163,85 @@
     <keyword type="function" name="cogl_texture_set_region ()" link="cogl-Textures.html#cogl-texture-set-region"/>
     <keyword type="struct" name="CoglMaterial" link="cogl-Materials.html#CoglMaterial"/>
     <keyword type="struct" name="CoglMaterialLayer" link="cogl-Materials.html#CoglMaterialLayer"/>
-    <keyword type="function" name="CoglMaterialLayerCallback ()" link="cogl-Materials.html#CoglMaterialLayerCallback" since="1.4" stability="Unstable"/>
-    <keyword type="function" name="cogl_material_new ()" link="cogl-Materials.html#cogl-material-new"/>
-    <keyword type="function" name="cogl_material_copy ()" link="cogl-Materials.html#cogl-material-copy" since="1.2"/>
-    <keyword type="function" name="cogl_is_material ()" link="cogl-Materials.html#cogl-is-material"/>
-    <keyword type="function" name="cogl_material_set_color ()" link="cogl-Materials.html#cogl-material-set-color" since="1.0"/>
-    <keyword type="function" name="cogl_material_set_color4ub ()" link="cogl-Materials.html#cogl-material-set-color4ub" since="1.0"/>
-    <keyword type="function" name="cogl_material_set_color4f ()" link="cogl-Materials.html#cogl-material-set-color4f" since="1.0"/>
-    <keyword type="function" name="cogl_material_get_color ()" link="cogl-Materials.html#cogl-material-get-color" since="1.0"/>
-    <keyword type="function" name="cogl_material_set_ambient ()" link="cogl-Materials.html#cogl-material-set-ambient" since="1.0"/>
-    <keyword type="function" name="cogl_material_get_ambient ()" link="cogl-Materials.html#cogl-material-get-ambient" since="1.0"/>
-    <keyword type="function" name="cogl_material_set_diffuse ()" link="cogl-Materials.html#cogl-material-set-diffuse" since="1.0"/>
-    <keyword type="function" name="cogl_material_get_diffuse ()" link="cogl-Materials.html#cogl-material-get-diffuse" since="1.0"/>
-    <keyword type="function" name="cogl_material_set_ambient_and_diffuse ()" link="cogl-Materials.html#cogl-material-set-ambient-and-diffuse" since="1.0"/>
-    <keyword type="function" name="cogl_material_set_emission ()" link="cogl-Materials.html#cogl-material-set-emission" since="1.0"/>
-    <keyword type="function" name="cogl_material_get_emission ()" link="cogl-Materials.html#cogl-material-get-emission" since="1.0"/>
-    <keyword type="function" name="cogl_material_set_specular ()" link="cogl-Materials.html#cogl-material-set-specular" since="1.0"/>
-    <keyword type="function" name="cogl_material_get_specular ()" link="cogl-Materials.html#cogl-material-get-specular" since="1.0"/>
-    <keyword type="function" name="cogl_material_set_shininess ()" link="cogl-Materials.html#cogl-material-set-shininess" since="1.0"/>
-    <keyword type="function" name="cogl_material_get_shininess ()" link="cogl-Materials.html#cogl-material-get-shininess" since="1.0"/>
+    <keyword type="function" name="CoglMaterialLayerCallback ()" link="cogl-Materials.html#CoglMaterialLayerCallback" deprecated="1.16" since="1.4" stability="Unstable"/>
+    <keyword type="function" name="cogl_material_new ()" link="cogl-Materials.html#cogl-material-new" deprecated="1.16: Use cogl_pipeline_new() instead"/>
+    <keyword type="function" name="cogl_material_copy ()" link="cogl-Materials.html#cogl-material-copy" deprecated="1.16: Use cogl_pipeline_copy() instead" since="1.2"/>
+    <keyword type="function" name="cogl_is_material ()" link="cogl-Materials.html#cogl-is-material" deprecated="1.16: Use cogl_is_pipeline() instead"/>
+    <keyword type="function" name="cogl_material_set_color ()" link="cogl-Materials.html#cogl-material-set-color" deprecated="1.16: Use cogl_pipeline_set_color() instead" since="1.0"/>
+    <keyword type="function" name="cogl_material_set_color4ub ()" link="cogl-Materials.html#cogl-material-set-color4ub" deprecated="1.16: Use cogl_pipeline_set_color4ub() instead" since="1.0"/>
+    <keyword type="function" name="cogl_material_set_color4f ()" link="cogl-Materials.html#cogl-material-set-color4f" deprecated="1.16: Use cogl_pipeline_set_color4f() instead" since="1.0"/>
+    <keyword type="function" name="cogl_material_get_color ()" link="cogl-Materials.html#cogl-material-get-color" deprecated="1.16: Use cogl_pipeline_get_color() instead" since="1.0"/>
+    <keyword type="function" name="cogl_material_set_ambient ()" link="cogl-Materials.html#cogl-material-set-ambient" deprecated="1.16: Use the #CoglSnippet shader api for lighting" since="1.0"/>
+    <keyword type="function" name="cogl_material_get_ambient ()" link="cogl-Materials.html#cogl-material-get-ambient" deprecated="1.16: Use the #CoglSnippet shader api for lighting" since="1.0"/>
+    <keyword type="function" name="cogl_material_set_diffuse ()" link="cogl-Materials.html#cogl-material-set-diffuse" deprecated="1.16: Use the #CoglSnippet shader api for lighting" since="1.0"/>
+    <keyword type="function" name="cogl_material_get_diffuse ()" link="cogl-Materials.html#cogl-material-get-diffuse" deprecated="1.16: Use the #CoglSnippet shader api for lighting" since="1.0"/>
+    <keyword type="function" name="cogl_material_set_ambient_and_diffuse ()" link="cogl-Materials.html#cogl-material-set-ambient-and-diffuse" deprecated="1.16: Use the #CoglSnippet shader api for lighting" since="1.0"/>
+    <keyword type="function" name="cogl_material_set_emission ()" link="cogl-Materials.html#cogl-material-set-emission" deprecated="1.16: Use the #CoglSnippet shader api for lighting" since="1.0"/>
+    <keyword type="function" name="cogl_material_get_emission ()" link="cogl-Materials.html#cogl-material-get-emission" deprecated="1.16: Use the #CoglSnippet shader api for lighting" since="1.0"/>
+    <keyword type="function" name="cogl_material_set_specular ()" link="cogl-Materials.html#cogl-material-set-specular" deprecated="1.16: Use the #CoglSnippet shader api for lighting" since="1.0"/>
+    <keyword type="function" name="cogl_material_get_specular ()" link="cogl-Materials.html#cogl-material-get-specular" deprecated="1.16: Use the #CoglSnippet shader api for lighting" since="1.0"/>
+    <keyword type="function" name="cogl_material_set_shininess ()" link="cogl-Materials.html#cogl-material-set-shininess" deprecated="1.16: Use the #CoglSnippet shader api for lighting" since="1.0"/>
+    <keyword type="function" name="cogl_material_get_shininess ()" link="cogl-Materials.html#cogl-material-get-shininess" deprecated="1.16: Use the #CoglSnippet shader api for lighting" since="1.0"/>
     <keyword type="enum" name="enum CoglMaterialAlphaFunc" link="cogl-Materials.html#CoglMaterialAlphaFunc"/>
-    <keyword type="function" name="cogl_material_set_alpha_test_function ()" link="cogl-Materials.html#cogl-material-set-alpha-test-function" since="1.0"/>
+    <keyword type="function" name="cogl_material_set_alpha_test_function ()" link="cogl-Materials.html#cogl-material-set-alpha-test-function" deprecated="1.16: Use cogl_pipeline_set_alpha_test_function() instead" since="1.0"/>
     <keyword type="macro" name="COGL_BLEND_STRING_ERROR" link="cogl-Materials.html#COGL-BLEND-STRING-ERROR:CAPS" since="1.0"/>
     <keyword type="enum" name="enum CoglBlendStringError" link="cogl-Materials.html#CoglBlendStringError" since="1.0"/>
-    <keyword type="function" name="cogl_material_set_blend ()" link="cogl-Materials.html#cogl-material-set-blend" since="1.0"/>
-    <keyword type="function" name="cogl_material_set_blend_constant ()" link="cogl-Materials.html#cogl-material-set-blend-constant" since="1.0"/>
-    <keyword type="function" name="cogl_material_set_point_size ()" link="cogl-Materials.html#cogl-material-set-point-size" since="1.4"/>
-    <keyword type="function" name="cogl_material_get_point_size ()" link="cogl-Materials.html#cogl-material-get-point-size" since="1.4"/>
-    <keyword type="function" name="cogl_material_set_layer ()" link="cogl-Materials.html#cogl-material-set-layer" since="1.0"/>
-    <keyword type="function" name="cogl_material_remove_layer ()" link="cogl-Materials.html#cogl-material-remove-layer"/>
-    <keyword type="function" name="cogl_material_set_layer_combine ()" link="cogl-Materials.html#cogl-material-set-layer-combine" since="1.0"/>
+    <keyword type="function" name="cogl_material_set_blend ()" link="cogl-Materials.html#cogl-material-set-blend" deprecated="1.16: Use cogl_pipeline_set_blend() instead" since="1.0"/>
+    <keyword type="function" name="cogl_material_set_blend_constant ()" link="cogl-Materials.html#cogl-material-set-blend-constant" deprecated="1.16: Use cogl_pipeline_set_blend_constant() instead" since="1.0"/>
+    <keyword type="function" name="cogl_material_set_point_size ()" link="cogl-Materials.html#cogl-material-set-point-size" deprecated="1.16: Use cogl_pipeline_set_point_size() instead" since="1.4"/>
+    <keyword type="function" name="cogl_material_get_point_size ()" link="cogl-Materials.html#cogl-material-get-point-size" deprecated="1.16: Use cogl_pipeline_get_point_size() instead" since="1.4"/>
+    <keyword type="function" name="cogl_material_set_layer ()" link="cogl-Materials.html#cogl-material-set-layer" deprecated="1.16: Use cogl_pipeline_set_layer() instead" since="1.0"/>
+    <keyword type="function" name="cogl_material_remove_layer ()" link="cogl-Materials.html#cogl-material-remove-layer" deprecated="1.16: Use cogl_pipeline_remove_layer() instead"/>
+    <keyword type="function" name="cogl_material_set_layer_combine ()" link="cogl-Materials.html#cogl-material-set-layer-combine" deprecated="1.16: Use cogl_pipeline_set_layer_combine() instead" since="1.0"/>
     <keyword type="" name="Layer Combine Examples" link="cogl-Materials.html#cogl-Layer-Combine-Examples"/>
-    <keyword type="function" name="cogl_material_set_layer_combine_constant ()" link="cogl-Materials.html#cogl-material-set-layer-combine-constant" since="1.0"/>
-    <keyword type="function" name="cogl_material_set_layer_matrix ()" link="cogl-Materials.html#cogl-material-set-layer-matrix"/>
-    <keyword type="function" name="cogl_material_set_layer_point_sprite_coords_enabled ()" link="cogl-Materials.html#cogl-material-set-layer-point-sprite-coords-enabled" since="1.4"/>
-    <keyword type="function" name="cogl_material_get_layer_point_sprite_coords_enabled ()" link="cogl-Materials.html#cogl-material-get-layer-point-sprite-coords-enabled" since="1.4"/>
-    <keyword type="function" name="cogl_material_get_n_layers ()" link="cogl-Materials.html#cogl-material-get-n-layers" since="1.0"/>
+    <keyword type="function" name="cogl_material_set_layer_combine_constant ()" link="cogl-Materials.html#cogl-material-set-layer-combine-constant" deprecated="" since="1.0"/>
+    <keyword type="function" name="cogl_material_set_layer_matrix ()" link="cogl-Materials.html#cogl-material-set-layer-matrix" deprecated="1.16: Use cogl_pipeline_set_layer_matrix() instead"/>
+    <keyword type="function" name="cogl_material_set_layer_point_sprite_coords_enabled ()" link="cogl-Materials.html#cogl-material-set-layer-point-sprite-coords-enabled" deprecated="" since="1.4"/>
+    <keyword type="function" name="cogl_material_get_layer_point_sprite_coords_enabled ()" link="cogl-Materials.html#cogl-material-get-layer-point-sprite-coords-enabled" deprecated="" since="1.4"/>
+    <keyword type="function" name="cogl_material_get_n_layers ()" link="cogl-Materials.html#cogl-material-get-n-layers" deprecated="1.16: Use cogl_pipeline_get_n_layers() instead" since="1.0"/>
     <keyword type="enum" name="enum CoglMaterialFilter" link="cogl-Materials.html#CoglMaterialFilter"/>
-    <keyword type="function" name="cogl_material_set_layer_filters ()" link="cogl-Materials.html#cogl-material-set-layer-filters"/>
+    <keyword type="function" name="cogl_material_set_layer_filters ()" link="cogl-Materials.html#cogl-material-set-layer-filters" deprecated="1.16: Use cogl_pipeline_set_layer_filters() instead"/>
     <keyword type="enum" name="enum CoglMaterialLayerType" link="cogl-Materials.html#CoglMaterialLayerType" since="1.0"/>
-    <keyword type="function" name="cogl_material_layer_get_type ()" link="cogl-Materials.html#cogl-material-layer-get-type"/>
-    <keyword type="function" name="cogl_material_layer_get_texture ()" link="cogl-Materials.html#cogl-material-layer-get-texture"/>
-    <keyword type="function" name="cogl_material_layer_get_min_filter ()" link="cogl-Materials.html#cogl-material-layer-get-min-filter"/>
-    <keyword type="function" name="cogl_material_layer_get_mag_filter ()" link="cogl-Materials.html#cogl-material-layer-get-mag-filter"/>
+    <keyword type="function" name="cogl_material_layer_get_type ()" link="cogl-Materials.html#cogl-material-layer-get-type" deprecated="1.16: No replacement"/>
+    <keyword type="function" name="cogl_material_layer_get_texture ()" link="cogl-Materials.html#cogl-material-layer-get-texture" deprecated="1.16: No replacement"/>
+    <keyword type="function" name="cogl_material_layer_get_min_filter ()" link="cogl-Materials.html#cogl-material-layer-get-min-filter" deprecated="1.16: No replacement"/>
+    <keyword type="function" name="cogl_material_layer_get_mag_filter ()" link="cogl-Materials.html#cogl-material-layer-get-mag-filter" deprecated="1.16: No replacement"/>
     <keyword type="enum" name="enum CoglMaterialWrapMode" link="cogl-Materials.html#CoglMaterialWrapMode" since="1.4"/>
-    <keyword type="function" name="cogl_material_set_layer_wrap_mode ()" link="cogl-Materials.html#cogl-material-set-layer-wrap-mode" since="1.4"/>
-    <keyword type="function" name="cogl_material_set_layer_wrap_mode_s ()" link="cogl-Materials.html#cogl-material-set-layer-wrap-mode-s" since="1.4"/>
-    <keyword type="function" name="cogl_material_set_layer_wrap_mode_t ()" link="cogl-Materials.html#cogl-material-set-layer-wrap-mode-t" since="1.4"/>
-    <keyword type="function" name="cogl_material_set_layer_wrap_mode_p ()" link="cogl-Materials.html#cogl-material-set-layer-wrap-mode-p" since="1.4"/>
-    <keyword type="function" name="cogl_material_get_layer_wrap_mode_s ()" link="cogl-Materials.html#cogl-material-get-layer-wrap-mode-s" since="1.6"/>
-    <keyword type="function" name="cogl_material_get_layer_wrap_mode_t ()" link="cogl-Materials.html#cogl-material-get-layer-wrap-mode-t" since="1.6"/>
-    <keyword type="function" name="cogl_material_get_layer_wrap_mode_p ()" link="cogl-Materials.html#cogl-material-get-layer-wrap-mode-p" since="1.6"/>
+    <keyword type="function" name="cogl_material_set_layer_wrap_mode ()" link="cogl-Materials.html#cogl-material-set-layer-wrap-mode" deprecated="1.16: Use cogl_pipeline_set_layer_wrap_mode() instead" since="1.4"/>
+    <keyword type="function" name="cogl_material_set_layer_wrap_mode_s ()" link="cogl-Materials.html#cogl-material-set-layer-wrap-mode-s" deprecated="1.16: Use cogl_pipeline_set_layer_wrap_mode_s() instead" since="1.4"/>
+    <keyword type="function" name="cogl_material_set_layer_wrap_mode_t ()" link="cogl-Materials.html#cogl-material-set-layer-wrap-mode-t" deprecated="1.16: Use cogl_pipeline_set_layer_wrap_mode_t() instead" since="1.4"/>
+    <keyword type="function" name="cogl_material_set_layer_wrap_mode_p ()" link="cogl-Materials.html#cogl-material-set-layer-wrap-mode-p" deprecated="1.16: Use cogl_pipeline_set_layer_wrap_mode_p() instead" since="1.4"/>
+    <keyword type="function" name="cogl_material_get_layer_wrap_mode_s ()" link="cogl-Materials.html#cogl-material-get-layer-wrap-mode-s" deprecated="1.16: Use cogl_pipeline_get_layer_wrap_mode_s() instead" since="1.6"/>
+    <keyword type="function" name="cogl_material_get_layer_wrap_mode_t ()" link="cogl-Materials.html#cogl-material-get-layer-wrap-mode-t" deprecated="1.16: Use cogl_pipeline_get_layer_wrap_mode_t() instead" since="1.6"/>
+    <keyword type="function" name="cogl_material_get_layer_wrap_mode_p ()" link="cogl-Materials.html#cogl-material-get-layer-wrap-mode-p" deprecated="1.16: Use cogl_pipeline_get_layer_wrap_mode_p() instead" since="1.6"/>
     <keyword type="function" name="cogl_material_wrap_mode_get_type ()" link="cogl-Materials.html#cogl-material-wrap-mode-get-type"/>
-    <keyword type="function" name="cogl_material_set_user_program ()" link="cogl-Materials.html#cogl-material-set-user-program" since="1.4"/>
-    <keyword type="function" name="cogl_material_get_user_program ()" link="cogl-Materials.html#cogl-material-get-user-program" since="1.4"/>
-    <keyword type="function" name="cogl_material_foreach_layer ()" link="cogl-Materials.html#cogl-material-foreach-layer" since="1.4" stability="Unstable"/>
+    <keyword type="function" name="cogl_material_set_user_program ()" link="cogl-Materials.html#cogl-material-set-user-program" deprecated="1.16: Use #CoglSnippet api instead instead" since="1.4"/>
+    <keyword type="function" name="cogl_material_get_user_program ()" link="cogl-Materials.html#cogl-material-get-user-program" deprecated="1.16: Use #CoglSnippet api instead instead" since="1.4"/>
+    <keyword type="function" name="cogl_material_foreach_layer ()" link="cogl-Materials.html#cogl-material-foreach-layer" deprecated="1.16: No replacement" since="1.4" stability="Unstable"/>
     <keyword type="function" name="cogl_rectangle ()" link="cogl-Primitives.html#cogl-rectangle"/>
     <keyword type="function" name="cogl_rectangles ()" link="cogl-Primitives.html#cogl-rectangles" since="1.0"/>
     <keyword type="function" name="cogl_rectangle_with_texture_coords ()" link="cogl-Primitives.html#cogl-rectangle-with-texture-coords" since="1.0"/>
     <keyword type="function" name="cogl_rectangles_with_texture_coords ()" link="cogl-Primitives.html#cogl-rectangles-with-texture-coords" since="0.8.6"/>
     <keyword type="function" name="cogl_rectangle_with_multitexture_coords ()" link="cogl-Primitives.html#cogl-rectangle-with-multitexture-coords" since="1.0"/>
     <keyword type="function" name="cogl_polygon ()" link="cogl-Primitives.html#cogl-polygon" since="1.0"/>
-    <keyword type="function" name="cogl_is_path ()" link="cogl-Path-Primitives.html#cogl-is-path" since="2.0"/>
-    <keyword type="function" name="cogl_path_new ()" link="cogl-Path-Primitives.html#cogl-path-new" since="2.0"/>
-    <keyword type="function" name="cogl_get_path ()" link="cogl-Path-Primitives.html#cogl-get-path" since="1.4"/>
-    <keyword type="function" name="cogl_set_path ()" link="cogl-Path-Primitives.html#cogl-set-path" since="1.4"/>
-    <keyword type="function" name="cogl_path_copy ()" link="cogl-Path-Primitives.html#cogl-path-copy" since="2.0"/>
-    <keyword type="function" name="cogl_path_move_to ()" link="cogl-Path-Primitives.html#cogl-path-move-to" since="2.0"/>
-    <keyword type="function" name="cogl_path_close ()" link="cogl-Path-Primitives.html#cogl-path-close" since="2.0"/>
-    <keyword type="function" name="cogl_path_line_to ()" link="cogl-Path-Primitives.html#cogl-path-line-to" since="2.0"/>
-    <keyword type="function" name="cogl_path_curve_to ()" link="cogl-Path-Primitives.html#cogl-path-curve-to" since="2.0"/>
-    <keyword type="function" name="cogl_path_arc ()" link="cogl-Path-Primitives.html#cogl-path-arc" since="2.0"/>
-    <keyword type="function" name="cogl_path_rel_move_to ()" link="cogl-Path-Primitives.html#cogl-path-rel-move-to" since="2.0"/>
-    <keyword type="function" name="cogl_path_rel_line_to ()" link="cogl-Path-Primitives.html#cogl-path-rel-line-to" since="2.0"/>
-    <keyword type="function" name="cogl_path_rel_curve_to ()" link="cogl-Path-Primitives.html#cogl-path-rel-curve-to" since="2.0"/>
-    <keyword type="function" name="cogl_path_line ()" link="cogl-Path-Primitives.html#cogl-path-line" since="2.0"/>
-    <keyword type="function" name="cogl_path_polyline ()" link="cogl-Path-Primitives.html#cogl-path-polyline" since="2.0"/>
-    <keyword type="function" name="cogl_path_polygon ()" link="cogl-Path-Primitives.html#cogl-path-polygon" since="2.0"/>
-    <keyword type="function" name="cogl_path_rectangle ()" link="cogl-Path-Primitives.html#cogl-path-rectangle" since="2.0"/>
-    <keyword type="function" name="cogl_path_round_rectangle ()" link="cogl-Path-Primitives.html#cogl-path-round-rectangle" since="2.0"/>
-    <keyword type="function" name="cogl_path_ellipse ()" link="cogl-Path-Primitives.html#cogl-path-ellipse" since="2.0"/>
-    <keyword type="enum" name="enum CoglPathFillRule" link="cogl-Path-Primitives.html#CoglPathFillRule" since="1.4"/>
-    <keyword type="function" name="cogl_path_set_fill_rule ()" link="cogl-Path-Primitives.html#cogl-path-set-fill-rule" since="2.0"/>
-    <keyword type="function" name="cogl_path_get_fill_rule ()" link="cogl-Path-Primitives.html#cogl-path-get-fill-rule" since="2.0"/>
-    <keyword type="function" name="cogl_path_fill ()" link="cogl-Path-Primitives.html#cogl-path-fill" since="2.0"/>
-    <keyword type="function" name="cogl_path_fill_preserve ()" link="cogl-Path-Primitives.html#cogl-path-fill-preserve" since="1.0"/>
-    <keyword type="function" name="cogl_path_stroke ()" link="cogl-Path-Primitives.html#cogl-path-stroke" since="2.0"/>
-    <keyword type="function" name="cogl_path_stroke_preserve ()" link="cogl-Path-Primitives.html#cogl-path-stroke-preserve" since="1.0"/>
-    <keyword type="function" name="cogl_clip_push_rectangle ()" link="cogl-Clipping.html#cogl-clip-push-rectangle" since="1.2"/>
-    <keyword type="function" name="cogl_clip_push_window_rectangle ()" link="cogl-Clipping.html#cogl-clip-push-window-rectangle" since="1.2"/>
-    <keyword type="function" name="cogl_clip_push_from_path ()" link="cogl-Clipping.html#cogl-clip-push-from-path" since="1.8" stability="Unstable"/>
-    <keyword type="function" name="cogl_clip_push_from_path_preserve ()" link="cogl-Clipping.html#cogl-clip-push-from-path-preserve" since="1.0"/>
-    <keyword type="function" name="cogl_clip_pop ()" link="cogl-Clipping.html#cogl-clip-pop"/>
-    <keyword type="function" name="cogl_vertex_buffer_new ()" link="cogl-Vertex-Buffers.html#cogl-vertex-buffer-new"/>
-    <keyword type="function" name="cogl_vertex_buffer_get_n_vertices ()" link="cogl-Vertex-Buffers.html#cogl-vertex-buffer-get-n-vertices"/>
-    <keyword type="function" name="cogl_vertex_buffer_add ()" link="cogl-Vertex-Buffers.html#cogl-vertex-buffer-add"/>
-    <keyword type="function" name="cogl_vertex_buffer_delete ()" link="cogl-Vertex-Buffers.html#cogl-vertex-buffer-delete"/>
-    <keyword type="function" name="cogl_vertex_buffer_submit ()" link="cogl-Vertex-Buffers.html#cogl-vertex-buffer-submit"/>
-    <keyword type="function" name="cogl_vertex_buffer_disable ()" link="cogl-Vertex-Buffers.html#cogl-vertex-buffer-disable"/>
-    <keyword type="function" name="cogl_vertex_buffer_enable ()" link="cogl-Vertex-Buffers.html#cogl-vertex-buffer-enable"/>
+    <keyword type="function" name="cogl_clip_push_rectangle ()" link="cogl-Clipping.html#cogl-clip-push-rectangle" deprecated="" since="1.2"/>
+    <keyword type="function" name="cogl_clip_push_window_rectangle ()" link="cogl-Clipping.html#cogl-clip-push-window-rectangle" deprecated="1.16: Use cogl_framebuffer_push_scissor_clip() instead" since="1.2"/>
+    <keyword type="function" name="cogl_clip_pop ()" link="cogl-Clipping.html#cogl-clip-pop" deprecated="1.16: Use cogl_framebuffer_pop_clip() instead"/>
+    <keyword type="function" name="cogl_vertex_buffer_new ()" link="cogl-Vertex-Buffers.html#cogl-vertex-buffer-new" deprecated="1.16: Use the #CoglPrimitive api instead"/>
+    <keyword type="function" name="cogl_vertex_buffer_get_n_vertices ()" link="cogl-Vertex-Buffers.html#cogl-vertex-buffer-get-n-vertices" deprecated="1.16: Use the #CoglPrimitive api instead"/>
+    <keyword type="function" name="cogl_vertex_buffer_add ()" link="cogl-Vertex-Buffers.html#cogl-vertex-buffer-add" deprecated="1.16: Use the #CoglPrimitive api instead"/>
+    <keyword type="function" name="cogl_vertex_buffer_delete ()" link="cogl-Vertex-Buffers.html#cogl-vertex-buffer-delete" deprecated="1.16: Use the #CoglPrimitive api instead"/>
+    <keyword type="function" name="cogl_vertex_buffer_submit ()" link="cogl-Vertex-Buffers.html#cogl-vertex-buffer-submit" deprecated="1.16: Use the #CoglPrimitive api instead"/>
+    <keyword type="function" name="cogl_vertex_buffer_disable ()" link="cogl-Vertex-Buffers.html#cogl-vertex-buffer-disable" deprecated="1.16: Use the #CoglPrimitive api instead"/>
+    <keyword type="function" name="cogl_vertex_buffer_enable ()" link="cogl-Vertex-Buffers.html#cogl-vertex-buffer-enable" deprecated="1.16: Use the #CoglPrimitive api instead"/>
     <keyword type="enum" name="enum CoglVerticesMode" link="cogl-Vertex-Buffers.html#CoglVerticesMode" since="1.0"/>
-    <keyword type="function" name="cogl_vertex_buffer_draw ()" link="cogl-Vertex-Buffers.html#cogl-vertex-buffer-draw"/>
-    <keyword type="function" name="cogl_is_vertex_buffer ()" link="cogl-Vertex-Buffers.html#cogl-is-vertex-buffer" since="1.0"/>
+    <keyword type="function" name="cogl_vertex_buffer_draw ()" link="cogl-Vertex-Buffers.html#cogl-vertex-buffer-draw" deprecated="1.16: Use the #CoglPrimitive api instead"/>
+    <keyword type="function" name="cogl_is_vertex_buffer ()" link="cogl-Vertex-Buffers.html#cogl-is-vertex-buffer" deprecated="1.16: Use the #CoglPrimitive api instead" since="1.0"/>
     <keyword type="enum" name="enum CoglIndicesType" link="cogl-Vertex-Buffers.html#CoglIndicesType"/>
-    <keyword type="function" name="cogl_vertex_buffer_indices_new ()" link="cogl-Vertex-Buffers.html#cogl-vertex-buffer-indices-new"/>
-    <keyword type="function" name="cogl_vertex_buffer_draw_elements ()" link="cogl-Vertex-Buffers.html#cogl-vertex-buffer-draw-elements"/>
-    <keyword type="function" name="cogl_vertex_buffer_indices_get_for_quads ()" link="cogl-Vertex-Buffers.html#cogl-vertex-buffer-indices-get-for-quads"/>
-    <keyword type="function" name="cogl_is_vertex_buffer_indices ()" link="cogl-Vertex-Buffers.html#cogl-is-vertex-buffer-indices" since="1.4"/>
+    <keyword type="function" name="cogl_vertex_buffer_indices_new ()" link="cogl-Vertex-Buffers.html#cogl-vertex-buffer-indices-new" deprecated="1.16: Use the #CoglPrimitive api instead"/>
+    <keyword type="function" name="cogl_vertex_buffer_draw_elements ()" link="cogl-Vertex-Buffers.html#cogl-vertex-buffer-draw-elements" deprecated="1.16: Use the #CoglPrimitive api instead"/>
+    <keyword type="function" name="cogl_vertex_buffer_indices_get_for_quads ()" link="cogl-Vertex-Buffers.html#cogl-vertex-buffer-indices-get-for-quads" deprecated="1.16: Use the #CoglPrimitive api instead"/>
+    <keyword type="function" name="cogl_is_vertex_buffer_indices ()" link="cogl-Vertex-Buffers.html#cogl-is-vertex-buffer-indices" deprecated="1.16: Use the #CoglPrimitive api instead" since="1.4"/>
     <keyword type="struct" name="CoglMatrix" link="cogl-Matrices.html#CoglMatrix"/>
     <keyword type="function" name="cogl_matrix_init_identity ()" link="cogl-Matrices.html#cogl-matrix-init-identity"/>
     <keyword type="function" name="cogl_matrix_copy ()" link="cogl-Matrices.html#cogl-matrix-copy" since="1.6"/>
@@ -289,31 +263,32 @@
     <keyword type="function" name="cogl_matrix_transform_points ()" link="cogl-Matrices.html#cogl-matrix-transform-points" stability="Unstable"/>
     <keyword type="function" name="cogl_matrix_is_identity ()" link="cogl-Matrices.html#cogl-matrix-is-identity" since="1.8"/>
     <keyword type="enum" name="enum CoglShaderType" link="cogl-Shaders-and-Programmable-Pipeline.html#CoglShaderType" since="1.0"/>
-    <keyword type="function" name="cogl_create_shader ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-create-shader"/>
-    <keyword type="function" name="cogl_is_shader ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-is-shader"/>
-    <keyword type="function" name="cogl_shader_source ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-shader-source"/>
-    <keyword type="function" name="cogl_shader_compile ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-shader-compile"/>
-    <keyword type="function" name="cogl_shader_get_info_log ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-shader-get-info-log"/>
-    <keyword type="function" name="cogl_shader_get_type ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-shader-get-type"/>
-    <keyword type="function" name="cogl_shader_is_compiled ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-shader-is-compiled"/>
-    <keyword type="function" name="cogl_create_program ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-create-program"/>
-    <keyword type="function" name="cogl_is_program ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-is-program"/>
-    <keyword type="function" name="cogl_program_attach_shader ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-program-attach-shader"/>
-    <keyword type="function" name="cogl_program_link ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-program-link"/>
-    <keyword type="function" name="cogl_program_get_uniform_location ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-program-get-uniform-location"/>
-    <keyword type="function" name="cogl_program_set_uniform_1f ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-program-set-uniform-1f" since="1.4"/>
-    <keyword type="function" name="cogl_program_set_uniform_1i ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-program-set-uniform-1i" since="1.4"/>
-    <keyword type="function" name="cogl_program_set_uniform_float ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-program-set-uniform-float" since="1.4"/>
-    <keyword type="function" name="cogl_program_set_uniform_int ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-program-set-uniform-int" since="1.4"/>
-    <keyword type="function" name="cogl_program_set_uniform_matrix ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-program-set-uniform-matrix" since="1.4"/>
-    <keyword type="function" name="cogl_offscreen_new_to_texture ()" link="cogl-Offscreen-Buffers.html#cogl-offscreen-new-to-texture"/>
+    <keyword type="function" name="cogl_create_shader ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-create-shader" deprecated="1.16: Use #CoglSnippet api"/>
+    <keyword type="function" name="cogl_is_shader ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-is-shader" deprecated="1.16: Use #CoglSnippet api"/>
+    <keyword type="function" name="cogl_shader_source ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-shader-source" deprecated="1.16: Use #CoglSnippet api"/>
+    <keyword type="function" name="cogl_shader_compile ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-shader-compile" deprecated="1.16: Use #CoglSnippet api"/>
+    <keyword type="function" name="cogl_shader_get_info_log ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-shader-get-info-log" deprecated="1.16: Use #CoglSnippet api"/>
+    <keyword type="function" name="cogl_shader_get_type ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-shader-get-type" deprecated="1.16: Use #CoglSnippet api"/>
+    <keyword type="function" name="cogl_shader_is_compiled ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-shader-is-compiled" deprecated="1.16: Use #CoglSnippet api"/>
+    <keyword type="function" name="cogl_create_program ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-create-program" deprecated="1.16: Use #CoglSnippet api"/>
+    <keyword type="function" name="cogl_is_program ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-is-program" deprecated="1.16: Use #CoglSnippet api"/>
+    <keyword type="function" name="cogl_program_attach_shader ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-program-attach-shader" deprecated="1.16: Use #CoglSnippet api"/>
+    <keyword type="function" name="cogl_program_link ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-program-link" deprecated="1.16: Use #CoglSnippet api"/>
+    <keyword type="function" name="cogl_program_get_uniform_location ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-program-get-uniform-location" deprecated="1.16: Use #CoglSnippet api instead"/>
+    <keyword type="function" name="cogl_program_set_uniform_1f ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-program-set-uniform-1f" deprecated="1.16: Use #CoglSnippet api instead" since="1.4"/>
+    <keyword type="function" name="cogl_program_set_uniform_1i ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-program-set-uniform-1i" deprecated="1.16: Use #CoglSnippet api instead" since="1.4"/>
+    <keyword type="function" name="cogl_program_set_uniform_float ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-program-set-uniform-float" deprecated="1.16: Use #CoglSnippet api instead" since="1.4"/>
+    <keyword type="function" name="cogl_program_set_uniform_int ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-program-set-uniform-int" deprecated="1.16: Use #CoglSnippet api instead" since="1.4"/>
+    <keyword type="function" name="cogl_program_set_uniform_matrix ()" link="cogl-Shaders-and-Programmable-Pipeline.html#cogl-program-set-uniform-matrix" deprecated="1.16: Use #CoglSnippet api instead" since="1.4"/>
+    <keyword type="function" name="cogl_offscreen_new_with_texture ()" link="cogl-Offscreen-Buffers.html#cogl-offscreen-new-with-texture"/>
+    <keyword type="function" name="cogl_offscreen_new_to_texture ()" link="cogl-Offscreen-Buffers.html#cogl-offscreen-new-to-texture" deprecated="1.16: Use cogl_offscreen_new_with_texture instead."/>
     <keyword type="function" name="cogl_is_offscreen ()" link="cogl-Offscreen-Buffers.html#cogl-is-offscreen"/>
-    <keyword type="function" name="cogl_set_framebuffer ()" link="cogl-Offscreen-Buffers.html#cogl-set-framebuffer" since="1.2"/>
-    <keyword type="function" name="cogl_push_framebuffer ()" link="cogl-Offscreen-Buffers.html#cogl-push-framebuffer" since="1.2"/>
-    <keyword type="function" name="cogl_pop_framebuffer ()" link="cogl-Offscreen-Buffers.html#cogl-pop-framebuffer" since="1.2"/>
+    <keyword type="function" name="cogl_set_framebuffer ()" link="cogl-Offscreen-Buffers.html#cogl-set-framebuffer" deprecated="" since="1.2"/>
+    <keyword type="function" name="cogl_push_framebuffer ()" link="cogl-Offscreen-Buffers.html#cogl-push-framebuffer" deprecated="" since="1.2"/>
+    <keyword type="function" name="cogl_pop_framebuffer ()" link="cogl-Offscreen-Buffers.html#cogl-pop-framebuffer" deprecated="" since="1.2"/>
     <keyword type="function" name="cogl_set_draw_buffer ()" link="cogl-Offscreen-Buffers.html#cogl-set-draw-buffer" deprecated=""/>
-    <keyword type="function" name="cogl_pop_draw_buffer ()" link="cogl-Offscreen-Buffers.html#cogl-pop-draw-buffer" deprecated="1.2: The draw buffer API was replaced with a framebuffer API"/>
-    <keyword type="function" name="cogl_push_draw_buffer ()" link="cogl-Offscreen-Buffers.html#cogl-push-draw-buffer" deprecated="1.2: The draw buffer API was replaced with a framebuffer API"/>
+    <keyword type="function" name="cogl_pop_draw_buffer ()" link="cogl-Offscreen-Buffers.html#cogl-pop-draw-buffer" deprecated=""/>
+    <keyword type="function" name="cogl_push_draw_buffer ()" link="cogl-Offscreen-Buffers.html#cogl-push-draw-buffer" deprecated=""/>
     <keyword type="struct" name="CoglBitmap" link="cogl-Bitmaps.html#CoglBitmap"/>
     <keyword type="function" name="cogl_bitmap_new_from_file ()" link="cogl-Bitmaps.html#cogl-bitmap-new-from-file" since="1.0"/>
     <keyword type="function" name="cogl_bitmap_get_size_from_file ()" link="cogl-Bitmaps.html#cogl-bitmap-get-size-from-file" since="1.0"/>
@@ -383,7 +358,7 @@
     <keyword type="function" name="cogl_angle_cos ()" link="cogl-Fixed-Point-API.html#cogl-angle-cos" since="1.0"/>
     <keyword type="function" name="cogl_angle_sin ()" link="cogl-Fixed-Point-API.html#cogl-angle-sin" since="1.0"/>
     <keyword type="function" name="cogl_angle_tan ()" link="cogl-Fixed-Point-API.html#cogl-angle-tan" since="1.0"/>
-    <keyword type="function" name="cogl_gtype_matrix_get_type ()" link="cogl-GType-Integration-API.html#cogl-gtype-matrix-get-type"/>
+    <keyword type="function" name="cogl_gtype_matrix_get_type ()" link="cogl-GType-Integration-API.html#cogl-gtype-matrix-get-type" deprecated="1.18: Use cogl_matrix_get_gtype() instead."/>
     <keyword type="function" name="cogl_is_buffer ()" link="cogl-Buffers.html#cogl-is-buffer" since="1.2" stability="Unstable"/>
     <keyword type="function" name="cogl_buffer_get_size ()" link="cogl-Buffers.html#cogl-buffer-get-size" since="1.2" stability="Unstable"/>
     <keyword type="enum" name="enum CoglBufferUpdateHint" link="cogl-Buffers.html#CoglBufferUpdateHint" since="1.2" stability="Unstable"/>
@@ -438,32 +413,32 @@
     <keyword type="function" name="cogl_get_static_identity_quaternion ()" link="cogl-Quaternions-(Rotations).html#cogl-get-static-identity-quaternion" since="2.0"/>
     <keyword type="function" name="cogl_get_static_zero_quaternion ()" link="cogl-Quaternions-(Rotations).html#cogl-get-static-zero-quaternion" since="2.0"/>
     <keyword type="function" name="cogl_check_extension ()" link="cogl-General-API-(Deprecated).html#cogl-check-extension" deprecated=""/>
-    <keyword type="function" name="cogl_viewport ()" link="cogl-General-API-(Deprecated).html#cogl-viewport" deprecated="1.2: Use cogl_set_viewport() instead" since="0.8.2"/>
-    <keyword type="function" name="cogl_get_bitmasks ()" link="cogl-General-API-(Deprecated).html#cogl-get-bitmasks"/>
-    <keyword type="function" name="cogl_set_depth_test_enabled ()" link="cogl-General-API-(Deprecated).html#cogl-set-depth-test-enabled" deprecated=""/>
-    <keyword type="function" name="cogl_get_depth_test_enabled ()" link="cogl-General-API-(Deprecated).html#cogl-get-depth-test-enabled" deprecated=""/>
+    <keyword type="function" name="cogl_viewport ()" link="cogl-General-API-(Deprecated).html#cogl-viewport" deprecated="1.8: Use cogl_framebuffer_set_viewport instead" since="0.8.2"/>
+    <keyword type="function" name="cogl_get_bitmasks ()" link="cogl-General-API-(Deprecated).html#cogl-get-bitmasks" deprecated=""/>
+    <keyword type="function" name="cogl_set_depth_test_enabled ()" link="cogl-General-API-(Deprecated).html#cogl-set-depth-test-enabled" deprecated="1.16: Use cogl_pipeline_set_depth_state() instead"/>
+    <keyword type="function" name="cogl_get_depth_test_enabled ()" link="cogl-General-API-(Deprecated).html#cogl-get-depth-test-enabled" deprecated="1.16: Use cogl_pipeline_set_depth_state() instead"/>
     <keyword type="function" name="cogl_texture_ref ()" link="cogl-Textures-(Deprecated).html#cogl-texture-ref" deprecated="1.2: Use cogl_object_ref() instead"/>
     <keyword type="function" name="cogl_texture_unref ()" link="cogl-Textures-(Deprecated).html#cogl-texture-unref" deprecated="1.2: Use cogl_object_unref() instead"/>
     <keyword type="function" name="cogl_material_ref ()" link="cogl-Materials-(Deprecated).html#cogl-material-ref" deprecated="1.2: Use cogl_object_ref() instead" since="1.0"/>
     <keyword type="function" name="cogl_material_unref ()" link="cogl-Materials-(Deprecated).html#cogl-material-unref" deprecated="1.2: Use cogl_object_unref() instead" since="1.0"/>
-    <keyword type="function" name="cogl_material_get_layers ()" link="cogl-Materials-(Deprecated).html#cogl-material-get-layers"/>
+    <keyword type="function" name="cogl_material_get_layers ()" link="cogl-Materials-(Deprecated).html#cogl-material-get-layers" deprecated="1.16: Use cogl_pipeline_get_layers() instead"/>
     <keyword type="function" name="cogl_clip_push ()" link="cogl-Clipping-(Deprecated).html#cogl-clip-push" deprecated=""/>
-    <keyword type="function" name="cogl_clip_push_window_rect ()" link="cogl-Clipping-(Deprecated).html#cogl-clip-push-window-rect" deprecated="1.2: Use cogl_clip_push_window_rectangle() instead"/>
+    <keyword type="function" name="cogl_clip_push_window_rect ()" link="cogl-Clipping-(Deprecated).html#cogl-clip-push-window-rect" deprecated="1.16: Use cogl_framebuffer_push_scissor_clip() instead"/>
     <keyword type="function" name="cogl_clip_ensure ()" link="cogl-Clipping-(Deprecated).html#cogl-clip-ensure" deprecated="1.2: Calling this function has no effect" since="1.0"/>
     <keyword type="function" name="cogl_clip_stack_save ()" link="cogl-Clipping-(Deprecated).html#cogl-clip-stack-save" deprecated="" since="0.8.2"/>
     <keyword type="function" name="cogl_clip_stack_restore ()" link="cogl-Clipping-(Deprecated).html#cogl-clip-stack-restore" deprecated="" since="0.8.2"/>
-    <keyword type="function" name="cogl_vertex_buffer_ref ()" link="cogl-Vertex-Buffers-(Deprecated).html#cogl-vertex-buffer-ref" deprecated="1.2: Use cogl_handle_ref() instead"/>
-    <keyword type="function" name="cogl_vertex_buffer_unref ()" link="cogl-Vertex-Buffers-(Deprecated).html#cogl-vertex-buffer-unref" deprecated="1.2: Use cogl_handle_unref() instead"/>
-    <keyword type="function" name="cogl_shader_ref ()" link="cogl-Shaders-and-Programmable-Pipeline-(Deprecated).html#cogl-shader-ref" deprecated="1.0: Please use cogl_handle_ref() instead."/>
-    <keyword type="function" name="cogl_shader_unref ()" link="cogl-Shaders-and-Programmable-Pipeline-(Deprecated).html#cogl-shader-unref" deprecated="1.0: Please use cogl_handle_unref() instead."/>
-    <keyword type="function" name="cogl_program_ref ()" link="cogl-Shaders-and-Programmable-Pipeline-(Deprecated).html#cogl-program-ref" deprecated="1.0: Please use cogl_handle_ref() instead."/>
-    <keyword type="function" name="cogl_program_unref ()" link="cogl-Shaders-and-Programmable-Pipeline-(Deprecated).html#cogl-program-unref" deprecated="1.0: Please use cogl_handle_unref() instead."/>
-    <keyword type="function" name="cogl_program_use ()" link="cogl-Shaders-and-Programmable-Pipeline-(Deprecated).html#cogl-program-use"/>
-    <keyword type="function" name="cogl_program_uniform_1f ()" link="cogl-Shaders-and-Programmable-Pipeline-(Deprecated).html#cogl-program-uniform-1f" deprecated="1.4: Use cogl_program_set_uniform_1f() instead."/>
-    <keyword type="function" name="cogl_program_uniform_1i ()" link="cogl-Shaders-and-Programmable-Pipeline-(Deprecated).html#cogl-program-uniform-1i" deprecated="1.4: Use cogl_program_set_uniform_1i() instead."/>
-    <keyword type="function" name="cogl_program_uniform_float ()" link="cogl-Shaders-and-Programmable-Pipeline-(Deprecated).html#cogl-program-uniform-float" deprecated="1.4: Use cogl_program_set_uniform_float() instead."/>
-    <keyword type="function" name="cogl_program_uniform_int ()" link="cogl-Shaders-and-Programmable-Pipeline-(Deprecated).html#cogl-program-uniform-int" deprecated=""/>
-    <keyword type="function" name="cogl_program_uniform_matrix ()" link="cogl-Shaders-and-Programmable-Pipeline-(Deprecated).html#cogl-program-uniform-matrix" deprecated=""/>
+    <keyword type="function" name="cogl_vertex_buffer_ref ()" link="cogl-Vertex-Buffers-(Deprecated).html#cogl-vertex-buffer-ref" deprecated="1.2: Use cogl_object_ref() instead"/>
+    <keyword type="function" name="cogl_vertex_buffer_unref ()" link="cogl-Vertex-Buffers-(Deprecated).html#cogl-vertex-buffer-unref" deprecated="1.2: Use cogl_object_unref() instead"/>
+    <keyword type="function" name="cogl_shader_ref ()" link="cogl-Shaders-and-Programmable-Pipeline-(Deprecated).html#cogl-shader-ref" deprecated="1.16: Use #CoglSnippet api"/>
+    <keyword type="function" name="cogl_shader_unref ()" link="cogl-Shaders-and-Programmable-Pipeline-(Deprecated).html#cogl-shader-unref" deprecated="1.16: Use #CoglSnippet api"/>
+    <keyword type="function" name="cogl_program_ref ()" link="cogl-Shaders-and-Programmable-Pipeline-(Deprecated).html#cogl-program-ref" deprecated="1.16: Use #CoglSnippet api"/>
+    <keyword type="function" name="cogl_program_unref ()" link="cogl-Shaders-and-Programmable-Pipeline-(Deprecated).html#cogl-program-unref" deprecated="1.16: Use #CoglSnippet api"/>
+    <keyword type="function" name="cogl_program_use ()" link="cogl-Shaders-and-Programmable-Pipeline-(Deprecated).html#cogl-program-use" deprecated="1.16: Use #CoglSnippet api"/>
+    <keyword type="function" name="cogl_program_uniform_1f ()" link="cogl-Shaders-and-Programmable-Pipeline-(Deprecated).html#cogl-program-uniform-1f" deprecated="1.16: Use #CoglSnippet api"/>
+    <keyword type="function" name="cogl_program_uniform_1i ()" link="cogl-Shaders-and-Programmable-Pipeline-(Deprecated).html#cogl-program-uniform-1i" deprecated="1.16: Use #CoglSnippet api"/>
+    <keyword type="function" name="cogl_program_uniform_float ()" link="cogl-Shaders-and-Programmable-Pipeline-(Deprecated).html#cogl-program-uniform-float" deprecated="1.16: Use #CoglSnippet api"/>
+    <keyword type="function" name="cogl_program_uniform_int ()" link="cogl-Shaders-and-Programmable-Pipeline-(Deprecated).html#cogl-program-uniform-int" deprecated="1.16: Use #CoglSnippet api"/>
+    <keyword type="function" name="cogl_program_uniform_matrix ()" link="cogl-Shaders-and-Programmable-Pipeline-(Deprecated).html#cogl-program-uniform-matrix" deprecated="1.16: Use #CoglSnippet api"/>
     <keyword type="function" name="cogl_offscreen_ref ()" link="cogl-Offscreen-Buffers-(Deprecated).html#cogl-offscreen-ref" deprecated="1.2: cogl_object_ref() should be used in new code."/>
     <keyword type="function" name="cogl_offscreen_unref ()" link="cogl-Offscreen-Buffers-(Deprecated).html#cogl-offscreen-unref" deprecated="1.2: cogl_object_unref() should be used in new code."/>
     <keyword type="constant" name="COGL_PIXEL_FORMAT_ANY" link="cogl-General-API.html#COGL-PIXEL-FORMAT-ANY:CAPS"/>
@@ -473,6 +448,7 @@
     <keyword type="constant" name="COGL_PIXEL_FORMAT_RGBA_5551" link="cogl-General-API.html#COGL-PIXEL-FORMAT-RGBA-5551:CAPS"/>
     <keyword type="constant" name="COGL_PIXEL_FORMAT_YUV" link="cogl-General-API.html#COGL-PIXEL-FORMAT-YUV:CAPS"/>
     <keyword type="constant" name="COGL_PIXEL_FORMAT_G_8" link="cogl-General-API.html#COGL-PIXEL-FORMAT-G-8:CAPS"/>
+    <keyword type="constant" name="COGL_PIXEL_FORMAT_RG_88" link="cogl-General-API.html#COGL-PIXEL-FORMAT-RG-88:CAPS"/>
     <keyword type="constant" name="COGL_PIXEL_FORMAT_RGB_888" link="cogl-General-API.html#COGL-PIXEL-FORMAT-RGB-888:CAPS"/>
     <keyword type="constant" name="COGL_PIXEL_FORMAT_BGR_888" link="cogl-General-API.html#COGL-PIXEL-FORMAT-BGR-888:CAPS"/>
     <keyword type="constant" name="COGL_PIXEL_FORMAT_RGBA_8888" link="cogl-General-API.html#COGL-PIXEL-FORMAT-RGBA-8888:CAPS"/>
@@ -560,8 +536,6 @@
     <keyword type="constant" name="COGL_MATERIAL_WRAP_MODE_REPEAT" link="cogl-Materials.html#COGL-MATERIAL-WRAP-MODE-REPEAT:CAPS"/>
     <keyword type="constant" name="COGL_MATERIAL_WRAP_MODE_CLAMP_TO_EDGE" link="cogl-Materials.html#COGL-MATERIAL-WRAP-MODE-CLAMP-TO-EDGE:CAPS"/>
     <keyword type="constant" name="COGL_MATERIAL_WRAP_MODE_AUTOMATIC" link="cogl-Materials.html#COGL-MATERIAL-WRAP-MODE-AUTOMATIC:CAPS"/>
-    <keyword type="constant" name="COGL_PATH_FILL_RULE_NON_ZERO" link="cogl-Path-Primitives.html#COGL-PATH-FILL-RULE-NON-ZERO:CAPS"/>
-    <keyword type="constant" name="COGL_PATH_FILL_RULE_EVEN_ODD" link="cogl-Path-Primitives.html#COGL-PATH-FILL-RULE-EVEN-ODD:CAPS"/>
     <keyword type="constant" name="COGL_VERTICES_MODE_POINTS" link="cogl-Vertex-Buffers.html#COGL-VERTICES-MODE-POINTS:CAPS"/>
     <keyword type="constant" name="COGL_VERTICES_MODE_LINES" link="cogl-Vertex-Buffers.html#COGL-VERTICES-MODE-LINES:CAPS"/>
     <keyword type="constant" name="COGL_VERTICES_MODE_LINE_LOOP" link="cogl-Vertex-Buffers.html#COGL-VERTICES-MODE-LINE-LOOP:CAPS"/>

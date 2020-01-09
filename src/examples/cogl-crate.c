@@ -115,7 +115,7 @@ paint (Data *data)
   cogl_framebuffer_rotate (fb, rotation, 0, 1, 0);
   cogl_framebuffer_rotate (fb, rotation, 1, 0, 0);
 
-  cogl_framebuffer_draw_primitive (fb, data->crate_pipeline, data->prim);
+  cogl_primitive_draw (data->prim, fb, data->crate_pipeline);
 
   cogl_framebuffer_pop_matrix (fb);
 
@@ -160,7 +160,7 @@ main (int argc, char **argv)
   }
 
   onscreen = cogl_onscreen_new (ctx, 640, 480);
-  fb = COGL_FRAMEBUFFER (onscreen);
+  fb = onscreen;
   data.fb = fb;
   data.framebuffer_width = cogl_framebuffer_get_width (fb);
   data.framebuffer_height = cogl_framebuffer_get_height (fb);
@@ -169,8 +169,9 @@ main (int argc, char **argv)
 
   cogl_onscreen_show (onscreen);
 
-  cogl_push_framebuffer (fb);
-  cogl_set_viewport (0, 0, data.framebuffer_width, data.framebuffer_height);
+  cogl_framebuffer_set_viewport (fb, 0, 0,
+                                 data.framebuffer_width,
+                                 data.framebuffer_height);
 
   fovy = 60; /* y-axis field of view */
   aspect = (float)data.framebuffer_width/(float)data.framebuffer_height;
@@ -178,7 +179,7 @@ main (int argc, char **argv)
   z_2d = 1000; /* position to 2d plane */
   z_far = 2000; /* distance to far clipping plane */
 
-  cogl_perspective (fovy, aspect, z_near, z_far);
+  cogl_framebuffer_perspective (fb, fovy, aspect, z_near, z_far);
 
   /* Since the pango renderer emits geometry in pixel/device coordinates
    * and the anti aliasing is implemented with the assumption that the
@@ -195,12 +196,11 @@ main (int argc, char **argv)
   cogl_matrix_view_2d_in_perspective (&data.view, fovy, aspect, z_near, z_2d,
                                       data.framebuffer_width,
                                       data.framebuffer_height);
-  cogl_set_modelview_matrix (&data.view);
-  cogl_pop_framebuffer ();
+  cogl_framebuffer_set_modelview_matrix (fb, &data.view);
 
   /* Initialize some convenient constants */
   cogl_matrix_init_identity (&identity);
-  cogl_color_set_from_4ub (&white, 0xff, 0xff, 0xff, 0xff);
+  cogl_color_init_from_4ub (&white, 0xff, 0xff, 0xff, 0xff);
 
   /* rectangle indices allow the GPU to interpret a list of quads (the
    * faces of our cube) as a list of triangles.
@@ -220,10 +220,10 @@ main (int argc, char **argv)
 
   /* Load a jpeg crate texture from a file */
   printf ("crate.jpg (CC by-nc-nd http://bit.ly/9kP45T) ShadowRunner27 http://bit.ly/m1YXLh\n");
-  data.texture = cogl_texture_new_from_file (COGL_EXAMPLES_DATA "crate.jpg",
-                                             COGL_TEXTURE_NO_SLICING,
-                                             COGL_PIXEL_FORMAT_ANY,
-                                             &error);
+  data.texture =
+    cogl_texture_2d_new_from_file (ctx,
+                                   COGL_EXAMPLES_DATA "crate.jpg",
+                                   &error);
   if (!data.texture)
     g_error ("Failed to load texture: %s", error->message);
 
@@ -274,6 +274,7 @@ main (int argc, char **argv)
                                     &data,
                                     NULL); /* destroy notify */
 
+
   while (1)
     {
       CoglPollFD *poll_fds;
@@ -286,12 +287,14 @@ main (int argc, char **argv)
           cogl_onscreen_swap_buffers (COGL_ONSCREEN (fb));
         }
 
-      cogl_poll_get_info (ctx, &poll_fds, &n_poll_fds, &timeout);
+      cogl_poll_renderer_get_info (cogl_context_get_renderer (ctx),
+                                   &poll_fds, &n_poll_fds, &timeout);
 
       g_poll ((GPollFD *) poll_fds, n_poll_fds,
               timeout == -1 ? -1 : timeout / 1000);
 
-      cogl_poll_dispatch (ctx, poll_fds, n_poll_fds);
+      cogl_poll_renderer_dispatch (cogl_context_get_renderer (ctx),
+                                   poll_fds, n_poll_fds);
     }
 
   return 0;

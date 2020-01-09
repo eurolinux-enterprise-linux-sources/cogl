@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2007,2008,2009,2010,2011,2013 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  * Authors:
@@ -28,6 +34,7 @@
 #include "config.h"
 #endif
 
+#include "cogl-i18n-private.h"
 #include "cogl-util.h"
 #include "cogl-winsys-egl-private.h"
 #include "cogl-winsys-private.h"
@@ -40,6 +47,7 @@
 #include "cogl-onscreen-template-private.h"
 #include "cogl-gles2-context-private.h"
 #include "cogl-error-private.h"
+#include "cogl-egl.h"
 
 #include "cogl-private.h"
 
@@ -48,8 +56,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
-#include <glib/gi18n-lib.h>
 
 
 #ifndef EGL_KHR_create_context
@@ -457,8 +463,9 @@ _cogl_winsys_display_setup (CoglDisplay *display,
       struct wl_display *wayland_display = display->wayland_compositor_display;
       CoglRendererEGL *egl_renderer = display->renderer->winsys;
 
-      egl_renderer->pf_eglBindWaylandDisplay (egl_renderer->edpy,
-                                              wayland_display);
+      if (egl_renderer->pf_eglBindWaylandDisplay)
+	egl_renderer->pf_eglBindWaylandDisplay (egl_renderer->edpy,
+						wayland_display);
     }
 #endif
 
@@ -502,6 +509,18 @@ _cogl_winsys_context_init (CoglContext *context, CoglError **error)
                       COGL_WINSYS_FEATURE_SWAP_REGION, TRUE);
       COGL_FLAGS_SET (context->winsys_features,
                       COGL_WINSYS_FEATURE_SWAP_REGION_THROTTLE, TRUE);
+    }
+
+  if ((egl_renderer->private_features & COGL_EGL_WINSYS_FEATURE_FENCE_SYNC) &&
+      _cogl_has_private_feature (context, COGL_PRIVATE_FEATURE_OES_EGL_SYNC))
+    COGL_FLAGS_SET (context->features, COGL_FEATURE_ID_FENCE, TRUE);
+
+  if (egl_renderer->private_features & COGL_EGL_WINSYS_FEATURE_BUFFER_AGE)
+    {
+      COGL_FLAGS_SET (context->winsys_features,
+                      COGL_WINSYS_FEATURE_BUFFER_AGE,
+                      TRUE);
+      COGL_FLAGS_SET (context->features, COGL_FEATURE_ID_BUFFER_AGE, TRUE);
     }
 
   /* NB: We currently only support creating standalone GLES2 contexts
@@ -784,7 +803,9 @@ _cogl_winsys_onscreen_swap_region (CoglOnscreen *onscreen,
 }
 
 static void
-_cogl_winsys_onscreen_swap_buffers (CoglOnscreen *onscreen)
+_cogl_winsys_onscreen_swap_buffers_with_damage (CoglOnscreen *onscreen,
+                                                const int *rectangles,
+                                                int n_rectangles)
 {
   CoglContext *context = COGL_FRAMEBUFFER (onscreen)->context;
   CoglRenderer *renderer = context->display->renderer;
@@ -800,7 +821,29 @@ _cogl_winsys_onscreen_swap_buffers (CoglOnscreen *onscreen)
                                  COGL_FRAMEBUFFER (onscreen),
                                  COGL_FRAMEBUFFER_STATE_BIND);
 
-  eglSwapBuffers (egl_renderer->edpy, egl_onscreen->egl_surface);
+  if (n_rectangles && egl_renderer->pf_eglSwapBuffersWithDamage)
+    {
+      CoglFramebuffer *fb = COGL_FRAMEBUFFER (onscreen);
+      size_t size = n_rectangles * sizeof (int) * 4;
+      int *flipped = alloca (size);
+      int i;
+
+      memcpy (flipped, rectangles, size);
+      for (i = 0; i < n_rectangles; i++)
+        {
+          const int *rect = rectangles + 4 * i;
+          int *flip_rect = flipped + 4 * i;
+          flip_rect[1] = fb->height - rect[1] - rect[3];
+        }
+
+      if (egl_renderer->pf_eglSwapBuffersWithDamage (egl_renderer->edpy,
+                                                     egl_onscreen->egl_surface,
+                                                     flipped,
+                                                     n_rectangles) == EGL_FALSE)
+        g_warning ("Error reported by eglSwapBuffersWithDamage");
+    }
+  else
+    eglSwapBuffers (egl_renderer->edpy, egl_onscreen->egl_surface);
 }
 
 static void
@@ -816,14 +859,6 @@ _cogl_winsys_onscreen_update_swap_throttled (CoglOnscreen *onscreen)
   egl_display->current_draw_surface = EGL_NO_SURFACE;
 
   _cogl_winsys_onscreen_bind (onscreen);
-}
-
-static EGLDisplay
-_cogl_winsys_context_egl_get_egl_display (CoglContext *context)
-{
-  CoglRendererEGL *egl_renderer = context->display->renderer->winsys;
-
-  return egl_renderer->edpy;
 }
 
 static void
@@ -878,6 +913,45 @@ _cogl_winsys_restore_context (CoglContext *ctx)
                                  egl_display->egl_context);
 }
 
+#if defined(EGL_KHR_fence_sync) || defined(EGL_KHR_reusable_sync)
+static void *
+_cogl_winsys_fence_add (CoglContext *context)
+{
+  CoglRendererEGL *renderer = context->display->renderer->winsys;
+  void *ret;
+
+  if (renderer->pf_eglCreateSync)
+    ret = renderer->pf_eglCreateSync (renderer->edpy,
+                                      EGL_SYNC_FENCE_KHR,
+                                      NULL);
+  else
+    ret = NULL;
+
+  return ret;
+}
+
+static CoglBool
+_cogl_winsys_fence_is_complete (CoglContext *context, void *fence)
+{
+  CoglRendererEGL *renderer = context->display->renderer->winsys;
+  EGLint ret;
+
+  ret = renderer->pf_eglClientWaitSync (renderer->edpy,
+                                        fence,
+                                        EGL_SYNC_FLUSH_COMMANDS_BIT_KHR,
+                                        0);
+  return (ret == EGL_CONDITION_SATISFIED_KHR);
+}
+
+static void
+_cogl_winsys_fence_destroy (CoglContext *context, void *fence)
+{
+  CoglRendererEGL *renderer = context->display->renderer->winsys;
+
+  renderer->pf_eglDestroySync (renderer->edpy, fence);
+}
+#endif
+
 static CoglWinsysVtable _cogl_winsys_vtable =
   {
     .constraints = COGL_RENDERER_CONSTRAINT_USES_EGL |
@@ -893,15 +967,14 @@ static CoglWinsysVtable _cogl_winsys_vtable =
     .display_destroy = _cogl_winsys_display_destroy,
     .context_init = _cogl_winsys_context_init,
     .context_deinit = _cogl_winsys_context_deinit,
-    .context_egl_get_egl_display =
-      _cogl_winsys_context_egl_get_egl_display,
     .context_create_gles2_context =
       _cogl_winsys_context_create_gles2_context,
     .destroy_gles2_context = _cogl_winsys_destroy_gles2_context,
     .onscreen_init = _cogl_winsys_onscreen_init,
     .onscreen_deinit = _cogl_winsys_onscreen_deinit,
     .onscreen_bind = _cogl_winsys_onscreen_bind,
-    .onscreen_swap_buffers = _cogl_winsys_onscreen_swap_buffers,
+    .onscreen_swap_buffers_with_damage =
+      _cogl_winsys_onscreen_swap_buffers_with_damage,
     .onscreen_swap_region = _cogl_winsys_onscreen_swap_region,
     .onscreen_get_buffer_age = _cogl_winsys_onscreen_get_buffer_age,
     .onscreen_update_swap_throttled =
@@ -911,6 +984,12 @@ static CoglWinsysVtable _cogl_winsys_vtable =
     .save_context = _cogl_winsys_save_context,
     .set_gles2_context = _cogl_winsys_set_gles2_context,
     .restore_context = _cogl_winsys_restore_context,
+
+#if defined(EGL_KHR_fence_sync) || defined(EGL_KHR_reusable_sync)
+    .fence_add = _cogl_winsys_fence_add,
+    .fence_is_complete = _cogl_winsys_fence_is_complete,
+    .fence_destroy = _cogl_winsys_fence_destroy,
+#endif
   };
 
 /* XXX: we use a function because no doubt someone will complain
@@ -968,3 +1047,37 @@ _cogl_egl_destroy_image (CoglContext *ctx,
   egl_renderer->pf_eglDestroyImage (egl_renderer->edpy, image);
 }
 #endif
+
+#ifdef EGL_WL_bind_wayland_display
+CoglBool
+_cogl_egl_query_wayland_buffer (CoglContext *ctx,
+                                struct wl_resource *buffer,
+                                int attribute,
+                                int *value)
+{
+  CoglRendererEGL *egl_renderer = ctx->display->renderer->winsys;
+
+  _COGL_RETURN_VAL_IF_FAIL (egl_renderer->pf_eglQueryWaylandBuffer, FALSE);
+
+  return egl_renderer->pf_eglQueryWaylandBuffer (egl_renderer->edpy,
+                                                 buffer,
+                                                 attribute,
+                                                 value);
+}
+#endif
+
+EGLDisplay
+cogl_egl_context_get_egl_display (CoglContext *context)
+{
+  CoglRendererEGL *egl_renderer = context->display->renderer->winsys;
+
+  return egl_renderer->edpy;
+}
+
+EGLContext
+cogl_egl_context_get_egl_context (CoglContext *context)
+{
+  CoglDisplayEGL *egl_display = context->display->winsys;
+
+  return egl_display->egl_context;
+}

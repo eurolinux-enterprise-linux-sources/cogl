@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
- * Copyright (C) 2011 Intel Corporation.
+ * Copyright (C) 2011,2013 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  * Authors:
@@ -43,8 +49,9 @@
 #include "cogl-texture-pixmap-x11-private.h"
 #include "cogl-texture-2d-private.h"
 #include "cogl-error-private.h"
+#include "cogl-poll-private.h"
 
-#define COGL_ONSCREEN_X11_EVENT_MASK StructureNotifyMask
+#define COGL_ONSCREEN_X11_EVENT_MASK (StructureNotifyMask | ExposureMask)
 
 static const CoglWinsysEGLVtable _cogl_winsys_egl_vtable;
 
@@ -91,15 +98,51 @@ find_onscreen_for_xid (CoglContext *context, uint32_t xid)
 }
 
 static void
+flush_pending_resize_notifications_cb (void *data,
+                                       void *user_data)
+{
+  CoglFramebuffer *framebuffer = data;
+
+  if (framebuffer->type == COGL_FRAMEBUFFER_TYPE_ONSCREEN)
+    {
+      CoglOnscreen *onscreen = COGL_ONSCREEN (framebuffer);
+      CoglOnscreenEGL *egl_onscreen = onscreen->winsys;
+
+      if (egl_onscreen->pending_resize_notify)
+        {
+          _cogl_onscreen_notify_resize (onscreen);
+          egl_onscreen->pending_resize_notify = FALSE;
+        }
+    }
+}
+
+static void
+flush_pending_resize_notifications_idle (void *user_data)
+{
+  CoglContext *context = user_data;
+  CoglRenderer *renderer = context->display->renderer;
+  CoglRendererEGL *egl_renderer = renderer->winsys;
+
+  /* This needs to be disconnected before invoking the callbacks in
+   * case the callbacks cause it to be queued again */
+  _cogl_closure_disconnect (egl_renderer->resize_notify_idle);
+  egl_renderer->resize_notify_idle = NULL;
+
+  g_list_foreach (context->framebuffers,
+                  flush_pending_resize_notifications_cb,
+                  NULL);
+}
+
+static void
 notify_resize (CoglContext *context,
                Window drawable,
                int width,
                int height)
 {
+  CoglRenderer *renderer = context->display->renderer;
+  CoglRendererEGL *egl_renderer = renderer->winsys;
   CoglOnscreen *onscreen = find_onscreen_for_xid (context, drawable);
   CoglFramebuffer *framebuffer = COGL_FRAMEBUFFER (onscreen);
-  CoglDisplay *display = context->display;
-  CoglDisplayEGL *egl_display = display->winsys;
   CoglOnscreenEGL *egl_onscreen;
 
   if (!onscreen)
@@ -110,9 +153,17 @@ notify_resize (CoglContext *context,
   _cogl_framebuffer_winsys_update_size (framebuffer, width, height);
 
   /* We only want to notify that a resize happened when the
-     application calls cogl_context_dispatch so instead of immediately
-     notifying we'll set a flag to remember to notify later */
-  egl_display->pending_resize_notify = TRUE;
+   * application calls cogl_context_dispatch so instead of immediately
+   * notifying we queue an idle callback */
+  if (!egl_renderer->resize_notify_idle)
+    {
+      egl_renderer->resize_notify_idle =
+        _cogl_poll_renderer_add_idle (renderer,
+                                      flush_pending_resize_notifications_idle,
+                                      context,
+                                      NULL);
+    }
+
   egl_onscreen->pending_resize_notify = TRUE;
 }
 
@@ -127,6 +178,23 @@ event_filter_cb (XEvent *xevent, void *data)
                      xevent->xconfigure.window,
                      xevent->xconfigure.width,
                      xevent->xconfigure.height);
+    }
+  else if (xevent->type == Expose)
+    {
+      CoglOnscreen *onscreen =
+        find_onscreen_for_xid (context, xevent->xexpose.window);
+
+      if (onscreen)
+        {
+          CoglOnscreenDirtyInfo info;
+
+          info.x = xevent->xexpose.x;
+          info.y = xevent->xexpose.y;
+          info.width = xevent->xexpose.width;
+          info.height = xevent->xexpose.height;
+
+          _cogl_onscreen_queue_dirty (onscreen, &info);
+        }
     }
 
   return COGL_FILTER_CONTINUE;
@@ -210,7 +278,7 @@ _cogl_winsys_renderer_connect (CoglRenderer *renderer,
     goto error;
 
   egl_renderer->edpy =
-    eglGetDisplay ((NativeDisplayType) xlib_renderer->xdpy);
+    eglGetDisplay ((EGLNativeDisplayType) xlib_renderer->xdpy);
 
   if (!_cogl_winsys_egl_renderer_connect_common (renderer, error))
     goto error;
@@ -256,6 +324,12 @@ _cogl_winsys_egl_context_init (CoglContext *context,
                   COGL_FEATURE_ID_ONSCREEN_MULTIPLE, TRUE);
   COGL_FLAGS_SET (context->winsys_features,
                   COGL_WINSYS_FEATURE_MULTIPLE_ONSCREEN,
+                  TRUE);
+
+  /* We'll manually handle queueing dirty events in response to
+   * Expose events from X */
+  COGL_FLAGS_SET (context->private_features,
+                  COGL_PRIVATE_FEATURE_DIRTY_EVENTS,
                   TRUE);
 
   return TRUE;
@@ -407,7 +481,7 @@ _cogl_winsys_egl_onscreen_init (CoglOnscreen *onscreen,
   egl_onscreen->egl_surface =
     eglCreateWindowSurface (egl_renderer->edpy,
                             egl_config,
-                            (NativeWindowType) xlib_onscreen->xwin,
+                            (EGLNativeWindowType) xlib_onscreen->xwin,
                             NULL);
 
   return TRUE;
@@ -537,39 +611,47 @@ _cogl_winsys_egl_context_created (CoglDisplay *display,
                                     AllocNone);
   attrs.border_pixel = 0;
 
-  xlib_display->dummy_xwin =
-    XCreateWindow (xlib_renderer->xdpy,
-                   DefaultRootWindow (xlib_renderer->xdpy),
-                   -100, -100, 1, 1,
-                   0,
-                   xvisinfo->depth,
-                   CopyFromParent,
-                   xvisinfo->visual,
-                   CWOverrideRedirect |
-                   CWColormap |
-                   CWBorderPixel,
-                   &attrs);
+  if ((egl_renderer->private_features &
+       COGL_EGL_WINSYS_FEATURE_SURFACELESS_CONTEXT) == 0)
+    {
+      xlib_display->dummy_xwin =
+        XCreateWindow (xlib_renderer->xdpy,
+                       DefaultRootWindow (xlib_renderer->xdpy),
+                       -100, -100, 1, 1,
+                       0,
+                       xvisinfo->depth,
+                       CopyFromParent,
+                       xvisinfo->visual,
+                       CWOverrideRedirect |
+                       CWColormap |
+                       CWBorderPixel,
+                       &attrs);
+
+      egl_display->dummy_surface =
+        eglCreateWindowSurface (egl_renderer->edpy,
+                                egl_display->egl_config,
+                                (EGLNativeWindowType) xlib_display->dummy_xwin,
+                                NULL);
+
+      if (egl_display->dummy_surface == EGL_NO_SURFACE)
+        {
+          error_message = "Unable to create an EGL surface";
+          XFree (xvisinfo);
+          goto fail;
+        }
+    }
 
   XFree (xvisinfo);
-
-  egl_display->dummy_surface =
-    eglCreateWindowSurface (egl_renderer->edpy,
-                            egl_display->egl_config,
-                            (NativeWindowType) xlib_display->dummy_xwin,
-                            NULL);
-
-  if (egl_display->dummy_surface == EGL_NO_SURFACE)
-    {
-      error_message = "Unable to create an EGL surface";
-      goto fail;
-    }
 
   if (!_cogl_winsys_egl_make_current (display,
                                       egl_display->dummy_surface,
                                       egl_display->dummy_surface,
                                       egl_display->egl_context))
     {
-      error_message = "Unable to eglMakeCurrent with dummy surface";
+      if (egl_display->dummy_surface == EGL_NO_SURFACE)
+        error_message = "Unable to eglMakeCurrent with no surface";
+      else
+        error_message = "Unable to eglMakeCurrent with dummy surface";
       goto fail;
     }
 
@@ -623,64 +705,6 @@ _cogl_winsys_xlib_get_visual_info (void)
   return get_visual_info (ctx->display, egl_display->egl_config);
 }
 
-static void
-_cogl_winsys_poll_get_info (CoglContext *context,
-                            CoglPollFD **poll_fds,
-                            int *n_poll_fds,
-                            int64_t *timeout)
-{
-  CoglDisplay *display = context->display;
-  CoglDisplayEGL *egl_display = display->winsys;
-
-  _cogl_xlib_renderer_poll_get_info (context->display->renderer,
-                                     poll_fds,
-                                     n_poll_fds,
-                                     timeout);
-
-  if (egl_display->pending_resize_notify)
-    *timeout = 0;
-}
-
-static void
-flush_pending_notifications_cb (void *data,
-                                void *user_data)
-{
-  CoglFramebuffer *framebuffer = data;
-
-  if (framebuffer->type == COGL_FRAMEBUFFER_TYPE_ONSCREEN)
-    {
-      CoglOnscreen *onscreen = COGL_ONSCREEN (framebuffer);
-      CoglOnscreenEGL *egl_onscreen = onscreen->winsys;
-
-      if (egl_onscreen->pending_resize_notify)
-        {
-          _cogl_onscreen_notify_resize (onscreen);
-          egl_onscreen->pending_resize_notify = FALSE;
-        }
-    }
-}
-
-static void
-_cogl_winsys_poll_dispatch (CoglContext *context,
-                            const CoglPollFD *poll_fds,
-                            int n_poll_fds)
-{
-  CoglDisplay *display = context->display;
-  CoglDisplayEGL *egl_display = display->winsys;
-
-  _cogl_xlib_renderer_poll_dispatch (context->display->renderer,
-                                     poll_fds,
-                                     n_poll_fds);
-
-  if (egl_display->pending_resize_notify)
-    {
-      g_list_foreach (context->framebuffers,
-                      flush_pending_notifications_cb,
-                      NULL);
-      egl_display->pending_resize_notify = FALSE;
-    }
-}
-
 #ifdef EGL_KHR_image_pixmap
 
 static CoglBool
@@ -697,8 +721,8 @@ _cogl_winsys_texture_pixmap_x11_create (CoglTexturePixmapX11 *tex_pixmap)
 
   if (!(egl_renderer->private_features &
         COGL_EGL_WINSYS_FEATURE_EGL_IMAGE_FROM_X11_PIXMAP) ||
-      !(ctx->private_feature_flags &
-        COGL_PRIVATE_FEATURE_TEXTURE_2D_FROM_EGL_IMAGE))
+      !_cogl_has_private_feature
+      (ctx, COGL_PRIVATE_FEATURE_TEXTURE_2D_FROM_EGL_IMAGE))
     {
       tex_pixmap->winsys = NULL;
       return FALSE;
@@ -826,9 +850,6 @@ _cogl_winsys_egl_xlib_get_vtable (void)
         _cogl_winsys_onscreen_x11_get_window_xid;
 
       vtable.xlib_get_visual_info = _cogl_winsys_xlib_get_visual_info;
-
-      vtable.poll_get_info = _cogl_winsys_poll_get_info;
-      vtable.poll_dispatch = _cogl_winsys_poll_dispatch;
 
 #ifdef EGL_KHR_image_pixmap
       /* X11 tfp support... */

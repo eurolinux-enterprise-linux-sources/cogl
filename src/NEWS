@@ -1,3 +1,351 @@
+Cogl 1.18.2                                                        2014-06-03
+
+  • List of changes since Cogl 1.18.0
+
+  » MSVC updates
+  » KMS improvements for use by GNOME Shell
+  » EGL backend improvement to avoid creating a dummy surface if
+    driver supports EGL_KHR_surfacless_context extension
+  » cogl-x11-tfp example fixes
+
+  • Gnome Bugzilla bugs closed since 1.18.0:
+
+  #728064 - New AtlasTextures should keep designated atlas alive
+  #728628 - Fails to link from C++ applications due to excessive
+            symbol mangling
+  #728978 - Don't set EGL_PLATFORM
+  #728979 - Call swap notify handler even when pageflip ioctl fails
+  #730536 - Add apis needed for mutters compositor bypass
+
+Many thanks to:
+
+  Chun-wei Fan
+  Neil Roberts
+  Adel Gadllah
+  Kristian Høgsberg
+  Emanuele Aina
+  Felix Riemann
+
+Cogl 1.18.0                                                        2014-03-21
+
+  • List of changes since Cogl 1.17.4
+
+  » The license has been changed to the MIT license. This is more
+    permissive than the previous LGPLv2 license and is still
+    compatible with the GPL and LGPL. For more background on why we
+    decided to make this change please see the following post on the
+    mailing list:
+    http://lists.freedesktop.org/archives/cogl/2013-December/001465.html
+  » GObject introspection support has been greatly improved.
+  » Add cogl_kms_renderer_set_kms_fd to make the KMS backend use a
+    non-default GPU.
+  » Fix a hang in the Wayland backend if it can't find some globals
+    that it needs.
+  » Add cogl_gst_video_sink_get_natural_size to query a suggested size
+    for a Cogl-GST sink
+  » Add API to query the EGL and GLX contexts. This is intended to be
+    used to make a shared GL context.
+  » Fix advertising the deprecated buffer age feature flag on EGL.
+  » Add a new non-deprecated feature flag for the buffer age.
+  » Fix a bug with allocating textures in Cogl-GST.
+  » Fix a bug with the cogl-basic-video-player example where it would
+    try to use non-existant mipmaps.
+  » Fix selecting the GL driver in the SDL2 winsys.
+  » Updates to the MSVC build files.
+
+  • Gnome Bugzilla bugs closed since 1.17.4:
+
+    #724992 - get the opengl context from cogl
+
+Many thanks to:
+
+  Chun-wei Fan
+  Robert Bragg
+  Lionel Landwerlin
+  Jasper St. Pierre
+  Wylmer Wang
+
+Cogl 1.17.4                                                        2014-02-20
+
+  • List of changes since Cogl 1.17.2
+
+  » cogl-gst now ensures that sampled video fragments are always
+    pre-multiplied with the alpha component.
+  » cogl-gst now has NV12 format support.
+  » The cogl-basic-video-player example can now be passed an
+    custom gstreamer pipeline description, as long as it contains
+    a coglsink element.
+  » The -experimental-2.0 pkg-config files now all depend on
+    cogl-2.0-experimental instead of cogl-1.0.
+  
+  • Gnome Bugzilla bugs closed since 1.17.2:
+
+    #712832 - video-sink: Add NV12 shader support
+    #719741 - GLX winsys: fix feature handling for INTEL_swap_event
+    #722765 - Fix the exported symbols regular expression in cogl-path
+    #723530 - cogl-pipeline: SEGV in _cogl_pipeline_fragend_glsl_end
+
+Many thanks to:
+
+  Neil Roberts
+  Lionel Landwerlin
+  Andreas Oberritter
+  Daniel Korostil
+  Emmanuele Bassi
+  Kjartan Maraas
+  Owen W. Taylor
+
+Cogl 1.17.2                                                        2014-01-20
+
+  • List of changes since Cogl 1.16.0
+
+  » Textures are now allocated lazily. This means the textures can
+    optionally be configured with extra API before data is uploaded to
+    them.
+  » The internal format for textures has been replaced with a simpler
+    property to just set the number of components that will be
+    required when sampling.
+  » Depth writing can now be disabled per-framebuffer as well as on
+    the CoglPipeline.
+  » The interface typedefs such as CoglTexture, CoglFramebuffer and
+    CoglBitmap etc are now defined as void so that it is no longer
+    necessary to use type-cast macros when passing them to interface
+    methods.
+  » YV12/I420 support in cogl-gst is fixed.
+  » Added support for red-green 2-component textures.
+  » The cache of GLSL shaders is now garbage collected when it gets
+    too large.
+  » cogl_framebuffer_push_path_clip is fixed.
+  » cogl-path is now split out into a separate library.
+  » New function cogl_wayland_texture_set_region_from_shm_buffer to
+    update a texture from a Wayland SHM bufffer.
+  » The pkg-config files for cogl-gst and cogl-gles2 have new more
+    consistent names.
+
+  • Gnome Bugzilla bugs closed since 1.16.0:
+
+    #706808 - "Unable to locate required kms libraries" message is really
+              uninformative
+    #709827 - Add API to control per-FB depth writing
+    #710135 - Fix build on big endian
+    #710926 - Build fails without declaration of wl_resource
+    #712562 - Fixes for the journal
+    #712830 - Add COGL_PIXEL_FORMAT_U_V
+    #719546 - cogl-framebuffer: Fix a potential NULL pointer dereference
+    #719582 - cogl-framebuffer: Don't mark the clear clip dirty from the
+              journal
+    #720287 - cogl-path: Export cogl_clip_push_from_path
+    #721450 - Re-enable swap_region for mesa 10.1+ llvmpipe / swrast
+
+Many thanks to:
+
+  Robert Bragg
+  Jasper St. Pierre
+  Adel Gadllah
+  Lionel Landwerlin
+  Chun-wei Fan
+  Colin Walters
+  Emilio Pozuelo Monfort
+  Hans Petter Jansson
+
+Cogl 1.16.0                                                        2013-09-23
+
+  • List of changes since Cogl 1.15.10
+
+  » MSVC build updates
+  » Correctly mark CoglAtlasTexture api as public
+  » Lots of gtk-doc/introspection annotation fixes
+
+  • Gnome Bugzilla bugs closed since 1.15.10:
+
+  #704750 - egl: don't bind the wayland display if the extension is
+            not available
+
+Many thanks to:
+
+  Lionel Landwerlin
+  Robert Bragg
+  Chun-wei Fan
+  Giovanni Campagna
+  Neil Roberts
+
+Cogl 1.15.10                                                       2013-09-02
+
+  • List of changes since Cogl 1.15.8
+
+  » Added API to set the onscreen template on a CoglDisplay outside of
+    the constructor.
+  » Added public API to configure the layout of displays when using
+    the KMS winsys.
+  » Added a cogl_point_coord builtin variable for snippets which can
+    be used to render point sprites in more dynamic ways.
+  » cogl_texture_new_with_size now returns NULL on failure. This
+    behaviour was accidentally changed in 1.14.0.
+  » Fixed a problem with setting the precision specifiers on GLES2
+    which was causing a lot of problems with the latest Mesa.
+  » Added a “webgl” driver to manage the differences in GLES2 when
+    compiling with emscripten.
+  » Fixed a bug with paths which was causing Clutter's texture-fbo
+    test to crash.
+  » Some issues with introspecting the cogl-pango API were fixed.
+  » Added an example using point sprites.
+  » Build fixes for building with MinGW32.
+  » Updates to the MSVC build files.
+  » Documentation fixes to the snippets API.
+
+  • Gnome Bugzilla bugs closed since 1.15.8:
+
+  #705837 - kms: add public API to override the default configuration
+            of outputs
+
+Many thanks to:
+
+  Chun-wei Fan
+  Robert Bragg
+  Jasper St. Pierre
+  Damien Lespiau
+  Giovanni Campagna
+
+Cogl 1.15.8                                                        2013-08-20
+
+  • List of changes since Cogl 1.15.6
+
+  Brown bag release to fix a problem with including cogl-path.h from
+  cogl.h that meant only code defining
+  COGL_ENABLE_EXPERIMENTAL_2_0_API would get access to the CoglPath
+  API.
+
+  We now ignore whether COGL_ENABLE_EXPERIMENTAL_2_0_API is defined so
+  clutter which does define it will see the api and so will clutter
+  users that don't define it.
+
+Cogl 1.15.6                                                        2013-08-19
+
+  • List of changes since Cogl 1.15.4
+
+  » Fixed runtime selection of egl-kms backend
+  » Split out the CoglPath api in-line with cogl master to reduce
+    divergence, but updated to not break the 1.x API/ABI
+  » Reverted the semantic change to cogl_offscreen_new_to_texture to
+    make it synchronously allocate as it did in cogl-1.14. A
+    replacement cogl_offscreen_new_with_texture api has been
+    introduced to support the asynchronous allocation behaviour
+    required to allow configuration of a framebuffer before
+    allocation.
+  » Fixed a problem with binding attribute locations with desktop GL
+    drivers, required to work with the latest Mesa.
+  » Some configure.ac documentation fixes
+  » In cogl-gst we make sure to only emit the "pipeline-ready" signal
+    once the new textures have actually been uploaded.
+  » Various MSVC build fixes
+
+  Note: we took some care to try and avoid breaking the ABI and
+  chaning the soname relative to the last 1.15.4 snapshot.
+
+  • Gnome Bugzilla bugs closed since 1.15.4:
+
+  #703500 - 49 Conform Tests Regressed (FAIL)
+  #703174 - Crash when switching user with gnome 3.8 using nvidia drivers
+  #705836 - egl-kms: set the EGL_PLATFORM explicitly
+  #705591 - SIGSEGV in various conformance tests on wayland
+
+Many thanks to:
+
+  Chun-wei Fan
+  Neil Roberts
+  Robert Bragg
+  Adel Gadllah
+  Fan Chun-wei
+  Giovanni Campagna
+  Lionel Landwerlin
+
+Cogl 1.15.4                                                        2013-07-30
+
+  • List of changes since Cogl 1.15.2
+
+  » Added experimental API to directly expose atlas textures.
+  » Added new_from_file/data/bitmap APIs for sliced textures.
+  » Added new_from_file APIs for 2D textures.
+  » Added cogl_primitive_draw as a new name for the
+    cogl_framebuffer_draw_primitive function.
+  » Removed the attribute drawing APIs. Instead applications should
+    create a primitive and draw that.
+  » Fixed bug where Cogl would busy-wait with 100% CPU if the Wayland
+    compositor is closed.
+  » The COGL_FRAME_EVENT_SYNC events are now sent based on the frame
+    callback with the Wayland backend.
+  » New cogl_gst_video_sink_is_ready() function to determine whether a
+    Cogl-GST video sink is ready to have the pipeline queried.
+  » Fixed a potential bug with the blending enabled state when copying
+    a pipeline.
+  » Fixed detecting the Mesa vendor when GL 3 is used.
+  » Fixed a reference leak on the CoglRenderer.
+  » Fixes to the Visual Studio build files.
+
+Many thanks to:
+
+  Robert Bragg
+  Chun-wei Fan
+  Damien Lespiau
+
+Cogl 1.15.2                                                        2013-07-09
+
+  • List of changes since Cogl 1.14.0
+
+  » Lots of Wayland backend work, including updated compositor support
+  » Updated cogland, a simple example wayland compositor using Cogl
+  » Made the onscreen resize callback work the same as the frame callback
+  » New cogl_onscreen_swap_buffers_with_damage api
+  » New fence API
+  » New Emscripten support (only basic at the moment)
+  » Improved blend state tracking
+  » New cogl_onscreen_add_dirty_callback() api for window systems
+    that need to notify application of dirty/damaged regions that must
+    be redrawn by the application
+  » Started adding internal unit tests to complement the conformance
+    tests
+  » New support for per-vertex point sizes
+  » New cogl-gst sub-library added enabling gstreamer integration into
+    Cogl based applications. Notably the design is compatible with
+    applications adding custom shader snippets to a CoglPipeline that
+    handles video sampling so application will be able to chain
+    together shader based affects without requiring intermediate
+    renderers.
+  » Adds HSL color conversion apis
+  » The Conformance test suite can now be installed with a .test file
+    enabling them to be run by the gnome-desktop-testing-runner for example.
+
+  • Bugzilla bugs closed since 1.14.0:
+
+  #691752 - add fence/sync API
+  #696730 - Compile failure with 1.14.0 due to extra arg in bitmap functions
+  #697330 - Fails to build with the gold linker due to missing reference to libm
+  #699431 - [PATCH] xlib: Don't crash just because the display doesn't expose RANDR
+  #700088 - compile failure: 'wayland_surface' has incomplete type
+  #702570 - cogl 1.16: Regression with event propagation in champlain
+  #702942 - Install conformance tests
+  #702999 - undefined reference to `wl_buffer_is_shm'
+  #703553 - Add support for automake 1.14
+
+Many thanks to:
+
+  Neil Roberts
+  Robert Bragg
+  Andreas Oberritter
+  Chris Cummins
+  Damien Lespiau
+  Emanuele Aina
+  Plamena Manolova
+  Roy.Li
+  Adam Jackson
+  Daniel Stone
+  Inaki Larranaga Murgoitio
+  Lionel Landwerlin
+  Matthias Clasen
+  Milo Casagrande
+  Rico Tzschichholz
+  Yosef Or Boczko
+
 Cogl 1.14.0                                                        2013-03-25
 
   • List of changes since Cogl 1.13.4
@@ -56,7 +404,7 @@ Cogl 1.13.4                                                        2013-02-21
 
   #669122 - Clipped redraws and tearing
   #692420 - Build fails on Mac OS Mountain Lion:
-            error: 'GL_NUM_EXTENSIONS' undeclared 
+            error: 'GL_NUM_EXTENSIONS' undeclared
   #693360 - cogl-pango: Fix some doc/introspection comments
   #693612 - cogl-pango: wrong rendering on the second line of an
             underlined layout

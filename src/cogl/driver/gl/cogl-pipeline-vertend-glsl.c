@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2010,2013 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  *
@@ -30,6 +36,8 @@
 #endif
 
 #include <string.h>
+
+#include <test-fixtures/test-unit.h>
 
 #include "cogl-context-private.h"
 #include "cogl-util-gl-private.h"
@@ -54,17 +62,19 @@ typedef struct
   GLuint gl_shader;
   GString *header, *source;
 
+  CoglPipelineCacheEntry *cache_entry;
 } CoglPipelineShaderState;
 
 static CoglUserDataKey shader_state_key;
 
 static CoglPipelineShaderState *
-shader_state_new (void)
+shader_state_new (CoglPipelineCacheEntry *cache_entry)
 {
   CoglPipelineShaderState *shader_state;
 
   shader_state = g_slice_new0 (CoglPipelineShaderState);
   shader_state->ref_count = 1;
+  shader_state->cache_entry = cache_entry;
 
   return shader_state;
 }
@@ -76,11 +86,16 @@ get_shader_state (CoglPipeline *pipeline)
 }
 
 static void
-destroy_shader_state (void *user_data)
+destroy_shader_state (void *user_data,
+                      void *instance)
 {
   CoglPipelineShaderState *shader_state = user_data;
 
   _COGL_GET_CONTEXT (ctx, NO_RETVAL);
+
+  if (shader_state->cache_entry &&
+      shader_state->cache_entry->pipeline != instance)
+    shader_state->cache_entry->usage_count--;
 
   if (--shader_state->ref_count == 0)
     {
@@ -95,10 +110,21 @@ static void
 set_shader_state (CoglPipeline *pipeline,
                   CoglPipelineShaderState *shader_state)
 {
-  cogl_object_set_user_data (COGL_OBJECT (pipeline),
-                             &shader_state_key,
-                             shader_state,
-                             destroy_shader_state);
+  if (shader_state)
+    {
+      shader_state->ref_count++;
+
+      /* If we're not setting the state on the template pipeline then
+       * mark it as a usage of the pipeline cache entry */
+      if (shader_state->cache_entry &&
+          shader_state->cache_entry->pipeline != pipeline)
+        shader_state->cache_entry->usage_count++;
+    }
+
+  _cogl_object_set_user_data (COGL_OBJECT (pipeline),
+                              &shader_state_key,
+                              shader_state,
+                              destroy_shader_state);
 }
 
 static void
@@ -192,7 +218,7 @@ _cogl_pipeline_vertend_glsl_start (CoglPipeline *pipeline,
                                    unsigned long pipelines_difference)
 {
   CoglPipelineShaderState *shader_state;
-  CoglPipeline *template_pipeline = NULL;
+  CoglPipelineCacheEntry *cache_entry = NULL;
   CoglProgram *user_program = cogl_pipeline_get_user_program (pipeline);
 
   _COGL_GET_CONTEXT (ctx, NO_RETVAL);
@@ -209,7 +235,7 @@ _cogl_pipeline_vertend_glsl_start (CoglPipeline *pipeline,
          state */
       authority = _cogl_pipeline_find_equivalent_parent
         (pipeline,
-         COGL_PIPELINE_STATE_AFFECTS_VERTEX_CODEGEN &
+         _cogl_pipeline_get_state_for_vertex_codegen (ctx) &
          ~COGL_PIPELINE_STATE_LAYERS,
          COGL_PIPELINE_LAYER_STATE_AFFECTS_VERTEX_CODEGEN);
 
@@ -222,32 +248,28 @@ _cogl_pipeline_vertend_glsl_start (CoglPipeline *pipeline,
           if (G_LIKELY (!(COGL_DEBUG_ENABLED
                           (COGL_DEBUG_DISABLE_PROGRAM_CACHES))))
             {
-              template_pipeline =
+              cache_entry =
                 _cogl_pipeline_cache_get_vertex_template (ctx->pipeline_cache,
                                                           authority);
 
-              shader_state = get_shader_state (template_pipeline);
+              shader_state = get_shader_state (cache_entry->pipeline);
             }
 
           if (shader_state)
             shader_state->ref_count++;
           else
-            shader_state = shader_state_new ();
+            shader_state = shader_state_new (cache_entry);
 
           set_shader_state (authority, shader_state);
 
-          if (template_pipeline)
-            {
-              shader_state->ref_count++;
-              set_shader_state (template_pipeline, shader_state);
-            }
+          shader_state->ref_count--;
+
+          if (cache_entry)
+            set_shader_state (cache_entry->pipeline, shader_state);
         }
 
       if (authority != pipeline)
-        {
-          shader_state->ref_count++;
-          set_shader_state (pipeline, shader_state);
-        }
+        set_shader_state (pipeline, shader_state);
     }
 
   if (user_program)
@@ -290,12 +312,26 @@ _cogl_pipeline_vertend_glsl_start (CoglPipeline *pipeline,
                    "cogl_generated_source ()\n"
                    "{\n");
 
-  if (!(ctx->private_feature_flags &
-        COGL_PRIVATE_FEATURE_BUILTIN_POINT_SIZE_UNIFORM))
-    /* There is no builtin uniform for the pointsize on GLES2 so we need
-       to copy it from the custom uniform in the vertex shader */
-    g_string_append (shader_state->source,
-                     "  cogl_point_size_out = cogl_point_size_in;\n");
+  if (cogl_pipeline_get_per_vertex_point_size (pipeline))
+    g_string_append (shader_state->header,
+                     "attribute float cogl_point_size_in;\n");
+  else if (!_cogl_has_private_feature
+           (ctx, COGL_PRIVATE_FEATURE_BUILTIN_POINT_SIZE_UNIFORM))
+    {
+      /* There is no builtin uniform for the point size on GLES2 so we
+         need to copy it from the custom uniform in the vertex shader
+         if we're not using per-vertex point sizes, however we'll only
+         do this if the point-size is non-zero. Toggle the point size
+         between zero and non-zero causes a state change which
+         generates a new program */
+      if (cogl_pipeline_get_point_size (pipeline) > 0.0f)
+        {
+          g_string_append (shader_state->header,
+                           "uniform float cogl_point_size_in;\n");
+          g_string_append (shader_state->source,
+                           "  cogl_point_size_out = cogl_point_size_in;\n");
+        }
+    }
 }
 
 static CoglBool
@@ -389,6 +425,8 @@ _cogl_pipeline_vertend_glsl_end (CoglPipeline *pipeline,
       GLuint shader;
       CoglPipelineSnippetData snippet_data;
       CoglPipelineSnippetList *vertex_snippets;
+      CoglBool has_per_vertex_point_size =
+        cogl_pipeline_get_per_vertex_point_size (pipeline);
 
       COGL_STATIC_COUNTER (vertend_glsl_compile_counter,
                            "glsl vertex compile counter",
@@ -407,7 +445,21 @@ _cogl_pipeline_vertend_glsl_end (CoglPipeline *pipeline,
                        "}\n");
 
       g_string_append (shader_state->source,
-                       "  cogl_vertex_transform ();\n"
+                       "  cogl_vertex_transform ();\n");
+
+      if (has_per_vertex_point_size)
+        {
+          g_string_append (shader_state->header,
+                           "void\n"
+                           "cogl_real_point_size_calculation ()\n"
+                           "{\n"
+                           "  cogl_point_size_out = cogl_point_size_in;\n"
+                           "}\n");
+          g_string_append (shader_state->source,
+                           "  cogl_point_size_calculation ();\n");
+        }
+
+      g_string_append (shader_state->source,
                        "  cogl_color_out = cogl_color_in;\n"
                        "}\n");
 
@@ -422,6 +474,19 @@ _cogl_pipeline_vertend_glsl_end (CoglPipeline *pipeline,
       snippet_data.function_prefix = "cogl_vertex_transform";
       snippet_data.source_buf = shader_state->header;
       _cogl_pipeline_snippet_generate_code (&snippet_data);
+
+      /* Add hooks for the point size calculation part */
+      if (has_per_vertex_point_size)
+        {
+          memset (&snippet_data, 0, sizeof (snippet_data));
+          snippet_data.snippets = vertex_snippets;
+          snippet_data.hook = COGL_SNIPPET_HOOK_POINT_SIZE;
+          snippet_data.chain_function = "cogl_real_point_size_calculation";
+          snippet_data.final_name = "cogl_point_size_calculation";
+          snippet_data.function_prefix = "cogl_point_size_calculation";
+          snippet_data.source_buf = shader_state->header;
+          _cogl_pipeline_snippet_generate_code (&snippet_data);
+        }
 
       /* Add all of the hooks for vertex processing */
       memset (&snippet_data, 0, sizeof (snippet_data));
@@ -462,7 +527,6 @@ _cogl_pipeline_vertend_glsl_end (CoglPipeline *pipeline,
       source_strings[1] = shader_state->source->str;
 
       _cogl_glsl_shader_set_source_with_boilerplate (ctx,
-                                                     NULL,
                                                      shader, GL_VERTEX_SHADER,
                                                      pipeline,
                                                      2, /* count */
@@ -487,15 +551,18 @@ _cogl_pipeline_vertend_glsl_end (CoglPipeline *pipeline,
       shader_state->gl_shader = shader;
     }
 
-  if ((ctx->private_feature_flags &
-       COGL_PRIVATE_FEATURE_BUILTIN_POINT_SIZE_UNIFORM) &&
+#ifdef HAVE_COGL_GL
+  if (_cogl_has_private_feature
+      (ctx, COGL_PRIVATE_FEATURE_BUILTIN_POINT_SIZE_UNIFORM) &&
       (pipelines_difference & COGL_PIPELINE_STATE_POINT_SIZE))
     {
       CoglPipeline *authority =
         _cogl_pipeline_get_authority (pipeline, COGL_PIPELINE_STATE_POINT_SIZE);
 
-      GE( ctx, glPointSize (authority->big_state->point_size) );
+      if (authority->big_state->point_size > 0.0f)
+        GE( ctx, glPointSize (authority->big_state->point_size) );
     }
+#endif /* HAVE_COGL_GL */
 
   return TRUE;
 }
@@ -505,7 +572,9 @@ _cogl_pipeline_vertend_glsl_pre_change_notify (CoglPipeline *pipeline,
                                                CoglPipelineState change,
                                                const CoglColor *new_color)
 {
-  if ((change & COGL_PIPELINE_STATE_AFFECTS_VERTEX_CODEGEN))
+  _COGL_GET_CONTEXT (ctx, NO_RETVAL);
+
+  if ((change & _cogl_pipeline_get_state_for_vertex_codegen (ctx)))
     dirty_shader_state (pipeline);
 }
 
@@ -548,5 +617,64 @@ const CoglPipelineVertend _cogl_pipeline_glsl_vertend =
     _cogl_pipeline_vertend_glsl_pre_change_notify,
     _cogl_pipeline_vertend_glsl_layer_pre_change_notify
   };
+
+UNIT_TEST (check_point_size_shader,
+           0 /* no requirements */,
+           0 /* no failure cases */)
+{
+  CoglPipeline *pipelines[4];
+  CoglPipelineShaderState *shader_states[G_N_ELEMENTS (pipelines)];
+  int i;
+
+  /* Default pipeline with zero point size */
+  pipelines[0] = cogl_pipeline_new (test_ctx);
+
+  /* Point size 1 */
+  pipelines[1] = cogl_pipeline_new (test_ctx);
+  cogl_pipeline_set_point_size (pipelines[1], 1.0f);
+
+  /* Point size 2 */
+  pipelines[2] = cogl_pipeline_new (test_ctx);
+  cogl_pipeline_set_point_size (pipelines[2], 2.0f);
+
+  /* Same as the first pipeline, but reached by restoring the old
+   * state from a copy */
+  pipelines[3] = cogl_pipeline_copy (pipelines[1]);
+  cogl_pipeline_set_point_size (pipelines[3], 0.0f);
+
+  /* Draw something with all of the pipelines to make sure their state
+   * is flushed */
+  for (i = 0; i < G_N_ELEMENTS (pipelines); i++)
+    cogl_framebuffer_draw_rectangle (test_fb,
+                                     pipelines[i],
+                                     0.0f, 0.0f,
+                                     10.0f, 10.0f);
+  cogl_framebuffer_finish (test_fb);
+
+  /* Get all of the shader states. These might be NULL if the driver
+   * is not using GLSL */
+  for (i = 0; i < G_N_ELEMENTS (pipelines); i++)
+    shader_states[i] = get_shader_state (pipelines[i]);
+
+  /* If the first two pipelines are using GLSL then they should have
+   * the same shader unless there is no builtin uniform for the point
+   * size */
+  if (shader_states[0])
+    {
+      if (_cogl_has_private_feature
+          (test_ctx, COGL_PRIVATE_FEATURE_BUILTIN_POINT_SIZE_UNIFORM))
+        g_assert (shader_states[0] == shader_states[1]);
+      else
+        g_assert (shader_states[0] != shader_states[1]);
+    }
+
+  /* The second and third pipelines should always have the same shader
+   * state because only toggling between zero and non-zero should
+   * change the shader */
+  g_assert (shader_states[1] == shader_states[2]);
+
+  /* The fourth pipeline should be exactly the same as the first */
+  g_assert (shader_states[0] == shader_states[3]);
+}
 
 #endif /* COGL_PIPELINE_VERTEND_GLSL */

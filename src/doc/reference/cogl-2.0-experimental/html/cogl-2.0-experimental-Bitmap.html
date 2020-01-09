@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Bitmap</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Cogl 2.0 Reference Manual">
 <link rel="up" href="cogl-textures.html" title="Textures">
 <link rel="prev" href="cogl-textures.html" title="Textures">
 <link rel="next" href="cogl-2.0-experimental-The-Texture-Interface.html" title="The Texture Interface">
-<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.19.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -112,8 +112,8 @@ Checks whether <em class="parameter"><code>object</code></em> is a <a class="lin
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the passed <em class="parameter"><code>object</code></em> represents a bitmap,
-and <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise</td>
+<code class="literal">TRUE</code> if the passed <em class="parameter"><code>object</code></em> represents a bitmap,
+and <code class="literal">FALSE</code> otherwise</td>
 </tr>
 </tbody>
 </table></div>
@@ -140,12 +140,13 @@ within a thread.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>a <a class="link" href="cogl-2.0-experimental-Exception-handling.html#CoglError" title="CoglError"><span class="type">CoglError</span></a> or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</td>
+<td>a <a class="link" href="cogl-2.0-experimental-Exception-handling.html#CoglError" title="CoglError"><span class="type">CoglError</span></a> or <code class="literal">NULL</code>.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a <a class="link" href="cogl-2.0-experimental-Bitmap.html#CoglBitmap" title="CoglBitmap"><span class="type">CoglBitmap</span></a> to the new loaded image data, or
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if loading the image failed.</td>
+<td>a <a class="link" href="cogl-2.0-experimental-Bitmap.html#CoglBitmap" title="CoglBitmap"><span class="type">CoglBitmap</span></a> to the new loaded
+image data, or <code class="literal">NULL</code> if loading the image failed. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -198,7 +199,8 @@ should be considered part of the <a class="link" href="cogl-2.0-experimental-Bit
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a <a class="link" href="cogl-2.0-experimental-Bitmap.html#CoglBitmap" title="CoglBitmap"><span class="type">CoglBitmap</span></a> encapsulating the given <em class="parameter"><code>buffer</code></em>.</td>
+<td>a <a class="link" href="cogl-2.0-experimental-Bitmap.html#CoglBitmap" title="CoglBitmap"><span class="type">CoglBitmap</span></a> encapsulating the given <em class="parameter"><code>buffer</code></em>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -259,8 +261,9 @@ writing into it. The stride can be retrieved with
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a <a class="link" href="cogl-2.0-experimental-CoglBuffer---The-Buffer-Interface.html#CoglPixelBuffer" title="CoglPixelBuffer"><span class="type">CoglPixelBuffer</span></a> representing the newly created array or
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on failure</td>
+<td>a <a class="link" href="cogl-2.0-experimental-CoglBuffer---The-Buffer-Interface.html#CoglPixelBuffer" title="CoglPixelBuffer"><span class="type">CoglPixelBuffer</span></a> representing the
+newly created array or <code class="literal">NULL</code> on failure. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -317,7 +320,8 @@ the start of one row of the bitmap to the next).</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A new <a class="link" href="cogl-2.0-experimental-Bitmap.html#CoglBitmap" title="CoglBitmap"><span class="type">CoglBitmap</span></a>.</td>
+<td>A new <a class="link" href="cogl-2.0-experimental-Bitmap.html#CoglBitmap" title="CoglBitmap"><span class="type">CoglBitmap</span></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -439,10 +443,11 @@ next row in the image.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>the <a class="link" href="cogl-2.0-experimental-CoglBuffer---The-Buffer-Interface.html#CoglPixelBuffer" title="CoglPixelBuffer"><span class="type">CoglPixelBuffer</span></a> that this buffer uses for
-storage. Note that if the bitmap was created with
+<td>the <a class="link" href="cogl-2.0-experimental-CoglBuffer---The-Buffer-Interface.html#CoglPixelBuffer" title="CoglPixelBuffer"><span class="type">CoglPixelBuffer</span></a> that this
+buffer uses for storage. Note that if the bitmap was created with
 <a class="link" href="cogl-2.0-experimental-Bitmap.html#cogl-bitmap-new-from-file" title="cogl_bitmap_new_from_file ()"><code class="function">cogl_bitmap_new_from_file()</code></a> then it will not actually be using a
-pixel buffer and this function will return <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</td>
+pixel buffer and this function will return <code class="literal">NULL</code>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -471,18 +476,18 @@ of the bitmap.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>width</code></em> :</span></p></td>
-<td>return location for the bitmap width, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
+<td>return location for the bitmap width, or <code class="literal">NULL</code>. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>height</code></em> :</span></p></td>
-<td>return location for the bitmap height, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
+<td>return location for the bitmap height, or <code class="literal">NULL</code>. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the image was successfully parsed</td>
+<code class="literal">TRUE</code> if the image was successfully parsed</td>
 </tr>
 </tbody>
 </table></div>
@@ -494,6 +499,11 @@ of the bitmap.
 <pre class="programlisting"><a class="link" href="cogl-2.0-experimental-The-Texture-Interface.html#CoglTexture" title="CoglTexture"><span class="returnvalue">CoglTexture</span></a> *       cogl_texture_new_from_bitmap        (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Bitmap.html#CoglBitmap" title="CoglBitmap"><span class="type">CoglBitmap</span></a> *bitmap</code></em>,
                                                          <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglTextureFlags" title="enum CoglTextureFlags"><span class="type">CoglTextureFlags</span></a> flags</code></em>,
                                                          <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglPixelFormat" title="enum CoglPixelFormat"><span class="type">CoglPixelFormat</span></a> internal_format</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_texture_new_from_bitmap</code> has been deprecated since version 1.18 and should not be used in newly-written code. Use specific constructors such as
+                  <a class="link" href="cogl-2.0-experimental-2D-textures.html#cogl-texture-2d-new-from-bitmap" title="cogl_texture_2d_new_from_bitmap ()"><code class="function">cogl_texture_2d_new_from_bitmap()</code></a></p>
+</div>
 <p>
 Creates a <a class="link" href="cogl-2.0-experimental-The-Texture-Interface.html#CoglTexture" title="CoglTexture"><span class="type">CoglTexture</span></a> from a <a class="link" href="cogl-2.0-experimental-Bitmap.html#CoglBitmap" title="CoglBitmap"><span class="type">CoglBitmap</span></a>.
 </p>
@@ -519,7 +529,9 @@ texture</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A newly created <a class="link" href="cogl-2.0-experimental-The-Texture-Interface.html#CoglTexture" title="CoglTexture"><span class="type">CoglTexture</span></a> or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on failure</td>
+<td>A newly created <a class="link" href="cogl-2.0-experimental-The-Texture-Interface.html#CoglTexture" title="CoglTexture"><span class="type">CoglTexture</span></a> or
+<code class="literal">NULL</code> on failure. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -581,6 +593,6 @@ will be used directly.
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18.1</div>
+          Generated by GTK-Doc V1.19.1</div>
 </body>
 </html>

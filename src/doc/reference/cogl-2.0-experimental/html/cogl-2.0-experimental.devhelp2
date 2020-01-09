@@ -11,7 +11,6 @@
       </sub>
       <sub name="Setting Up A Drawing Context" link="cogl-context-apis.html">
         <sub name="CoglRenderer: Connect to a backend renderer" link="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html"/>
-        <sub name="CoglSwapChain: Describe a set of back buffers for flipping between" link="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.html"/>
         <sub name="CoglOnscreenTemplate: Describe a template for onscreen framebuffers" link="cogl-2.0-experimental-CoglOnscreenTemplate---Describe-a-template-for-onscreen-framebuffers.html"/>
         <sub name="CoglDisplay: Setup a display pipeline" link="cogl-2.0-experimental-CoglDisplay---Setup-a-display-pipeline.html"/>
         <sub name="The Top-Level Context" link="cogl-2.0-experimental-The-Top-Level-Context.html"/>
@@ -64,11 +63,12 @@
         <sub name="3 Component Vectors" link="cogl-2.0-experimental-3-Component-Vectors.html"/>
         <sub name="Eulers (Rotations)" link="cogl-2.0-experimental-Eulers-(Rotations).html"/>
         <sub name="Quaternions (Rotations)" link="cogl-2.0-experimental-Quaternions-(Rotations).html"/>
+        <sub name="GPU synchronisation fences" link="cogl-2.0-experimental-GPU-synchronisation-fences.html"/>
         <sub name="Versioning utility macros" link="cogl-2.0-experimental-Versioning-utility-macros.html"/>
       </sub>
       <sub name="Binding and Integrating" link="cogl-integration.html">
         <sub name="SDL Integration" link="cogl-2.0-experimental-SDL-Integration.html"/>
-        <sub name="Main loop integeration" link="cogl-2.0-experimental-Main-loop-integeration.html"/>
+        <sub name="Main loop integration" link="cogl-2.0-experimental-Main-loop-integration.html"/>
         <sub name="GType Integration API" link="cogl-2.0-experimental-GType-Integration-API.html"/>
         <sub name="GLES 2.0 context" link="cogl-2.0-experimental-GLES-2.0-context.html"/>
       </sub>
@@ -89,7 +89,7 @@
     <keyword type="function" name="cogl_object_ref ()" link="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-ref"/>
     <keyword type="function" name="cogl_object_unref ()" link="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-unref"/>
     <keyword type="struct" name="CoglUserDataKey" link="cogl-2.0-experimental-The-Object-Interface.html#CoglUserDataKey" since="1.4"/>
-    <keyword type="function" name="CoglUserDataDestroyCallback ()" link="cogl-2.0-experimental-The-Object-Interface.html#CoglUserDataDestroyCallback" since="1.4"/>
+    <keyword type="typedef" name="CoglUserDataDestroyCallback" link="cogl-2.0-experimental-The-Object-Interface.html#CoglUserDataDestroyCallback" since="1.4"/>
     <keyword type="function" name="cogl_object_get_user_data ()" link="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-get-user-data" since="1.4"/>
     <keyword type="function" name="cogl_object_set_user_data ()" link="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-set-user-data" since="1.4"/>
     <keyword type="macro" name="CoglError" link="cogl-2.0-experimental-Exception-handling.html#CoglError"/>
@@ -136,17 +136,10 @@
     <keyword type="function" name="cogl_win32_renderer_add_filter ()" link="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-win32-renderer-add-filter"/>
     <keyword type="function" name="cogl_win32_renderer_remove_filter ()" link="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-win32-renderer-remove-filter"/>
     <keyword type="function" name="cogl_win32_renderer_handle_event ()" link="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-win32-renderer-handle-event"/>
+    <keyword type="function" name="cogl_win32_renderer_set_event_retrieval_enabled ()" link="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-win32-renderer-set-event-retrieval-enabled" since="1.16" stability="Unstable"/>
     <keyword type="function" name="cogl_wayland_renderer_set_foreign_display ()" link="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-wayland-renderer-set-foreign-display" since="1.8" stability="Unstable"/>
+    <keyword type="function" name="cogl_wayland_renderer_set_event_dispatch_enabled ()" link="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-wayland-renderer-set-event-dispatch-enabled" since="1.16" stability="Unstable"/>
     <keyword type="function" name="cogl_wayland_renderer_get_display ()" link="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-wayland-renderer-get-display" since="1.8" stability="Unstable"/>
-    <keyword type="function" name="cogl_wayland_renderer_set_foreign_compositor ()" link="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-wayland-renderer-set-foreign-compositor" since="1.8" stability="Unstable"/>
-    <keyword type="function" name="cogl_wayland_renderer_get_compositor ()" link="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-wayland-renderer-get-compositor" since="1.8" stability="Unstable"/>
-    <keyword type="function" name="cogl_wayland_renderer_set_foreign_shell ()" link="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-wayland-renderer-set-foreign-shell" since="1.10" stability="Unstable"/>
-    <keyword type="function" name="cogl_wayland_renderer_get_shell ()" link="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html#cogl-wayland-renderer-get-shell" since="1.10" stability="Unstable"/>
-    <keyword type="struct" name="CoglSwapChain" link="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.html#CoglSwapChain"/>
-    <keyword type="function" name="cogl_is_swap_chain ()" link="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.html#cogl-is-swap-chain"/>
-    <keyword type="function" name="cogl_swap_chain_new ()" link="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.html#cogl-swap-chain-new"/>
-    <keyword type="function" name="cogl_swap_chain_set_has_alpha ()" link="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.html#cogl-swap-chain-set-has-alpha"/>
-    <keyword type="function" name="cogl_swap_chain_set_length ()" link="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.html#cogl-swap-chain-set-length"/>
     <keyword type="struct" name="CoglOnscreenTemplate" link="cogl-2.0-experimental-CoglOnscreenTemplate---Describe-a-template-for-onscreen-framebuffers.html#CoglOnscreenTemplate"/>
     <keyword type="function" name="cogl_is_onscreen_template ()" link="cogl-2.0-experimental-CoglOnscreenTemplate---Describe-a-template-for-onscreen-framebuffers.html#cogl-is-onscreen-template" since="1.10" stability="Unstable"/>
     <keyword type="function" name="cogl_onscreen_template_new ()" link="cogl-2.0-experimental-CoglOnscreenTemplate---Describe-a-template-for-onscreen-framebuffers.html#cogl-onscreen-template-new"/>
@@ -166,32 +159,32 @@
     <keyword type="function" name="cogl_has_features ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-has-features" since="1.10" stability="Unstable"/>
     <keyword type="function" name="CoglFeatureCallback ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#CoglFeatureCallback" since="0.10" stability="Unstable"/>
     <keyword type="function" name="cogl_foreach_feature ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-foreach-feature" since="1.10" stability="Unstable"/>
-    <keyword type="function" name="cogl_push_matrix ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-push-matrix"/>
-    <keyword type="function" name="cogl_pop_matrix ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-pop-matrix"/>
-    <keyword type="function" name="cogl_scale ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-scale"/>
-    <keyword type="function" name="cogl_translate ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-translate"/>
-    <keyword type="function" name="cogl_rotate ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-rotate"/>
-    <keyword type="function" name="cogl_transform ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-transform" since="1.4"/>
-    <keyword type="function" name="cogl_frustum ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-frustum" since="0.8.2"/>
-    <keyword type="function" name="cogl_perspective ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-perspective"/>
-    <keyword type="function" name="cogl_ortho ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-ortho" since="1.0"/>
-    <keyword type="function" name="cogl_get_modelview_matrix ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-get-modelview-matrix"/>
-    <keyword type="function" name="cogl_set_modelview_matrix ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-set-modelview-matrix"/>
-    <keyword type="function" name="cogl_get_projection_matrix ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-get-projection-matrix"/>
-    <keyword type="function" name="cogl_set_projection_matrix ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-set-projection-matrix"/>
-    <keyword type="function" name="cogl_set_viewport ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-set-viewport" since="1.2"/>
-    <keyword type="function" name="cogl_get_viewport ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-get-viewport"/>
-    <keyword type="function" name="cogl_set_source ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-set-source" since="1.0"/>
-    <keyword type="function" name="cogl_set_source_color ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-set-source-color" since="1.0"/>
-    <keyword type="function" name="cogl_set_source_color4ub ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-set-source-color4ub" since="1.0"/>
-    <keyword type="function" name="cogl_set_source_color4f ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-set-source-color4f" since="1.0"/>
-    <keyword type="function" name="cogl_set_source_texture ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-set-source-texture" since="1.0"/>
-    <keyword type="function" name="cogl_get_source ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-get-source" since="1.6"/>
-    <keyword type="function" name="cogl_push_source ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-push-source" since="1.6"/>
-    <keyword type="function" name="cogl_pop_source ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-pop-source" since="1.6"/>
-    <keyword type="function" name="cogl_clear ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-clear"/>
+    <keyword type="function" name="cogl_push_matrix ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-push-matrix" deprecated="1.10: Use cogl_framebuffer_push_matrix() instead"/>
+    <keyword type="function" name="cogl_pop_matrix ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-pop-matrix" deprecated="1.10: Use cogl_framebuffer_pop_matrix() instead"/>
+    <keyword type="function" name="cogl_scale ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-scale" deprecated="1.10: Use cogl_framebuffer_pop_matrix() instead"/>
+    <keyword type="function" name="cogl_translate ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-translate" deprecated="1.10: Use cogl_framebuffer_translate() instead"/>
+    <keyword type="function" name="cogl_rotate ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-rotate" deprecated="1.10: Use cogl_framebuffer_rotate() instead"/>
+    <keyword type="function" name="cogl_transform ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-transform" deprecated="1.10: Use cogl_framebuffer_transform() instead" since="1.4"/>
+    <keyword type="function" name="cogl_frustum ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-frustum" deprecated="1.10: Use cogl_framebuffer_frustum() instead" since="0.8.2"/>
+    <keyword type="function" name="cogl_perspective ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-perspective" deprecated="1.10: Use cogl_framebuffer_perspective() instead"/>
+    <keyword type="function" name="cogl_ortho ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-ortho" deprecated="1.10: Use cogl_framebuffer_orthographic() instead" since="1.0"/>
+    <keyword type="function" name="cogl_get_modelview_matrix ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-get-modelview-matrix" deprecated=""/>
+    <keyword type="function" name="cogl_set_modelview_matrix ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-set-modelview-matrix" deprecated=""/>
+    <keyword type="function" name="cogl_get_projection_matrix ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-get-projection-matrix" deprecated=""/>
+    <keyword type="function" name="cogl_set_projection_matrix ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-set-projection-matrix" deprecated=""/>
+    <keyword type="function" name="cogl_set_viewport ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-set-viewport" deprecated="1.8: Use cogl_framebuffer_set_viewport() instead" since="1.2"/>
+    <keyword type="function" name="cogl_get_viewport ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-get-viewport" deprecated=""/>
+    <keyword type="function" name="cogl_set_source ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-set-source" deprecated="" since="1.0"/>
+    <keyword type="function" name="cogl_set_source_color ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-set-source-color" deprecated="" since="1.0"/>
+    <keyword type="function" name="cogl_set_source_color4ub ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-set-source-color4ub" deprecated="" since="1.0"/>
+    <keyword type="function" name="cogl_set_source_color4f ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-set-source-color4f" deprecated="" since="1.0"/>
+    <keyword type="function" name="cogl_set_source_texture ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-set-source-texture" deprecated="" since="1.0"/>
+    <keyword type="function" name="cogl_get_source ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-get-source" deprecated="" since="1.6"/>
+    <keyword type="function" name="cogl_push_source ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-push-source" deprecated="" since="1.6"/>
+    <keyword type="function" name="cogl_pop_source ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-pop-source" deprecated="" since="1.6"/>
+    <keyword type="function" name="cogl_clear ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-clear" deprecated="1.16: Use cogl_framebuffer_clear() api instead"/>
     <keyword type="enum" name="enum CoglReadPixelsFlags" link="cogl-2.0-experimental-The-Top-Level-Context.html#CoglReadPixelsFlags" since="1.0"/>
-    <keyword type="function" name="cogl_read_pixels ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-read-pixels"/>
+    <keyword type="function" name="cogl_read_pixels ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-read-pixels" deprecated="1.16: Use cogl_framebuffer_read_pixels() instead"/>
     <keyword type="function" name="cogl_flush ()" link="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-flush" since="1.0"/>
     <keyword type="struct" name="CoglPipeline" link="cogl-2.0-experimental-Pipeline.html#CoglPipeline"/>
     <keyword type="function" name="cogl_pipeline_new ()" link="cogl-2.0-experimental-Pipeline.html#cogl-pipeline-new" since="2.0" stability="Unstable"/>
@@ -220,6 +213,8 @@
     <keyword type="function" name="cogl_pipeline_set_blend_constant ()" link="cogl-2.0-experimental-Pipeline.html#cogl-pipeline-set-blend-constant" since="2.0" stability="Unstable"/>
     <keyword type="function" name="cogl_pipeline_set_point_size ()" link="cogl-2.0-experimental-Pipeline.html#cogl-pipeline-set-point-size" since="2.0" stability="Unstable"/>
     <keyword type="function" name="cogl_pipeline_get_point_size ()" link="cogl-2.0-experimental-Pipeline.html#cogl-pipeline-get-point-size" since="2.0" stability="Unstable"/>
+    <keyword type="function" name="cogl_pipeline_set_per_vertex_point_size ()" link="cogl-2.0-experimental-Pipeline.html#cogl-pipeline-set-per-vertex-point-size" since="2.0" stability="Unstable"/>
+    <keyword type="function" name="cogl_pipeline_get_per_vertex_point_size ()" link="cogl-2.0-experimental-Pipeline.html#cogl-pipeline-get-per-vertex-point-size" since="2.0" stability="Unstable"/>
     <keyword type="function" name="cogl_pipeline_get_color_mask ()" link="cogl-2.0-experimental-Pipeline.html#cogl-pipeline-get-color-mask" since="1.8" stability="Unstable"/>
     <keyword type="function" name="cogl_pipeline_set_color_mask ()" link="cogl-2.0-experimental-Pipeline.html#cogl-pipeline-set-color-mask" since="1.8" stability="Unstable"/>
     <keyword type="function" name="cogl_pipeline_set_depth_state ()" link="cogl-2.0-experimental-Pipeline.html#cogl-pipeline-set-depth-state" since="2.0" stability="Unstable"/>
@@ -282,7 +277,7 @@
     <keyword type="function" name="cogl_snippet_get_replace ()" link="cogl-2.0-experimental-Shader-snippets.html#cogl-snippet-get-replace" since="1.10" stability="Unstable"/>
     <keyword type="function" name="cogl_snippet_set_post ()" link="cogl-2.0-experimental-Shader-snippets.html#cogl-snippet-set-post" since="1.10" stability="Unstable"/>
     <keyword type="function" name="cogl_snippet_get_post ()" link="cogl-2.0-experimental-Shader-snippets.html#cogl-snippet-get-post" since="1.10" stability="Unstable"/>
-    <keyword type="struct" name="CoglBuffer" link="cogl-2.0-experimental-CoglBuffer---The-Buffer-Interface.html#CoglBuffer"/>
+    <keyword type="typedef" name="CoglBuffer" link="cogl-2.0-experimental-CoglBuffer---The-Buffer-Interface.html#CoglBuffer"/>
     <keyword type="function" name="cogl_is_buffer ()" link="cogl-2.0-experimental-CoglBuffer---The-Buffer-Interface.html#cogl-is-buffer" since="1.2" stability="Unstable"/>
     <keyword type="function" name="cogl_buffer_get_size ()" link="cogl-2.0-experimental-CoglBuffer---The-Buffer-Interface.html#cogl-buffer-get-size" since="1.2" stability="Unstable"/>
     <keyword type="enum" name="enum CoglBufferUpdateHint" link="cogl-2.0-experimental-CoglBuffer---The-Buffer-Interface.html#CoglBufferUpdateHint" since="1.2" stability="Unstable"/>
@@ -318,7 +313,7 @@
     <keyword type="function" name="cogl_get_rectangle_indices ()" link="cogl-2.0-experimental-Indices.html#cogl-get-rectangle-indices"/>
     <keyword type="struct" name="CoglPrimitive" link="cogl-2.0-experimental-Primitives.html#CoglPrimitive"/>
     <keyword type="function" name="cogl_primitive_new ()" link="cogl-2.0-experimental-Primitives.html#cogl-primitive-new" since="1.6" stability="Unstable"/>
-    <keyword type="function" name="cogl_primitive_new_with_attributes ()" link="cogl-2.0-experimental-Primitives.html#cogl-primitive-new-with-attributes"/>
+    <keyword type="function" name="cogl_primitive_new_with_attributes ()" link="cogl-2.0-experimental-Primitives.html#cogl-primitive-new-with-attributes" since="1.6" stability="Unstable"/>
     <keyword type="function" name="cogl_primitive_new_p2 ()" link="cogl-2.0-experimental-Primitives.html#cogl-primitive-new-p2" since="1.6" stability="Unstable"/>
     <keyword type="function" name="cogl_primitive_new_p3 ()" link="cogl-2.0-experimental-Primitives.html#cogl-primitive-new-p3" since="1.6" stability="Unstable"/>
     <keyword type="function" name="cogl_primitive_new_p2c4 ()" link="cogl-2.0-experimental-Primitives.html#cogl-primitive-new-p2c4" since="1.6" stability="Unstable"/>
@@ -340,27 +335,7 @@
     <keyword type="function" name="cogl_primitive_copy ()" link="cogl-2.0-experimental-Primitives.html#cogl-primitive-copy" since="1.10" stability="Unstable"/>
     <keyword type="function" name="CoglPrimitiveAttributeCallback ()" link="cogl-2.0-experimental-Primitives.html#CoglPrimitiveAttributeCallback" since="1.10" stability="Unstable"/>
     <keyword type="function" name="cogl_primitive_foreach_attribute ()" link="cogl-2.0-experimental-Primitives.html#cogl-primitive-foreach-attribute" since="1.10" stability="Unstable"/>
-    <keyword type="struct" name="CoglPath" link="cogl-2.0-experimental-Path-Primitives.html#CoglPath"/>
-    <keyword type="function" name="cogl_is_path ()" link="cogl-2.0-experimental-Path-Primitives.html#cogl-is-path" since="2.0"/>
-    <keyword type="function" name="cogl_path_new ()" link="cogl-2.0-experimental-Path-Primitives.html#cogl-path-new" since="2.0"/>
-    <keyword type="function" name="cogl_path_copy ()" link="cogl-2.0-experimental-Path-Primitives.html#cogl-path-copy" since="2.0"/>
-    <keyword type="function" name="cogl_path_move_to ()" link="cogl-2.0-experimental-Path-Primitives.html#cogl-path-move-to" since="2.0"/>
-    <keyword type="function" name="cogl_path_close ()" link="cogl-2.0-experimental-Path-Primitives.html#cogl-path-close" since="2.0"/>
-    <keyword type="function" name="cogl_path_line_to ()" link="cogl-2.0-experimental-Path-Primitives.html#cogl-path-line-to" since="2.0"/>
-    <keyword type="function" name="cogl_path_curve_to ()" link="cogl-2.0-experimental-Path-Primitives.html#cogl-path-curve-to" since="2.0"/>
-    <keyword type="function" name="cogl_path_arc ()" link="cogl-2.0-experimental-Path-Primitives.html#cogl-path-arc" since="2.0"/>
-    <keyword type="function" name="cogl_path_rel_move_to ()" link="cogl-2.0-experimental-Path-Primitives.html#cogl-path-rel-move-to" since="2.0"/>
-    <keyword type="function" name="cogl_path_rel_line_to ()" link="cogl-2.0-experimental-Path-Primitives.html#cogl-path-rel-line-to" since="2.0"/>
-    <keyword type="function" name="cogl_path_rel_curve_to ()" link="cogl-2.0-experimental-Path-Primitives.html#cogl-path-rel-curve-to" since="2.0"/>
-    <keyword type="function" name="cogl_path_line ()" link="cogl-2.0-experimental-Path-Primitives.html#cogl-path-line" since="2.0"/>
-    <keyword type="function" name="cogl_path_polyline ()" link="cogl-2.0-experimental-Path-Primitives.html#cogl-path-polyline" since="2.0"/>
-    <keyword type="function" name="cogl_path_polygon ()" link="cogl-2.0-experimental-Path-Primitives.html#cogl-path-polygon" since="2.0"/>
-    <keyword type="function" name="cogl_path_rectangle ()" link="cogl-2.0-experimental-Path-Primitives.html#cogl-path-rectangle" since="2.0"/>
-    <keyword type="function" name="cogl_path_round_rectangle ()" link="cogl-2.0-experimental-Path-Primitives.html#cogl-path-round-rectangle" since="2.0"/>
-    <keyword type="function" name="cogl_path_ellipse ()" link="cogl-2.0-experimental-Path-Primitives.html#cogl-path-ellipse" since="2.0"/>
-    <keyword type="enum" name="enum CoglPathFillRule" link="cogl-2.0-experimental-Path-Primitives.html#CoglPathFillRule" since="1.4"/>
-    <keyword type="function" name="cogl_path_set_fill_rule ()" link="cogl-2.0-experimental-Path-Primitives.html#cogl-path-set-fill-rule" since="2.0"/>
-    <keyword type="function" name="cogl_path_get_fill_rule ()" link="cogl-2.0-experimental-Path-Primitives.html#cogl-path-get-fill-rule" since="2.0"/>
+    <keyword type="function" name="cogl_primitive_draw ()" link="cogl-2.0-experimental-Primitives.html#cogl-primitive-draw" since="1.16" stability="Unstable"/>
     <keyword type="function" name="cogl_rectangle ()" link="cogl-2.0-experimental-Rectangles.html#cogl-rectangle"/>
     <keyword type="function" name="cogl_rectangles ()" link="cogl-2.0-experimental-Rectangles.html#cogl-rectangles" since="1.0"/>
     <keyword type="function" name="cogl_rectangle_with_texture_coords ()" link="cogl-2.0-experimental-Rectangles.html#cogl-rectangle-with-texture-coords" since="1.0"/>
@@ -378,20 +353,27 @@
     <keyword type="function" name="cogl_bitmap_get_rowstride ()" link="cogl-2.0-experimental-Bitmap.html#cogl-bitmap-get-rowstride" since="1.10" stability="Unstable"/>
     <keyword type="function" name="cogl_bitmap_get_buffer ()" link="cogl-2.0-experimental-Bitmap.html#cogl-bitmap-get-buffer" since="1.10" stability="Unstable"/>
     <keyword type="function" name="cogl_bitmap_get_size_from_file ()" link="cogl-2.0-experimental-Bitmap.html#cogl-bitmap-get-size-from-file" since="1.0"/>
-    <keyword type="function" name="cogl_texture_new_from_bitmap ()" link="cogl-2.0-experimental-Bitmap.html#cogl-texture-new-from-bitmap" since="1.0"/>
+    <keyword type="function" name="cogl_texture_new_from_bitmap ()" link="cogl-2.0-experimental-Bitmap.html#cogl-texture-new-from-bitmap" deprecated="" since="1.0"/>
     <keyword type="macro" name="COGL_BITMAP_ERROR" link="cogl-2.0-experimental-Bitmap.html#COGL-BITMAP-ERROR:CAPS" since="1.4"/>
     <keyword type="enum" name="enum CoglBitmapError" link="cogl-2.0-experimental-Bitmap.html#CoglBitmapError" since="1.4"/>
-    <keyword type="struct" name="CoglTexture" link="cogl-2.0-experimental-The-Texture-Interface.html#CoglTexture"/>
+    <keyword type="typedef" name="CoglTexture" link="cogl-2.0-experimental-The-Texture-Interface.html#CoglTexture"/>
     <keyword type="function" name="cogl_is_texture ()" link="cogl-2.0-experimental-The-Texture-Interface.html#cogl-is-texture"/>
+    <keyword type="macro" name="COGL_TEXTURE_ERROR" link="cogl-2.0-experimental-The-Texture-Interface.html#COGL-TEXTURE-ERROR:CAPS" since="1.8" stability="Unstable"/>
+    <keyword type="enum" name="enum CoglTextureError" link="cogl-2.0-experimental-The-Texture-Interface.html#CoglTextureError" since="1.8" stability="Unstable"/>
+    <keyword type="function" name="cogl_texture_allocate ()" link="cogl-2.0-experimental-The-Texture-Interface.html#cogl-texture-allocate"/>
     <keyword type="function" name="cogl_texture_get_width ()" link="cogl-2.0-experimental-The-Texture-Interface.html#cogl-texture-get-width"/>
     <keyword type="function" name="cogl_texture_get_height ()" link="cogl-2.0-experimental-The-Texture-Interface.html#cogl-texture-get-height"/>
-    <keyword type="function" name="cogl_texture_get_format ()" link="cogl-2.0-experimental-The-Texture-Interface.html#cogl-texture-get-format"/>
     <keyword type="function" name="cogl_texture_is_sliced ()" link="cogl-2.0-experimental-The-Texture-Interface.html#cogl-texture-is-sliced"/>
     <keyword type="function" name="cogl_texture_get_data ()" link="cogl-2.0-experimental-The-Texture-Interface.html#cogl-texture-get-data"/>
     <keyword type="function" name="cogl_texture_set_data ()" link="cogl-2.0-experimental-The-Texture-Interface.html#cogl-texture-set-data"/>
     <keyword type="function" name="cogl_texture_set_region ()" link="cogl-2.0-experimental-The-Texture-Interface.html#cogl-texture-set-region"/>
     <keyword type="enum" name="enum CoglTextureType" link="cogl-2.0-experimental-The-Texture-Interface.html#CoglTextureType" since="1.10" stability="Unstable"/>
-    <keyword type="struct" name="CoglMetaTexture" link="cogl-2.0-experimental-High-Level-Meta-Textures.html#CoglMetaTexture"/>
+    <keyword type="enum" name="enum CoglTextureComponents" link="cogl-2.0-experimental-The-Texture-Interface.html#CoglTextureComponents" since="1.18"/>
+    <keyword type="function" name="cogl_texture_set_components ()" link="cogl-2.0-experimental-The-Texture-Interface.html#cogl-texture-set-components" since="1.18"/>
+    <keyword type="function" name="cogl_texture_get_components ()" link="cogl-2.0-experimental-The-Texture-Interface.html#cogl-texture-get-components" since="1.18"/>
+    <keyword type="function" name="cogl_texture_set_premultiplied ()" link="cogl-2.0-experimental-The-Texture-Interface.html#cogl-texture-set-premultiplied" since="1.18"/>
+    <keyword type="function" name="cogl_texture_get_premultiplied ()" link="cogl-2.0-experimental-The-Texture-Interface.html#cogl-texture-get-premultiplied" since="1.18"/>
+    <keyword type="typedef" name="CoglMetaTexture" link="cogl-2.0-experimental-High-Level-Meta-Textures.html#CoglMetaTexture"/>
     <keyword type="function" name="CoglMetaTextureCallback ()" link="cogl-2.0-experimental-High-Level-Meta-Textures.html#CoglMetaTextureCallback" since="1.10" stability="Unstable"/>
     <keyword type="function" name="cogl_meta_texture_foreach_in_region ()" link="cogl-2.0-experimental-High-Level-Meta-Textures.html#cogl-meta-texture-foreach-in-region" since="1.10" stability="Unstable"/>
     <keyword type="struct" name="CoglSubTexture" link="cogl-2.0-experimental-Sub-Textures.html#CoglSubTexture"/>
@@ -399,6 +381,9 @@
     <keyword type="function" name="cogl_is_sub_texture ()" link="cogl-2.0-experimental-Sub-Textures.html#cogl-is-sub-texture" since="1.10" stability="Unstable"/>
     <keyword type="struct" name="CoglTexture2DSliced" link="cogl-2.0-experimental-Sliced-Textures.html#CoglTexture2DSliced"/>
     <keyword type="function" name="cogl_texture_2d_sliced_new_with_size ()" link="cogl-2.0-experimental-Sliced-Textures.html#cogl-texture-2d-sliced-new-with-size" since="1.10" stability="Unstable"/>
+    <keyword type="function" name="cogl_texture_2d_sliced_new_from_file ()" link="cogl-2.0-experimental-Sliced-Textures.html#cogl-texture-2d-sliced-new-from-file" since="1.16"/>
+    <keyword type="function" name="cogl_texture_2d_sliced_new_from_data ()" link="cogl-2.0-experimental-Sliced-Textures.html#cogl-texture-2d-sliced-new-from-data" since="1.16"/>
+    <keyword type="function" name="cogl_texture_2d_sliced_new_from_bitmap ()" link="cogl-2.0-experimental-Sliced-Textures.html#cogl-texture-2d-sliced-new-from-bitmap" since="1.16"/>
     <keyword type="function" name="cogl_is_texture_2d_sliced ()" link="cogl-2.0-experimental-Sliced-Textures.html#cogl-is-texture-2d-sliced" since="1.10" stability="Unstable"/>
     <keyword type="struct" name="CoglTexturePixmapX11" link="cogl-2.0-experimental-X11-Texture-From-Pixmap.html#CoglTexturePixmapX11"/>
     <keyword type="function" name="cogl_is_texture_pixmap_x11 ()" link="cogl-2.0-experimental-X11-Texture-From-Pixmap.html#cogl-is-texture-pixmap-x11" since="1.4" stability="Unstable"/>
@@ -407,14 +392,15 @@
     <keyword type="function" name="cogl_texture_pixmap_x11_is_using_tfp_extension ()" link="cogl-2.0-experimental-X11-Texture-From-Pixmap.html#cogl-texture-pixmap-x11-is-using-tfp-extension" since="1.4" stability="Unstable"/>
     <keyword type="enum" name="enum CoglTexturePixmapX11ReportLevel" link="cogl-2.0-experimental-X11-Texture-From-Pixmap.html#CoglTexturePixmapX11ReportLevel"/>
     <keyword type="function" name="cogl_texture_pixmap_x11_set_damage_object ()" link="cogl-2.0-experimental-X11-Texture-From-Pixmap.html#cogl-texture-pixmap-x11-set-damage-object" since="1.4" stability="Unstable"/>
-    <keyword type="struct" name="CoglPrimitiveTexture" link="cogl-2.0-experimental-Low-level-primitive-textures.html#CoglPrimitiveTexture"/>
+    <keyword type="typedef" name="CoglPrimitiveTexture" link="cogl-2.0-experimental-Low-level-primitive-textures.html#CoglPrimitiveTexture"/>
     <keyword type="function" name="cogl_is_primitive_texture ()" link="cogl-2.0-experimental-Low-level-primitive-textures.html#cogl-is-primitive-texture" since="2.0" stability="Unstable"/>
     <keyword type="function" name="cogl_primitive_texture_set_auto_mipmap ()" link="cogl-2.0-experimental-Low-level-primitive-textures.html#cogl-primitive-texture-set-auto-mipmap" since="2.0" stability="Unstable"/>
     <keyword type="struct" name="CoglTexture2D" link="cogl-2.0-experimental-2D-textures.html#CoglTexture2D"/>
     <keyword type="function" name="cogl_texture_2d_new_with_size ()" link="cogl-2.0-experimental-2D-textures.html#cogl-texture-2d-new-with-size" since="2.0"/>
+    <keyword type="function" name="cogl_texture_2d_new_from_file ()" link="cogl-2.0-experimental-2D-textures.html#cogl-texture-2d-new-from-file" since="1.16"/>
     <keyword type="function" name="cogl_texture_2d_new_from_bitmap ()" link="cogl-2.0-experimental-2D-textures.html#cogl-texture-2d-new-from-bitmap" since="2.0" stability="Unstable"/>
     <keyword type="function" name="cogl_texture_2d_new_from_data ()" link="cogl-2.0-experimental-2D-textures.html#cogl-texture-2d-new-from-data" since="2.0"/>
-    <keyword type="function" name="cogl_texture_2d_new_from_foreign ()" link="cogl-2.0-experimental-2D-textures.html#cogl-texture-2d-new-from-foreign" since="2.0"/>
+    <keyword type="function" name="cogl_texture_2d_gl_new_from_foreign ()" link="cogl-2.0-experimental-2D-textures.html#cogl-texture-2d-gl-new-from-foreign" since="2.0"/>
     <keyword type="function" name="cogl_is_texture_rectangle ()" link="cogl-2.0-experimental-2D-textures.html#cogl-is-texture-rectangle"/>
     <keyword type="struct" name="CoglTexture3D" link="cogl-2.0-experimental-3D-textures.html#CoglTexture3D"/>
     <keyword type="function" name="cogl_texture_3d_new_with_size ()" link="cogl-2.0-experimental-3D-textures.html#cogl-texture-3d-new-with-size" since="1.10" stability="Unstable"/>
@@ -425,7 +411,7 @@
     <keyword type="function" name="cogl_texture_rectangle_new_with_size ()" link="cogl-2.0-experimental-Rectangle-textures-(non-normalized-coordinates).html#cogl-texture-rectangle-new-with-size" since="1.10" stability="Unstable"/>
     <keyword type="function" name="cogl_texture_rectangle_new_from_bitmap ()" link="cogl-2.0-experimental-Rectangle-textures-(non-normalized-coordinates).html#cogl-texture-rectangle-new-from-bitmap" since="2.0" stability="Unstable"/>
     <keyword type="function" name="cogl_is_texture_rectangle ()" link="cogl-2.0-experimental-Rectangle-textures-(non-normalized-coordinates).html#cogl-is-texture-rectangle"/>
-    <keyword type="struct" name="CoglFramebuffer" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer"/>
+    <keyword type="typedef" name="CoglFramebuffer" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer"/>
     <keyword type="macro" name="COGL_FRAMEBUFFER()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#COGL-FRAMEBUFFER:CAPS"/>
     <keyword type="function" name="cogl_framebuffer_allocate ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-allocate" since="1.8" stability="Unstable"/>
     <keyword type="function" name="cogl_framebuffer_get_width ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-get-width" since="1.8" stability="Unstable"/>
@@ -436,7 +422,6 @@
     <keyword type="function" name="cogl_framebuffer_get_viewport_width ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-get-viewport-width" since="1.8" stability="Unstable"/>
     <keyword type="function" name="cogl_framebuffer_get_viewport_height ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-get-viewport-height" since="1.8" stability="Unstable"/>
     <keyword type="function" name="cogl_framebuffer_get_viewport4fv ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-get-viewport4fv" since="1.8" stability="Unstable"/>
-    <keyword type="function" name="cogl_framebuffer_get_color_format ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-get-color-format" since="1.8" stability="Unstable"/>
     <keyword type="function" name="cogl_framebuffer_get_red_bits ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-get-red-bits" since="1.8" stability="Unstable"/>
     <keyword type="function" name="cogl_framebuffer_get_green_bits ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-get-green-bits" since="1.8" stability="Unstable"/>
     <keyword type="function" name="cogl_framebuffer_get_blue_bits ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-get-blue-bits" since="1.8" stability="Unstable"/>
@@ -455,16 +440,11 @@
     <keyword type="function" name="cogl_framebuffer_read_pixels ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-read-pixels" since="1.10" stability="Unstable"/>
     <keyword type="function" name="cogl_framebuffer_set_dither_enabled ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-set-dither-enabled" since="1.8" stability="Unstable"/>
     <keyword type="function" name="cogl_framebuffer_get_dither_enabled ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-get-dither-enabled" since="1.8" stability="Unstable"/>
-    <keyword type="function" name="cogl_framebuffer_draw_primitive ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-draw-primitive" since="1.10" stability="Unstable"/>
-    <keyword type="function" name="cogl_framebuffer_vdraw_attributes ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-vdraw-attributes" since="1.10" stability="Unstable"/>
-    <keyword type="function" name="cogl_framebuffer_vdraw_indexed_attributes ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-vdraw-indexed-attributes" since="1.10" stability="Unstable"/>
     <keyword type="function" name="cogl_framebuffer_draw_rectangle ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-draw-rectangle" since="1.10" stability="Unstable"/>
     <keyword type="function" name="cogl_framebuffer_draw_textured_rectangle ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-draw-textured-rectangle" since="1.10" stability="Unstable"/>
     <keyword type="function" name="cogl_framebuffer_draw_multitextured_rectangle ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-draw-multitextured-rectangle" since="1.10" stability="Unstable"/>
     <keyword type="function" name="cogl_framebuffer_draw_rectangles ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-draw-rectangles" since="1.10" stability="Unstable"/>
     <keyword type="function" name="cogl_framebuffer_draw_textured_rectangles ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-draw-textured-rectangles" since="1.10" stability="Unstable"/>
-    <keyword type="function" name="cogl_framebuffer_stroke_path ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-stroke-path" since="2.0"/>
-    <keyword type="function" name="cogl_framebuffer_fill_path ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-fill-path" since="2.0"/>
     <keyword type="function" name="cogl_framebuffer_discard_buffers ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-discard-buffers" since="1.8" stability="Unstable"/>
     <keyword type="function" name="cogl_framebuffer_finish ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-finish" since="1.10" stability="Unstable"/>
     <keyword type="function" name="cogl_framebuffer_push_matrix ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-push-matrix" since="1.10"/>
@@ -485,13 +465,12 @@
     <keyword type="function" name="cogl_framebuffer_set_projection_matrix ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-set-projection-matrix" since="1.10" stability="Unstable"/>
     <keyword type="function" name="cogl_framebuffer_push_scissor_clip ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-push-scissor-clip" since="1.10" stability="Unstable"/>
     <keyword type="function" name="cogl_framebuffer_push_rectangle_clip ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-push-rectangle-clip" since="1.10" stability="Unstable"/>
-    <keyword type="function" name="cogl_framebuffer_push_path_clip ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-push-path-clip" since="1.0" stability="Unstable"/>
     <keyword type="function" name="cogl_framebuffer_push_primitive_clip ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-push-primitive-clip" since="1.10" stability="Unstable"/>
     <keyword type="function" name="cogl_framebuffer_pop_clip ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-pop-clip" since="1.10" stability="Unstable"/>
     <keyword type="function" name="cogl_get_draw_framebuffer ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-get-draw-framebuffer" since="1.8" stability="Unstable"/>
-    <keyword type="function" name="cogl_set_framebuffer ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-set-framebuffer" since="1.2"/>
-    <keyword type="function" name="cogl_push_framebuffer ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-push-framebuffer" since="1.2"/>
-    <keyword type="function" name="cogl_pop_framebuffer ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-pop-framebuffer" since="1.2"/>
+    <keyword type="function" name="cogl_set_framebuffer ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-set-framebuffer" deprecated="" since="1.2"/>
+    <keyword type="function" name="cogl_push_framebuffer ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-push-framebuffer" deprecated="" since="1.2"/>
+    <keyword type="function" name="cogl_pop_framebuffer ()" link="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-pop-framebuffer" deprecated="" since="1.2"/>
     <keyword type="struct" name="CoglOnscreen" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#CoglOnscreen"/>
     <keyword type="function" name="cogl_is_onscreen ()" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#cogl-is-onscreen" since="1.10" stability="Unstable"/>
     <keyword type="macro" name="COGL_ONSCREEN()" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#COGL-ONSCREEN:CAPS"/>
@@ -505,18 +484,28 @@
     <keyword type="function" name="cogl_onscreen_show ()" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#cogl-onscreen-show" since="2.0" stability="Unstable"/>
     <keyword type="function" name="cogl_onscreen_hide ()" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#cogl-onscreen-hide" since="2.0" stability="Unstable"/>
     <keyword type="function" name="CoglFrameCallback ()" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#CoglFrameCallback" since="1.14" stability="Unstable"/>
-    <keyword type="struct" name="CoglFrameClosure" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#CoglFrameClosure" since="1.14" stability="Unstable"/>
+    <keyword type="typedef" name="CoglFrameClosure" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#CoglFrameClosure" since="1.14" stability="Unstable"/>
     <keyword type="function" name="cogl_onscreen_add_frame_callback ()" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#cogl-onscreen-add-frame-callback" since="1.14" stability="Unstable"/>
     <keyword type="function" name="cogl_onscreen_remove_frame_callback ()" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#cogl-onscreen-remove-frame-callback" since="1.14" stability="Unstable"/>
+    <keyword type="struct" name="struct CoglOnscreenDirtyInfo" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#CoglOnscreenDirtyInfo" since="1.16" stability="Unstable"/>
+    <keyword type="function" name="CoglOnscreenDirtyCallback ()" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#CoglOnscreenDirtyCallback" since="1.16" stability="Unstable"/>
+    <keyword type="typedef" name="CoglOnscreenDirtyClosure" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#CoglOnscreenDirtyClosure" since="1.16" stability="Unstable"/>
+    <keyword type="function" name="cogl_onscreen_add_dirty_callback ()" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#cogl-onscreen-add-dirty-callback" since="1.16" stability="Unstable"/>
+    <keyword type="function" name="cogl_onscreen_remove_dirty_callback ()" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#cogl-onscreen-remove-dirty-callback" since="1.16" stability="Unstable"/>
+    <keyword type="function" name="CoglOnscreenResizeCallback ()" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#CoglOnscreenResizeCallback" since="2.0"/>
+    <keyword type="typedef" name="CoglOnscreenResizeClosure" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#CoglOnscreenResizeClosure" since="2.0" stability="Unstable"/>
+    <keyword type="function" name="cogl_onscreen_add_resize_callback ()" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#cogl-onscreen-add-resize-callback" since="2.0"/>
+    <keyword type="function" name="cogl_onscreen_remove_resize_callback ()" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#cogl-onscreen-remove-resize-callback" since="2.0"/>
     <keyword type="function" name="cogl_onscreen_swap_buffers ()" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#cogl-onscreen-swap-buffers" since="1.10" stability="Unstable"/>
+    <keyword type="function" name="cogl_onscreen_swap_buffers_with_damage ()" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#cogl-onscreen-swap-buffers-with-damage" since="1.16" stability="Unstable"/>
     <keyword type="function" name="cogl_onscreen_swap_region ()" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#cogl-onscreen-swap-region" since="1.10" stability="Unstable"/>
     <keyword type="function" name="cogl_onscreen_set_swap_throttled ()" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#cogl-onscreen-set-swap-throttled" since="1.8" stability="Unstable"/>
     <keyword type="function" name="CoglSwapBuffersNotify ()" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#CoglSwapBuffersNotify"/>
-    <keyword type="function" name="cogl_onscreen_add_swap_buffers_callback ()" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#cogl-onscreen-add-swap-buffers-callback" deprecated="1.14: Use cogl_onscreen_add_swap_complete_callback" since="1.10" stability="Unstable"/>
-    <keyword type="function" name="cogl_onscreen_remove_swap_buffers_callback ()" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#cogl-onscreen-remove-swap-buffers-callback" deprecated="1.14: Use cogl_onscreen_remove_swap_complete_callback" since="1.10" stability="Unstable"/>
+    <keyword type="function" name="cogl_onscreen_add_swap_buffers_callback ()" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#cogl-onscreen-add-swap-buffers-callback" deprecated="1.14: Use cogl_onscreen_add_frame_callback() instead" since="1.10" stability="Unstable"/>
+    <keyword type="function" name="cogl_onscreen_remove_swap_buffers_callback ()" link="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#cogl-onscreen-remove-swap-buffers-callback" deprecated="1.14: Use cogl_onscreen_remove_frame_callback() instead" since="1.10" stability="Unstable"/>
     <keyword type="struct" name="CoglOffscreen" link="cogl-2.0-experimental-Offscreen-Framebuffers.html#CoglOffscreen"/>
     <keyword type="function" name="cogl_is_offscreen ()" link="cogl-2.0-experimental-Offscreen-Framebuffers.html#cogl-is-offscreen"/>
-    <keyword type="function" name="cogl_offscreen_new_to_texture ()" link="cogl-2.0-experimental-Offscreen-Framebuffers.html#cogl-offscreen-new-to-texture"/>
+    <keyword type="function" name="cogl_offscreen_new_with_texture ()" link="cogl-2.0-experimental-Offscreen-Framebuffers.html#cogl-offscreen-new-with-texture"/>
     <keyword type="struct" name="struct CoglColor" link="cogl-2.0-experimental-Color-Type.html#CoglColor" since="1.0"/>
     <keyword type="function" name="cogl_color_new ()" link="cogl-2.0-experimental-Color-Type.html#cogl-color-new" since="1.0"/>
     <keyword type="function" name="cogl_color_copy ()" link="cogl-2.0-experimental-Color-Type.html#cogl-color-copy" since="1.0"/>
@@ -550,6 +539,8 @@
     <keyword type="function" name="cogl_color_premultiply ()" link="cogl-2.0-experimental-Color-Type.html#cogl-color-premultiply" since="1.0"/>
     <keyword type="function" name="cogl_color_unpremultiply ()" link="cogl-2.0-experimental-Color-Type.html#cogl-color-unpremultiply" since="1.4"/>
     <keyword type="function" name="cogl_color_equal ()" link="cogl-2.0-experimental-Color-Type.html#cogl-color-equal" since="1.0"/>
+    <keyword type="function" name="cogl_color_init_from_hsl ()" link="cogl-2.0-experimental-Color-Type.html#cogl-color-init-from-hsl" since="1.16"/>
+    <keyword type="function" name="cogl_color_to_hsl ()" link="cogl-2.0-experimental-Color-Type.html#cogl-color-to-hsl" since="1.16"/>
     <keyword type="struct" name="CoglMatrix" link="cogl-2.0-experimental-Matrices.html#CoglMatrix"/>
     <keyword type="function" name="cogl_matrix_init_identity ()" link="cogl-2.0-experimental-Matrices.html#cogl-matrix-init-identity"/>
     <keyword type="function" name="cogl_matrix_init_from_array ()" link="cogl-2.0-experimental-Matrices.html#cogl-matrix-init-from-array"/>
@@ -649,6 +640,12 @@
     <keyword type="function" name="cogl_quaternion_squad ()" link="cogl-2.0-experimental-Quaternions-(Rotations).html#cogl-quaternion-squad" since="2.0"/>
     <keyword type="function" name="cogl_get_static_identity_quaternion ()" link="cogl-2.0-experimental-Quaternions-(Rotations).html#cogl-get-static-identity-quaternion" since="2.0"/>
     <keyword type="function" name="cogl_get_static_zero_quaternion ()" link="cogl-2.0-experimental-Quaternions-(Rotations).html#cogl-get-static-zero-quaternion" since="2.0"/>
+    <keyword type="struct" name="CoglFence" link="cogl-2.0-experimental-GPU-synchronisation-fences.html#CoglFence" since="2.0" stability="Unstable"/>
+    <keyword type="function" name="CoglFenceCallback ()" link="cogl-2.0-experimental-GPU-synchronisation-fences.html#CoglFenceCallback" since="2.0" stability="Unstable"/>
+    <keyword type="struct" name="CoglFenceClosure" link="cogl-2.0-experimental-GPU-synchronisation-fences.html#CoglFenceClosure" since="2.0" stability="Unstable"/>
+    <keyword type="function" name="cogl_fence_closure_get_user_data ()" link="cogl-2.0-experimental-GPU-synchronisation-fences.html#cogl-fence-closure-get-user-data"/>
+    <keyword type="function" name="cogl_framebuffer_add_fence_callback ()" link="cogl-2.0-experimental-GPU-synchronisation-fences.html#cogl-framebuffer-add-fence-callback" since="2.0" stability="Unstable"/>
+    <keyword type="function" name="cogl_framebuffer_cancel_fence_callback ()" link="cogl-2.0-experimental-GPU-synchronisation-fences.html#cogl-framebuffer-cancel-fence-callback" since="2.0" stability="Unstable"/>
     <keyword type="macro" name="COGL_VERSION_MAJOR" link="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION-MAJOR:CAPS" since="1.12.0"/>
     <keyword type="macro" name="COGL_VERSION_MINOR" link="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION-MINOR:CAPS" since="1.12.0"/>
     <keyword type="macro" name="COGL_VERSION_MICRO" link="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION-MICRO:CAPS" since="1.12.0"/>
@@ -665,12 +662,13 @@
     <keyword type="function" name="cogl_sdl_handle_event ()" link="cogl-2.0-experimental-SDL-Integration.html#cogl-sdl-handle-event" since="2.0" stability="Unstable"/>
     <keyword type="function" name="cogl_sdl_idle ()" link="cogl-2.0-experimental-SDL-Integration.html#cogl-sdl-idle" since="2.0" stability="Unstable"/>
     <keyword type="function" name="cogl_sdl_onscreen_get_window ()" link="cogl-2.0-experimental-SDL-Integration.html#cogl-sdl-onscreen-get-window" since="2.0" stability="Unstable"/>
-    <keyword type="enum" name="enum CoglPollFDEvent" link="cogl-2.0-experimental-Main-loop-integeration.html#CoglPollFDEvent" since="1.10" stability="Unstable"/>
-    <keyword type="struct" name="CoglPollFD" link="cogl-2.0-experimental-Main-loop-integeration.html#CoglPollFD" since="1.10" stability="Unstable"/>
-    <keyword type="function" name="cogl_poll_get_info ()" link="cogl-2.0-experimental-Main-loop-integeration.html#cogl-poll-get-info" since="1.10" stability="Unstable"/>
-    <keyword type="function" name="cogl_poll_dispatch ()" link="cogl-2.0-experimental-Main-loop-integeration.html#cogl-poll-dispatch" since="1.10" stability="Unstable"/>
-    <keyword type="function" name="cogl_glib_source_new ()" link="cogl-2.0-experimental-Main-loop-integeration.html#cogl-glib-source-new" since="1.10" stability="Unstable"/>
-    <keyword type="function" name="cogl_gtype_matrix_get_type ()" link="cogl-2.0-experimental-GType-Integration-API.html#cogl-gtype-matrix-get-type"/>
+    <keyword type="enum" name="enum CoglPollFDEvent" link="cogl-2.0-experimental-Main-loop-integration.html#CoglPollFDEvent" since="1.10" stability="Unstable"/>
+    <keyword type="struct" name="CoglPollFD" link="cogl-2.0-experimental-Main-loop-integration.html#CoglPollFD" since="1.10" stability="Unstable"/>
+    <keyword type="function" name="cogl_poll_renderer_get_info ()" link="cogl-2.0-experimental-Main-loop-integration.html#cogl-poll-renderer-get-info" since="1.16" stability="Unstable"/>
+    <keyword type="function" name="cogl_poll_renderer_dispatch ()" link="cogl-2.0-experimental-Main-loop-integration.html#cogl-poll-renderer-dispatch" since="1.16" stability="Unstable"/>
+    <keyword type="function" name="cogl_glib_source_new ()" link="cogl-2.0-experimental-Main-loop-integration.html#cogl-glib-source-new" since="1.10" stability="Unstable"/>
+    <keyword type="function" name="cogl_glib_renderer_source_new ()" link="cogl-2.0-experimental-Main-loop-integration.html#cogl-glib-renderer-source-new" since="1.16" stability="Unstable"/>
+    <keyword type="function" name="cogl_gtype_matrix_get_type ()" link="cogl-2.0-experimental-GType-Integration-API.html#cogl-gtype-matrix-get-type" deprecated="1.18: Use cogl_matrix_get_gtype() instead."/>
     <keyword type="struct" name="CoglGLES2Context" link="cogl-2.0-experimental-GLES-2.0-context.html#CoglGLES2Context" since="1.12" stability="Unstable"/>
     <keyword type="struct" name="struct CoglGLES2Vtable" link="cogl-2.0-experimental-GLES-2.0-context.html#CoglGLES2Vtable" since="1.12" stability="Unstable"/>
     <keyword type="macro" name="COGL_GLES2_CONTEXT_ERROR" link="cogl-2.0-experimental-GLES-2.0-context.html#COGL-GLES2-CONTEXT-ERROR:CAPS" since="2.0" stability="Unstable"/>
@@ -697,6 +695,7 @@
     <keyword type="constant" name="COGL_PIXEL_FORMAT_RGBA_5551" link="cogl-2.0-experimental-Common-Types.html#COGL-PIXEL-FORMAT-RGBA-5551:CAPS"/>
     <keyword type="constant" name="COGL_PIXEL_FORMAT_YUV" link="cogl-2.0-experimental-Common-Types.html#COGL-PIXEL-FORMAT-YUV:CAPS"/>
     <keyword type="constant" name="COGL_PIXEL_FORMAT_G_8" link="cogl-2.0-experimental-Common-Types.html#COGL-PIXEL-FORMAT-G-8:CAPS"/>
+    <keyword type="constant" name="COGL_PIXEL_FORMAT_RG_88" link="cogl-2.0-experimental-Common-Types.html#COGL-PIXEL-FORMAT-RG-88:CAPS"/>
     <keyword type="constant" name="COGL_PIXEL_FORMAT_RGB_888" link="cogl-2.0-experimental-Common-Types.html#COGL-PIXEL-FORMAT-RGB-888:CAPS"/>
     <keyword type="constant" name="COGL_PIXEL_FORMAT_BGR_888" link="cogl-2.0-experimental-Common-Types.html#COGL-PIXEL-FORMAT-BGR-888:CAPS"/>
     <keyword type="constant" name="COGL_PIXEL_FORMAT_RGBA_8888" link="cogl-2.0-experimental-Common-Types.html#COGL-PIXEL-FORMAT-RGBA-8888:CAPS"/>
@@ -778,6 +777,10 @@
     <keyword type="constant" name="COGL_FEATURE_ID_GLES2_CONTEXT" link="cogl-2.0-experimental-The-Top-Level-Context.html#COGL-FEATURE-ID-GLES2-CONTEXT:CAPS"/>
     <keyword type="constant" name="COGL_FEATURE_ID_DEPTH_TEXTURE" link="cogl-2.0-experimental-The-Top-Level-Context.html#COGL-FEATURE-ID-DEPTH-TEXTURE:CAPS"/>
     <keyword type="constant" name="COGL_FEATURE_ID_PRESENTATION_TIME" link="cogl-2.0-experimental-The-Top-Level-Context.html#COGL-FEATURE-ID-PRESENTATION-TIME:CAPS"/>
+    <keyword type="constant" name="COGL_FEATURE_ID_FENCE" link="cogl-2.0-experimental-The-Top-Level-Context.html#COGL-FEATURE-ID-FENCE:CAPS"/>
+    <keyword type="constant" name="COGL_FEATURE_ID_PER_VERTEX_POINT_SIZE" link="cogl-2.0-experimental-The-Top-Level-Context.html#COGL-FEATURE-ID-PER-VERTEX-POINT-SIZE:CAPS"/>
+    <keyword type="constant" name="COGL_FEATURE_ID_TEXTURE_RG" link="cogl-2.0-experimental-The-Top-Level-Context.html#COGL-FEATURE-ID-TEXTURE-RG:CAPS"/>
+    <keyword type="constant" name="COGL_FEATURE_ID_BUFFER_AGE" link="cogl-2.0-experimental-The-Top-Level-Context.html#COGL-FEATURE-ID-BUFFER-AGE:CAPS"/>
     <keyword type="constant" name="COGL_READ_PIXELS_COLOR_BUFFER" link="cogl-2.0-experimental-The-Top-Level-Context.html#COGL-READ-PIXELS-COLOR-BUFFER:CAPS"/>
     <keyword type="constant" name="COGL_PIPELINE_ALPHA_FUNC_NEVER" link="cogl-2.0-experimental-Pipeline.html#COGL-PIPELINE-ALPHA-FUNC-NEVER:CAPS"/>
     <keyword type="constant" name="COGL_PIPELINE_ALPHA_FUNC_LESS" link="cogl-2.0-experimental-Pipeline.html#COGL-PIPELINE-ALPHA-FUNC-LESS:CAPS"/>
@@ -818,6 +821,7 @@
     <keyword type="constant" name="COGL_SNIPPET_HOOK_VERTEX" link="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-VERTEX:CAPS"/>
     <keyword type="constant" name="COGL_SNIPPET_HOOK_VERTEX_TRANSFORM" link="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-VERTEX-TRANSFORM:CAPS"/>
     <keyword type="constant" name="COGL_SNIPPET_HOOK_VERTEX_GLOBALS" link="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-VERTEX-GLOBALS:CAPS"/>
+    <keyword type="constant" name="COGL_SNIPPET_HOOK_POINT_SIZE" link="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-POINT-SIZE:CAPS"/>
     <keyword type="constant" name="COGL_SNIPPET_HOOK_FRAGMENT" link="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-FRAGMENT:CAPS"/>
     <keyword type="constant" name="COGL_SNIPPET_HOOK_FRAGMENT_GLOBALS" link="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-FRAGMENT-GLOBALS:CAPS"/>
     <keyword type="constant" name="COGL_SNIPPET_HOOK_TEXTURE_COORD_TRANSFORM" link="cogl-2.0-experimental-Shader-snippets.html#COGL-SNIPPET-HOOK-TEXTURE-COORD-TRANSFORM:CAPS"/>
@@ -834,20 +838,31 @@
     <keyword type="constant" name="COGL_INDICES_TYPE_UNSIGNED_BYTE" link="cogl-2.0-experimental-Indices.html#COGL-INDICES-TYPE-UNSIGNED-BYTE:CAPS"/>
     <keyword type="constant" name="COGL_INDICES_TYPE_UNSIGNED_SHORT" link="cogl-2.0-experimental-Indices.html#COGL-INDICES-TYPE-UNSIGNED-SHORT:CAPS"/>
     <keyword type="constant" name="COGL_INDICES_TYPE_UNSIGNED_INT" link="cogl-2.0-experimental-Indices.html#COGL-INDICES-TYPE-UNSIGNED-INT:CAPS"/>
-    <keyword type="constant" name="COGL_PATH_FILL_RULE_NON_ZERO" link="cogl-2.0-experimental-Path-Primitives.html#COGL-PATH-FILL-RULE-NON-ZERO:CAPS"/>
-    <keyword type="constant" name="COGL_PATH_FILL_RULE_EVEN_ODD" link="cogl-2.0-experimental-Path-Primitives.html#COGL-PATH-FILL-RULE-EVEN-ODD:CAPS"/>
     <keyword type="constant" name="COGL_BITMAP_ERROR_FAILED" link="cogl-2.0-experimental-Bitmap.html#COGL-BITMAP-ERROR-FAILED:CAPS"/>
     <keyword type="constant" name="COGL_BITMAP_ERROR_UNKNOWN_TYPE" link="cogl-2.0-experimental-Bitmap.html#COGL-BITMAP-ERROR-UNKNOWN-TYPE:CAPS"/>
     <keyword type="constant" name="COGL_BITMAP_ERROR_CORRUPT_IMAGE" link="cogl-2.0-experimental-Bitmap.html#COGL-BITMAP-ERROR-CORRUPT-IMAGE:CAPS"/>
+    <keyword type="constant" name="COGL_TEXTURE_ERROR_SIZE" link="cogl-2.0-experimental-The-Texture-Interface.html#COGL-TEXTURE-ERROR-SIZE:CAPS"/>
+    <keyword type="constant" name="COGL_TEXTURE_ERROR_FORMAT" link="cogl-2.0-experimental-The-Texture-Interface.html#COGL-TEXTURE-ERROR-FORMAT:CAPS"/>
+    <keyword type="constant" name="COGL_TEXTURE_ERROR_BAD_PARAMETER" link="cogl-2.0-experimental-The-Texture-Interface.html#COGL-TEXTURE-ERROR-BAD-PARAMETER:CAPS"/>
+    <keyword type="constant" name="COGL_TEXTURE_ERROR_TYPE" link="cogl-2.0-experimental-The-Texture-Interface.html#COGL-TEXTURE-ERROR-TYPE:CAPS"/>
     <keyword type="constant" name="COGL_TEXTURE_TYPE_2D" link="cogl-2.0-experimental-The-Texture-Interface.html#COGL-TEXTURE-TYPE-2D:CAPS"/>
     <keyword type="constant" name="COGL_TEXTURE_TYPE_3D" link="cogl-2.0-experimental-The-Texture-Interface.html#COGL-TEXTURE-TYPE-3D:CAPS"/>
     <keyword type="constant" name="COGL_TEXTURE_TYPE_RECTANGLE" link="cogl-2.0-experimental-The-Texture-Interface.html#COGL-TEXTURE-TYPE-RECTANGLE:CAPS"/>
-    <keyword type="constant" name="COGL_POLL_FD_EVENT_IN" link="cogl-2.0-experimental-Main-loop-integeration.html#COGL-POLL-FD-EVENT-IN:CAPS"/>
-    <keyword type="constant" name="COGL_POLL_FD_EVENT_PRI" link="cogl-2.0-experimental-Main-loop-integeration.html#COGL-POLL-FD-EVENT-PRI:CAPS"/>
-    <keyword type="constant" name="COGL_POLL_FD_EVENT_OUT" link="cogl-2.0-experimental-Main-loop-integeration.html#COGL-POLL-FD-EVENT-OUT:CAPS"/>
-    <keyword type="constant" name="COGL_POLL_FD_EVENT_ERR" link="cogl-2.0-experimental-Main-loop-integeration.html#COGL-POLL-FD-EVENT-ERR:CAPS"/>
-    <keyword type="constant" name="COGL_POLL_FD_EVENT_HUP" link="cogl-2.0-experimental-Main-loop-integeration.html#COGL-POLL-FD-EVENT-HUP:CAPS"/>
-    <keyword type="constant" name="COGL_POLL_FD_EVENT_NVAL" link="cogl-2.0-experimental-Main-loop-integeration.html#COGL-POLL-FD-EVENT-NVAL:CAPS"/>
+    <keyword type="constant" name="COGL_TEXTURE_COMPONENTS_A" link="cogl-2.0-experimental-The-Texture-Interface.html#COGL-TEXTURE-COMPONENTS-A:CAPS"/>
+    <keyword type="constant" name="COGL_TEXTURE_COMPONENTS_RG" link="cogl-2.0-experimental-The-Texture-Interface.html#COGL-TEXTURE-COMPONENTS-RG:CAPS"/>
+    <keyword type="constant" name="COGL_TEXTURE_COMPONENTS_RGB" link="cogl-2.0-experimental-The-Texture-Interface.html#COGL-TEXTURE-COMPONENTS-RGB:CAPS"/>
+    <keyword type="constant" name="COGL_TEXTURE_COMPONENTS_RGBA" link="cogl-2.0-experimental-The-Texture-Interface.html#COGL-TEXTURE-COMPONENTS-RGBA:CAPS"/>
+    <keyword type="constant" name="COGL_TEXTURE_COMPONENTS_DEPTH" link="cogl-2.0-experimental-The-Texture-Interface.html#COGL-TEXTURE-COMPONENTS-DEPTH:CAPS"/>
+    <keyword type="constant" name="COGL_TEXTURE_PIXMAP_X11_DAMAGE_RAW_RECTANGLES" link="cogl-2.0-experimental-X11-Texture-From-Pixmap.html#COGL-TEXTURE-PIXMAP-X11-DAMAGE-RAW-RECTANGLES:CAPS"/>
+    <keyword type="constant" name="COGL_TEXTURE_PIXMAP_X11_DAMAGE_DELTA_RECTANGLES" link="cogl-2.0-experimental-X11-Texture-From-Pixmap.html#COGL-TEXTURE-PIXMAP-X11-DAMAGE-DELTA-RECTANGLES:CAPS"/>
+    <keyword type="constant" name="COGL_TEXTURE_PIXMAP_X11_DAMAGE_BOUNDING_BOX" link="cogl-2.0-experimental-X11-Texture-From-Pixmap.html#COGL-TEXTURE-PIXMAP-X11-DAMAGE-BOUNDING-BOX:CAPS"/>
+    <keyword type="constant" name="COGL_TEXTURE_PIXMAP_X11_DAMAGE_NON_EMPTY" link="cogl-2.0-experimental-X11-Texture-From-Pixmap.html#COGL-TEXTURE-PIXMAP-X11-DAMAGE-NON-EMPTY:CAPS"/>
+    <keyword type="constant" name="COGL_POLL_FD_EVENT_IN" link="cogl-2.0-experimental-Main-loop-integration.html#COGL-POLL-FD-EVENT-IN:CAPS"/>
+    <keyword type="constant" name="COGL_POLL_FD_EVENT_PRI" link="cogl-2.0-experimental-Main-loop-integration.html#COGL-POLL-FD-EVENT-PRI:CAPS"/>
+    <keyword type="constant" name="COGL_POLL_FD_EVENT_OUT" link="cogl-2.0-experimental-Main-loop-integration.html#COGL-POLL-FD-EVENT-OUT:CAPS"/>
+    <keyword type="constant" name="COGL_POLL_FD_EVENT_ERR" link="cogl-2.0-experimental-Main-loop-integration.html#COGL-POLL-FD-EVENT-ERR:CAPS"/>
+    <keyword type="constant" name="COGL_POLL_FD_EVENT_HUP" link="cogl-2.0-experimental-Main-loop-integration.html#COGL-POLL-FD-EVENT-HUP:CAPS"/>
+    <keyword type="constant" name="COGL_POLL_FD_EVENT_NVAL" link="cogl-2.0-experimental-Main-loop-integration.html#COGL-POLL-FD-EVENT-NVAL:CAPS"/>
     <keyword type="constant" name="COGL_GLES2_CONTEXT_ERROR_UNSUPPORTED" link="cogl-2.0-experimental-GLES-2.0-context.html#COGL-GLES2-CONTEXT-ERROR-UNSUPPORTED:CAPS"/>
     <keyword type="constant" name="COGL_GLES2_CONTEXT_ERROR_DRIVER" link="cogl-2.0-experimental-GLES-2.0-context.html#COGL-GLES2-CONTEXT-ERROR-DRIVER:CAPS"/>
   </functions>

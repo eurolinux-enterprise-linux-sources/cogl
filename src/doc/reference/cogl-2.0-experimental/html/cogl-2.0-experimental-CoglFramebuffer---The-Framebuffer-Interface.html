@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>CoglFramebuffer: The Framebuffer Interface</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Cogl 2.0 Reference Manual">
 <link rel="up" href="cogl-framebuffer-apis.html" title="Framebuffers">
 <link rel="prev" href="cogl-framebuffer-apis.html" title="Framebuffers">
 <link rel="next" href="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html" title="CoglOnscreen: The Onscreen Framebuffer Interface">
-<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.19.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -37,7 +37,7 @@
 </tr></table></div>
 <div class="refsynopsisdiv">
 <a name="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.synopsis"></a><h2>Synopsis</h2>
-<pre class="synopsis">                    <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer">CoglFramebuffer</a>;
+<pre class="synopsis">typedef             <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer">CoglFramebuffer</a>;
 #define             <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#COGL-FRAMEBUFFER:CAPS" title="COGL_FRAMEBUFFER()">COGL_FRAMEBUFFER</a>                    (X)
 <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglBool" title="CoglBool"><span class="returnvalue">CoglBool</span></a>            <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-allocate" title="cogl_framebuffer_allocate ()">cogl_framebuffer_allocate</a>           (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>,
                                                          <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Exception-handling.html#CoglError" title="CoglError"><span class="type">CoglError</span></a> **error</code></em>);
@@ -55,7 +55,6 @@
                                                         (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-get-viewport4fv" title="cogl_framebuffer_get_viewport4fv ()">cogl_framebuffer_get_viewport4fv</a>    (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>,
                                                          <em class="parameter"><code><span class="type">float</span> *viewport</code></em>);
-<a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglPixelFormat" title="enum CoglPixelFormat"><span class="returnvalue">CoglPixelFormat</span></a>     <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-get-color-format" title="cogl_framebuffer_get_color_format ()">cogl_framebuffer_get_color_format</a>   (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>);
 <span class="returnvalue">int</span>                 <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-get-red-bits" title="cogl_framebuffer_get_red_bits ()">cogl_framebuffer_get_red_bits</a>       (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>);
 <span class="returnvalue">int</span>                 <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-get-green-bits" title="cogl_framebuffer_get_green_bits ()">cogl_framebuffer_get_green_bits</a>     (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>);
 <span class="returnvalue">int</span>                 <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-get-blue-bits" title="cogl_framebuffer_get_blue_bits ()">cogl_framebuffer_get_blue_bits</a>      (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>);
@@ -103,21 +102,6 @@
                                                          <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglBool" title="CoglBool"><span class="type">CoglBool</span></a> dither_enabled</code></em>);
 <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglBool" title="CoglBool"><span class="returnvalue">CoglBool</span></a>            <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-get-dither-enabled" title="cogl_framebuffer_get_dither_enabled ()">cogl_framebuffer_get_dither_enabled</a> (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>);
 
-<span class="returnvalue">void</span>                <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-draw-primitive" title="cogl_framebuffer_draw_primitive ()">cogl_framebuffer_draw_primitive</a>     (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> *pipeline</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a> *primitive</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-vdraw-attributes" title="cogl_framebuffer_vdraw_attributes ()">cogl_framebuffer_vdraw_attributes</a>   (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> *pipeline</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVerticesMode" title="enum CoglVerticesMode"><span class="type">CoglVerticesMode</span></a> mode</code></em>,
-                                                         <em class="parameter"><code><span class="type">int</span> first_vertex</code></em>,
-                                                         <em class="parameter"><code><span class="type">int</span> n_vertices</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-vdraw-indexed-attributes" title="cogl_framebuffer_vdraw_indexed_attributes ()">cogl_framebuffer_vdraw_indexed_attributes</a>
-                                                        (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> *pipeline</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVerticesMode" title="enum CoglVerticesMode"><span class="type">CoglVerticesMode</span></a> mode</code></em>,
-                                                         <em class="parameter"><code><span class="type">int</span> first_vertex</code></em>,
-                                                         <em class="parameter"><code><span class="type">int</span> n_vertices</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Indices.html#CoglIndices" title="CoglIndices"><span class="type">CoglIndices</span></a> *indices</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-draw-rectangle" title="cogl_framebuffer_draw_rectangle ()">cogl_framebuffer_draw_rectangle</a>     (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>,
                                                          <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> *pipeline</code></em>,
                                                          <em class="parameter"><code><span class="type">float</span> x_1</code></em>,
@@ -153,12 +137,6 @@
                                                          <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> *pipeline</code></em>,
                                                          <em class="parameter"><code>const <span class="type">float</span> *coordinates</code></em>,
                                                          <em class="parameter"><code>unsigned <span class="type">int</span> n_rectangles</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-stroke-path" title="cogl_framebuffer_stroke_path ()">cogl_framebuffer_stroke_path</a>        (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> *pipeline</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Path-Primitives.html#CoglPath" title="CoglPath"><span class="type">CoglPath</span></a> *path</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-fill-path" title="cogl_framebuffer_fill_path ()">cogl_framebuffer_fill_path</a>          (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> *pipeline</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Path-Primitives.html#CoglPath" title="CoglPath"><span class="type">CoglPath</span></a> *path</code></em>);
 
 <span class="returnvalue">void</span>                <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-discard-buffers" title="cogl_framebuffer_discard_buffers ()">cogl_framebuffer_discard_buffers</a>    (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>,
                                                          <em class="parameter"><code><span class="type">unsigned long </span> buffers</code></em>);
@@ -230,8 +208,6 @@
                                                          <em class="parameter"><code><span class="type">float</span> y_1</code></em>,
                                                          <em class="parameter"><code><span class="type">float</span> x_2</code></em>,
                                                          <em class="parameter"><code><span class="type">float</span> y_2</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-push-path-clip" title="cogl_framebuffer_push_path_clip ()">cogl_framebuffer_push_path_clip</a>     (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Path-Primitives.html#CoglPath" title="CoglPath"><span class="type">CoglPath</span></a> *path</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-push-primitive-clip" title="cogl_framebuffer_push_primitive_clip ()">cogl_framebuffer_push_primitive_clip</a>
                                                         (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>,
                                                          <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a> *primitive</code></em>,
@@ -270,7 +246,7 @@ visible to the user.
 <p>
 If you want to create a new framebuffer then you should start by
 looking at the <a class="link" href="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#CoglOnscreen" title="CoglOnscreen"><span class="type">CoglOnscreen</span></a> and <a class="link" href="cogl-2.0-experimental-Offscreen-Framebuffers.html#CoglOffscreen" title="CoglOffscreen"><span class="type">CoglOffscreen</span></a> constructor
-functions, such as <a class="link" href="cogl-2.0-experimental-Offscreen-Framebuffers.html#cogl-offscreen-new-to-texture" title="cogl_offscreen_new_to_texture ()"><code class="function">cogl_offscreen_new_to_texture()</code></a> or
+functions, such as <a class="link" href="cogl-2.0-experimental-Offscreen-Framebuffers.html#cogl-offscreen-new-with-texture" title="cogl_offscreen_new_with_texture ()"><code class="function">cogl_offscreen_new_with_texture()</code></a> or
 <a class="link" href="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#cogl-onscreen-new" title="cogl_onscreen_new ()"><code class="function">cogl_onscreen_new()</code></a>. The <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> interface deals with
 all aspects that are common between those two types of framebuffer.
 </p>
@@ -291,13 +267,13 @@ configuration.
 <a name="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.details"></a><h2>Details</h2>
 <div class="refsect2">
 <a name="CoglFramebuffer"></a><h3>CoglFramebuffer</h3>
-<pre class="programlisting">typedef struct _CoglFramebuffer CoglFramebuffer;</pre>
+<pre class="programlisting">typedef void CoglFramebuffer;
+</pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="COGL-FRAMEBUFFER:CAPS"></a><h3>COGL_FRAMEBUFFER()</h3>
-<pre class="programlisting">#define COGL_FRAMEBUFFER(X) ((CoglFramebuffer *)(X))
-</pre>
+<pre class="programlisting">#define             COGL_FRAMEBUFFER(X)</pre>
 </div>
 <hr>
 <div class="refsect2">
@@ -338,7 +314,7 @@ automatic allocation.</div>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if there were no error allocating the framebuffer, else <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>.</td>
+<code class="literal">TRUE</code> if there were no error allocating the framebuffer, else <code class="literal">FALSE</code>.</td>
 </tr>
 </tbody>
 </table></div>
@@ -606,29 +582,6 @@ components of the current viewport. <span class="annotation">[<acronym title="Ou
 </td>
 </tr>
 </tbody>
-</table></div>
-<p class="since">Since 1.8</p>
-<p class="stability">Stability Level: Unstable</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="cogl-framebuffer-get-color-format"></a><h3>cogl_framebuffer_get_color_format ()</h3>
-<pre class="programlisting"><a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglPixelFormat" title="enum CoglPixelFormat"><span class="returnvalue">CoglPixelFormat</span></a>     cogl_framebuffer_get_color_format   (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>);</pre>
-<p>
-Queries the common <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglPixelFormat" title="enum CoglPixelFormat"><span class="type">CoglPixelFormat</span></a> of all color buffers attached
-to this framebuffer. For an offscreen framebuffer created with
-<a class="link" href="cogl-2.0-experimental-Offscreen-Framebuffers.html#cogl-offscreen-new-to-texture" title="cogl_offscreen_new_to_texture ()"><code class="function">cogl_offscreen_new_to_texture()</code></a> this will correspond to the format
-of the texture.
-</p>
-<div class="variablelist"><table border="0" class="variablelist">
-<colgroup>
-<col align="left" valign="top">
-<col>
-</colgroup>
-<tbody><tr>
-<td><p><span class="term"><em class="parameter"><code>framebuffer</code></em> :</span></p></td>
-<td>A <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> framebuffer</td>
-</tr></tbody>
 </table></div>
 <p class="since">Since 1.8</p>
 <p class="stability">Stability Level: Unstable</p>
@@ -1068,8 +1021,9 @@ instantiated within. This is the <a class="link" href="cogl-2.0-experimental-The
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>The <a class="link" href="cogl-2.0-experimental-The-Top-Level-Context.html#CoglContext" title="CoglContext"><span class="type">CoglContext</span></a> that the given <em class="parameter"><code>framebuffer</code></em> was
-instantiated within.</td>
+<td>The <a class="link" href="cogl-2.0-experimental-The-Top-Level-Context.html#CoglContext" title="CoglContext"><span class="type">CoglContext</span></a> that the given
+<em class="parameter"><code>framebuffer</code></em> was instantiated within. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -1219,7 +1173,7 @@ use one of the formats ending in PRE.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the read succeeded or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise. The
+<code class="literal">TRUE</code> if the read succeeded or <code class="literal">FALSE</code> otherwise. The
 function is only likely to fail if the bitmap points to a pixel
 buffer and it could not be mapped.</td>
 </tr>
@@ -1267,18 +1221,66 @@ The implementation of the function looks like this:
 8
 9
 10
-11</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="normal">bitmap </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="cogl-2.0-experimental-Bitmap.html#cogl-bitmap-new-for-data">cogl_bitmap_new_for_data</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">context</span><span class="symbol">,</span>
-<span class="normal">                                   width</span><span class="symbol">,</span><span class="normal"> height</span><span class="symbol">,</span>
-<span class="normal">                                   format</span><span class="symbol">,</span>
-<span class="normal">                                   </span><span class="comment">/* rowstride */</span>
-<span class="normal">                                   bpp </span><span class="symbol">*</span><span class="normal"> width</span><span class="symbol">,</span>
-<span class="normal">                                   pixels</span><span class="symbol">);</span>
-<span class="function"><a href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-read-pixels-into-bitmap">cogl_framebuffer_read_pixels_into_bitmap</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">framebuffer</span><span class="symbol">,</span>
-<span class="normal">                                          x</span><span class="symbol">,</span><span class="normal"> y</span><span class="symbol">,</span>
-<span class="normal">                                          <a href="cogl-2.0-experimental-The-Top-Level-Context.html#COGL-READ-PIXELS-COLOR-BUFFER:CAPS">COGL_READ_PIXELS_COLOR_BUFFER</a></span><span class="symbol">,</span>
-<span class="normal">                                          bitmap</span><span class="symbol">);</span>
-<span class="function"><a href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-unref">cogl_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">bitmap</span><span class="symbol">);</span></pre></td>
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
+
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Comment { color: #c00000; font-weight: bold; }
+
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+bitmap = cogl_bitmap_new_for_data (context,
+                                   width, height,
+                                   format,
+                                   <span class="comment">/*</span><span class="comment"> rowstride </span><span class="comment">*/</span>
+                                   bpp * width,
+                                   pixels);
+cogl_framebuffer_read_pixels_into_bitmap (framebuffer,
+                                          x, y,
+                                          COGL_READ_PIXELS_COLOR_BUFFER,
+                                          bitmap);
+cogl_object_unref (bitmap);</pre></td>
       </tr>
     </tbody>
   </table>
@@ -1324,7 +1326,7 @@ The implementation of the function looks like this:
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the read succeeded or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
+<code class="literal">TRUE</code> if the read succeeded or <code class="literal">FALSE</code> otherwise.</td>
 </tr>
 </tbody>
 </table></div>
@@ -1368,7 +1370,7 @@ Dithering is enabled by default.
 <tr>
 <td><p><span class="term"><em class="parameter"><code>dither_enabled</code></em> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to enable dithering or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> to disable</td>
+<code class="literal">TRUE</code> to enable dithering or <code class="literal">FALSE</code> to disable</td>
 </tr>
 </tbody>
 </table></div>
@@ -1386,7 +1388,7 @@ See <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffe
 <p>
 </p>
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
-<h3 class="title">Note</h3>This may return <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> even when the underlying <em class="parameter"><code>framebuffer</code></em>
+<h3 class="title">Note</h3>This may return <code class="literal">TRUE</code> even when the underlying <em class="parameter"><code>framebuffer</code></em>
 display pipeline does not support dithering. This value only represents
 the user's request for dithering.</div>
 <p>
@@ -1405,232 +1407,11 @@ the user's request for dithering.</div>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if dithering has been requested or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if not.</td>
+<code class="literal">TRUE</code> if dithering has been requested or <code class="literal">FALSE</code> if not.</td>
 </tr>
 </tbody>
 </table></div>
 <p class="since">Since 1.8</p>
-<p class="stability">Stability Level: Unstable</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="cogl-framebuffer-draw-primitive"></a><h3>cogl_framebuffer_draw_primitive ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                cogl_framebuffer_draw_primitive     (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> *pipeline</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a> *primitive</code></em>);</pre>
-<p>
-Draws the given <em class="parameter"><code>primitive</code></em> geometry to the specified destination
-<em class="parameter"><code>framebuffer</code></em> using the graphics processing state described by <em class="parameter"><code>pipeline</code></em>.
-</p>
-<p>
-This drawing api doesn't support high-level meta texture types such
-as <a class="link" href="cogl-2.0-experimental-Sliced-Textures.html#CoglTexture2DSliced" title="CoglTexture2DSliced"><span class="type">CoglTexture2DSliced</span></a> so it is the user's responsibility to
-ensure that only low-level textures that can be directly sampled by
-a GPU such as <a class="link" href="cogl-2.0-experimental-2D-textures.html#CoglTexture2D" title="CoglTexture2D"><span class="type">CoglTexture2D</span></a>, <a class="link" href="cogl-2.0-experimental-Rectangle-textures-(non-normalized-coordinates).html#CoglTextureRectangle" title="CoglTextureRectangle"><span class="type">CoglTextureRectangle</span></a> or <a class="link" href="cogl-2.0-experimental-3D-textures.html#CoglTexture3D" title="CoglTexture3D"><span class="type">CoglTexture3D</span></a>
-are associated with layers of the given <em class="parameter"><code>pipeline</code></em>.
-</p>
-<p>
-</p>
-<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
-<h3 class="title">Note</h3>This api doesn't support any of the legacy global state options such
-as <a href="../cogl/cogl-General-API-(Deprecated).html#cogl-set-depth-test-enabled"><code class="function">cogl_set_depth_test_enabled()</code></a>, <a href="../cogl/cogl-General-API.html#cogl-set-backface-culling-enabled"><code class="function">cogl_set_backface_culling_enabled()</code></a> or
-<a href="../cogl/cogl-Shaders-and-Programmable-Pipeline-(Deprecated).html#cogl-program-use"><code class="function">cogl_program_use()</code></a>
-</div>
-<p>
-</p>
-<div class="variablelist"><table border="0" class="variablelist">
-<colgroup>
-<col align="left" valign="top">
-<col>
-</colgroup>
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>framebuffer</code></em> :</span></p></td>
-<td>A destination <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a>
-</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>pipeline</code></em> :</span></p></td>
-<td>A <a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> state object</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>primitive</code></em> :</span></p></td>
-<td>A <a class="link" href="cogl-2.0-experimental-Primitives.html#CoglPrimitive" title="CoglPrimitive"><span class="type">CoglPrimitive</span></a> geometry object</td>
-</tr>
-</tbody>
-</table></div>
-<p class="since">Since 1.10</p>
-<p class="stability">Stability Level: Unstable</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="cogl-framebuffer-vdraw-attributes"></a><h3>cogl_framebuffer_vdraw_attributes ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                cogl_framebuffer_vdraw_attributes   (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> *pipeline</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVerticesMode" title="enum CoglVerticesMode"><span class="type">CoglVerticesMode</span></a> mode</code></em>,
-                                                         <em class="parameter"><code><span class="type">int</span> first_vertex</code></em>,
-                                                         <em class="parameter"><code><span class="type">int</span> n_vertices</code></em>);</pre>
-<p>
-First defines a geometry primitive by grouping a set of vertex attributes;
-specifying a <em class="parameter"><code>first_vertex</code></em>; a number of vertices (<em class="parameter"><code>n_vertices</code></em>) and
-specifying  what kind of topology the vertices have via <em class="parameter"><code>mode</code></em>.
-</p>
-<p>
-Then the function draws the given <em class="parameter"><code>primitive</code></em> geometry to the specified
-destination <em class="parameter"><code>framebuffer</code></em> using the graphics processing pipeline described by
-<em class="parameter"><code>pipeline</code></em>.
-</p>
-<p>
-The list of <a class="link" href="cogl-2.0-experimental-Vertex-Attributes.html#CoglAttribute" title="CoglAttribute"><span class="type">CoglAttribute</span></a>s define the attributes of the vertices to
-be drawn, such as positions, colors and normals and should be <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
-terminated.
-</p>
-<p>
-This drawing api doesn't support high-level meta texture types such
-as <a class="link" href="cogl-2.0-experimental-Sliced-Textures.html#CoglTexture2DSliced" title="CoglTexture2DSliced"><span class="type">CoglTexture2DSliced</span></a> so it is the user's responsibility to
-ensure that only low-level textures that can be directly sampled by
-a GPU such as <a class="link" href="cogl-2.0-experimental-2D-textures.html#CoglTexture2D" title="CoglTexture2D"><span class="type">CoglTexture2D</span></a>, <a class="link" href="cogl-2.0-experimental-Rectangle-textures-(non-normalized-coordinates).html#CoglTextureRectangle" title="CoglTextureRectangle"><span class="type">CoglTextureRectangle</span></a> or <a class="link" href="cogl-2.0-experimental-3D-textures.html#CoglTexture3D" title="CoglTexture3D"><span class="type">CoglTexture3D</span></a>
-are associated with layers of the given <em class="parameter"><code>pipeline</code></em>.
-</p>
-<div class="variablelist"><table border="0" class="variablelist">
-<colgroup>
-<col align="left" valign="top">
-<col>
-</colgroup>
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>framebuffer</code></em> :</span></p></td>
-<td>A destination <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a>
-</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>pipeline</code></em> :</span></p></td>
-<td>A <a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> state object</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>mode</code></em> :</span></p></td>
-<td>The <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVerticesMode" title="enum CoglVerticesMode"><span class="type">CoglVerticesMode</span></a> defining the topology of vertices</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>first_vertex</code></em> :</span></p></td>
-<td>The vertex offset within the given attributes to draw from</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>n_vertices</code></em> :</span></p></td>
-<td>The number of vertices to draw from the given attributes</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>...</code></em> :</span></p></td>
-<td>A set of vertex <a class="link" href="cogl-2.0-experimental-Vertex-Attributes.html#CoglAttribute" title="CoglAttribute"><span class="type">CoglAttribute</span></a>s defining vertex geometry</td>
-</tr>
-</tbody>
-</table></div>
-<p class="since">Since 1.10</p>
-<p class="stability">Stability Level: Unstable</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="cogl-framebuffer-vdraw-indexed-attributes"></a><h3>cogl_framebuffer_vdraw_indexed_attributes ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                cogl_framebuffer_vdraw_indexed_attributes
-                                                        (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> *pipeline</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVerticesMode" title="enum CoglVerticesMode"><span class="type">CoglVerticesMode</span></a> mode</code></em>,
-                                                         <em class="parameter"><code><span class="type">int</span> first_vertex</code></em>,
-                                                         <em class="parameter"><code><span class="type">int</span> n_vertices</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Indices.html#CoglIndices" title="CoglIndices"><span class="type">CoglIndices</span></a> *indices</code></em>);</pre>
-<p>
-Behaves the same as <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-vdraw-attributes" title="cogl_framebuffer_vdraw_attributes ()"><code class="function">cogl_framebuffer_vdraw_attributes()</code></a> except that
-instead of reading vertex data sequentially from the specified
-attributes the <em class="parameter"><code>indices</code></em> provide an indirection for how the data
-should be indexed allowing a random access order to be
-specified.
-</p>
-<p>
-For example an indices array of [0, 1, 2, 0, 2, 3] could be used
-used to draw two triangles (<em class="parameter"><code>mode</code></em> = <a class="link" href="cogl-2.0-experimental-Common-Types.html#COGL-VERTICES-MODE-TRIANGLES:CAPS"><code class="literal">COGL_VERTICES_MODE_TRIANGLES</code></a> +
-<em class="parameter"><code>n_vertices</code></em> = 6) but only provide attribute data for the 4 corners
-of a rectangle. When the GPU needs to read in each of the 6
-vertices it will read the <em class="parameter"><code>indices</code></em> array for each vertex in
-sequence and use the index to look up the vertex attribute data. So
-here you can see that first and fourth vertex will point to the
-same data and third and fifth vertex will also point to shared
-data.
-</p>
-<p>
-Drawing with indices can be a good way of minimizing the size of a
-mesh by allowing you to avoid data for duplicate vertices because
-multiple entries in the index array can refer back to a single
-shared vertex.
-</p>
-<p>
-</p>
-<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
-<h3 class="title">Note</h3>The <em class="parameter"><code>indices</code></em> array must be at least as long as <em class="parameter"><code>first_vertex</code></em>
-+ <em class="parameter"><code>n_vertices</code></em> otherwise the GPU will overrun the indices array when
-looking up vertex data.</div>
-<p>
-</p>
-<p>
-Since it's very common to want to draw a run of rectangles using
-indices to avoid duplicating vertex data you can use
-<a class="link" href="cogl-2.0-experimental-Indices.html#cogl-get-rectangle-indices" title="cogl_get_rectangle_indices ()"><code class="function">cogl_get_rectangle_indices()</code></a> to get a set of indices that can be
-shared.
-</p>
-<p>
-This drawing api doesn't support high-level meta texture types such
-as <a class="link" href="cogl-2.0-experimental-Sliced-Textures.html#CoglTexture2DSliced" title="CoglTexture2DSliced"><span class="type">CoglTexture2DSliced</span></a> so it is the user's responsibility to
-ensure that only low-level textures that can be directly sampled by
-a GPU such as <a class="link" href="cogl-2.0-experimental-2D-textures.html#CoglTexture2D" title="CoglTexture2D"><span class="type">CoglTexture2D</span></a>, <a class="link" href="cogl-2.0-experimental-Rectangle-textures-(non-normalized-coordinates).html#CoglTextureRectangle" title="CoglTextureRectangle"><span class="type">CoglTextureRectangle</span></a> or
-<a class="link" href="cogl-2.0-experimental-3D-textures.html#CoglTexture3D" title="CoglTexture3D"><span class="type">CoglTexture3D</span></a> are associated with layers of the given <em class="parameter"><code>pipeline</code></em>.
-</p>
-<p>
-</p>
-<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
-<h3 class="title">Note</h3>This api doesn't support any of the legacy global state
-options such as <a href="../cogl/cogl-General-API-(Deprecated).html#cogl-set-depth-test-enabled"><code class="function">cogl_set_depth_test_enabled()</code></a>,
-<a href="../cogl/cogl-General-API.html#cogl-set-backface-culling-enabled"><code class="function">cogl_set_backface_culling_enabled()</code></a> or <a href="../cogl/cogl-Shaders-and-Programmable-Pipeline-(Deprecated).html#cogl-program-use"><code class="function">cogl_program_use()</code></a>
-</div>
-<p>
-</p>
-<div class="variablelist"><table border="0" class="variablelist">
-<colgroup>
-<col align="left" valign="top">
-<col>
-</colgroup>
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>framebuffer</code></em> :</span></p></td>
-<td>A destination <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a>
-</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>pipeline</code></em> :</span></p></td>
-<td>A <a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> state object</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>mode</code></em> :</span></p></td>
-<td>The <a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglVerticesMode" title="enum CoglVerticesMode"><span class="type">CoglVerticesMode</span></a> defining the topology of vertices</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>first_vertex</code></em> :</span></p></td>
-<td>The vertex offset within the given attributes to draw from</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>n_vertices</code></em> :</span></p></td>
-<td>The number of vertices to draw from the given attributes</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>indices</code></em> :</span></p></td>
-<td>The array of indices used by the GPU to lookup attribute
-data for each vertex.</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>...</code></em> :</span></p></td>
-<td>A set of vertex <a class="link" href="cogl-2.0-experimental-Vertex-Attributes.html#CoglAttribute" title="CoglAttribute"><span class="type">CoglAttribute</span></a>s defining vertex geometry</td>
-</tr>
-</tbody>
-</table></div>
-<p class="since">Since 1.10</p>
 <p class="stability">Stability Level: Unstable</p>
 </div>
 <hr>
@@ -1732,11 +1513,9 @@ matrix.</div>
 This is a high level drawing api that can handle any kind of
 <a class="link" href="cogl-2.0-experimental-High-Level-Meta-Textures.html#CoglMetaTexture" title="CoglMetaTexture"><span class="type">CoglMetaTexture</span></a> texture such as <a class="link" href="cogl-2.0-experimental-Sliced-Textures.html#CoglTexture2DSliced" title="CoglTexture2DSliced"><span class="type">CoglTexture2DSliced</span></a> textures
 which may internally be comprised of multiple low-level textures.
-This is unlike low-level drawing apis such as
-<a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-draw-primitive" title="cogl_framebuffer_draw_primitive ()"><code class="function">cogl_framebuffer_draw_primitive()</code></a> or
-<code class="function">cogl_framebuffer_draw_attributes()</code> which only support low level
-texture types that are directly supported by GPUs such as
-<a class="link" href="cogl-2.0-experimental-2D-textures.html#CoglTexture2D" title="CoglTexture2D"><span class="type">CoglTexture2D</span></a>.
+This is unlike low-level drawing apis such as <a class="link" href="cogl-2.0-experimental-Primitives.html#cogl-primitive-draw" title="cogl_primitive_draw ()"><code class="function">cogl_primitive_draw()</code></a>
+which only support low level texture types that are directly
+supported by GPUs such as <a class="link" href="cogl-2.0-experimental-2D-textures.html#CoglTexture2D" title="CoglTexture2D"><span class="type">CoglTexture2D</span></a>.
 </p>
 <p>
 </p>
@@ -1846,10 +1625,8 @@ This is a high level drawing api that can handle any kind of
 <a class="link" href="cogl-2.0-experimental-High-Level-Meta-Textures.html#CoglMetaTexture" title="CoglMetaTexture"><span class="type">CoglMetaTexture</span></a> texture for the first layer such as
 <a class="link" href="cogl-2.0-experimental-Sliced-Textures.html#CoglTexture2DSliced" title="CoglTexture2DSliced"><span class="type">CoglTexture2DSliced</span></a> textures which may internally be comprised of
 multiple low-level textures.  This is unlike low-level drawing apis
-such as <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-draw-primitive" title="cogl_framebuffer_draw_primitive ()"><code class="function">cogl_framebuffer_draw_primitive()</code></a> or
-<code class="function">cogl_framebuffer_draw_attributes()</code> which only support low level
-texture types that are directly supported by GPUs such as
-<a class="link" href="cogl-2.0-experimental-2D-textures.html#CoglTexture2D" title="CoglTexture2D"><span class="type">CoglTexture2D</span></a>.
+such as <a class="link" href="cogl-2.0-experimental-Primitives.html#cogl-primitive-draw" title="cogl_primitive_draw ()"><code class="function">cogl_primitive_draw()</code></a> which only support low level texture
+types that are directly supported by GPUs such as <a class="link" href="cogl-2.0-experimental-2D-textures.html#CoglTexture2D" title="CoglTexture2D"><span class="type">CoglTexture2D</span></a>.
 </p>
 <p>
 </p>
@@ -2034,11 +1811,9 @@ matrix.</div>
 This is a high level drawing api that can handle any kind of
 <a class="link" href="cogl-2.0-experimental-High-Level-Meta-Textures.html#CoglMetaTexture" title="CoglMetaTexture"><span class="type">CoglMetaTexture</span></a> texture such as <a class="link" href="cogl-2.0-experimental-Sliced-Textures.html#CoglTexture2DSliced" title="CoglTexture2DSliced"><span class="type">CoglTexture2DSliced</span></a> textures
 which may internally be comprised of multiple low-level textures.
-This is unlike low-level drawing apis such as
-<a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-draw-primitive" title="cogl_framebuffer_draw_primitive ()"><code class="function">cogl_framebuffer_draw_primitive()</code></a> or
-<code class="function">cogl_framebuffer_draw_attributes()</code> which only support low level
-texture types that are directly supported by GPUs such as
-<a class="link" href="cogl-2.0-experimental-2D-textures.html#CoglTexture2D" title="CoglTexture2D"><span class="type">CoglTexture2D</span></a>.
+This is unlike low-level drawing apis such as <a class="link" href="cogl-2.0-experimental-Primitives.html#cogl-primitive-draw" title="cogl_primitive_draw ()"><code class="function">cogl_primitive_draw()</code></a>
+which only support low level texture types that are directly
+supported by GPUs such as <a class="link" href="cogl-2.0-experimental-2D-textures.html#CoglTexture2D" title="CoglTexture2D"><span class="type">CoglTexture2D</span></a>.
 </p>
 <p>
 The top left corner of the first rectangle is positioned at
@@ -2103,86 +1878,6 @@ that have the same meaning as the arguments for
 </table></div>
 <p class="since">Since 1.10</p>
 <p class="stability">Stability Level: Unstable</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="cogl-framebuffer-stroke-path"></a><h3>cogl_framebuffer_stroke_path ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                cogl_framebuffer_stroke_path        (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> *pipeline</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Path-Primitives.html#CoglPath" title="CoglPath"><span class="type">CoglPath</span></a> *path</code></em>);</pre>
-<p>
-Strokes the edge of the path using the fragment operations defined
-by the pipeline. The stroke line will have a width of 1 pixel
-regardless of the current transformation matrix.
-</p>
-<div class="variablelist"><table border="0" class="variablelist">
-<colgroup>
-<col align="left" valign="top">
-<col>
-</colgroup>
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>framebuffer</code></em> :</span></p></td>
-<td>A <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a>
-</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>pipeline</code></em> :</span></p></td>
-<td>A <a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> to render with</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>path</code></em> :</span></p></td>
-<td>The <a class="link" href="cogl-2.0-experimental-Path-Primitives.html#CoglPath" title="CoglPath"><span class="type">CoglPath</span></a> to stroke</td>
-</tr>
-</tbody>
-</table></div>
-<p class="since">Since 2.0</p>
-</div>
-<hr>
-<div class="refsect2">
-<a name="cogl-framebuffer-fill-path"></a><h3>cogl_framebuffer_fill_path ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                cogl_framebuffer_fill_path          (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> *pipeline</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Path-Primitives.html#CoglPath" title="CoglPath"><span class="type">CoglPath</span></a> *path</code></em>);</pre>
-<p>
-Fills the interior of the path using the fragment operations
-defined by the pipeline.
-</p>
-<p>
-The interior of the shape is determined using the fill rule of the
-path. See <a class="link" href="cogl-2.0-experimental-Path-Primitives.html#CoglPathFillRule" title="enum CoglPathFillRule"><code class="literal">CoglPathFillRule</code></a> for details.
-</p>
-<p>
-</p>
-<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
-<h3 class="title">Note</h3>The result of referencing sliced textures in your current
-pipeline when filling a path are undefined. You should pass
-the <a class="link" href="cogl-2.0-experimental-Common-Types.html#COGL-TEXTURE-NO-SLICING:CAPS"><code class="literal">COGL_TEXTURE_NO_SLICING</code></a> flag when loading any texture you will
-use while filling a path.</div>
-<p>
-</p>
-<div class="variablelist"><table border="0" class="variablelist">
-<colgroup>
-<col align="left" valign="top">
-<col>
-</colgroup>
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>framebuffer</code></em> :</span></p></td>
-<td>A <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a>
-</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>pipeline</code></em> :</span></p></td>
-<td>A <a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> to render with</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>path</code></em> :</span></p></td>
-<td>The <a class="link" href="cogl-2.0-experimental-Path-Primitives.html#CoglPath" title="CoglPath"><span class="type">CoglPath</span></a> to fill</td>
-</tr>
-</tbody>
-</table></div>
-<p class="since">Since 2.0</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -2910,36 +2605,6 @@ the effect of this function, call <a class="link" href="cogl-2.0-experimental-Co
 </div>
 <hr>
 <div class="refsect2">
-<a name="cogl-framebuffer-push-path-clip"></a><h3>cogl_framebuffer_push_path_clip ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                cogl_framebuffer_push_path_clip     (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Path-Primitives.html#CoglPath" title="CoglPath"><span class="type">CoglPath</span></a> *path</code></em>);</pre>
-<p>
-Sets a new clipping area using the silhouette of the specified,
-filled <em class="parameter"><code>path</code></em>.  The clipping area is intersected with the previous
-clipping area. To restore the previous clipping area, call
-<a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-pop-clip" title="cogl_framebuffer_pop_clip ()"><code class="function">cogl_framebuffer_pop_clip()</code></a>.
-</p>
-<div class="variablelist"><table border="0" class="variablelist">
-<colgroup>
-<col align="left" valign="top">
-<col>
-</colgroup>
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>framebuffer</code></em> :</span></p></td>
-<td>A <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> pointer</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>path</code></em> :</span></p></td>
-<td>The path to clip with.</td>
-</tr>
-</tbody>
-</table></div>
-<p class="since">Since 1.0</p>
-<p class="stability">Stability Level: Unstable</p>
-</div>
-<hr>
-<div class="refsect2">
 <a name="cogl-framebuffer-push-primitive-clip"></a><h3>cogl_framebuffer_push_primitive_clip ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_framebuffer_push_primitive_clip
                                                         (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *framebuffer</code></em>,
@@ -3009,7 +2674,7 @@ primitives bounds.</td>
 <p>
 Reverts the clipping region to the state before the last call to
 <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-push-scissor-clip" title="cogl_framebuffer_push_scissor_clip ()"><code class="function">cogl_framebuffer_push_scissor_clip()</code></a>, <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-push-rectangle-clip" title="cogl_framebuffer_push_rectangle_clip ()"><code class="function">cogl_framebuffer_push_rectangle_clip()</code></a>
-<a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-push-path-clip" title="cogl_framebuffer_push_path_clip ()"><code class="function">cogl_framebuffer_push_path_clip()</code></a>, or <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-push-primitive-clip" title="cogl_framebuffer_push_primitive_clip ()"><code class="function">cogl_framebuffer_push_primitive_clip()</code></a>.
+<code class="function">cogl_framebuffer_push_path_clip()</code>, or <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-push-primitive-clip" title="cogl_framebuffer_push_primitive_clip ()"><code class="function">cogl_framebuffer_push_primitive_clip()</code></a>.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -3039,7 +2704,7 @@ Gets the current <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---T
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>The current <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a>
+<td>The current <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
 </td>
 </tr></tbody>
 </table></div>
@@ -3050,9 +2715,15 @@ Gets the current <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---T
 <div class="refsect2">
 <a name="cogl-set-framebuffer"></a><h3>cogl_set_framebuffer ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_set_framebuffer                (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *buffer</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_set_framebuffer</code> has been deprecated since version 1.16 and should not be used in newly-written code. The latest drawing apis take explicit
+                  <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> arguments so this stack of
+                  framebuffers shouldn't be used anymore.</p>
+</div>
 <p>
 This redirects all subsequent drawing to the specified framebuffer. This can
-either be an offscreen buffer created with <a class="link" href="cogl-2.0-experimental-Offscreen-Framebuffers.html#cogl-offscreen-new-to-texture" title="cogl_offscreen_new_to_texture ()"><code class="function">cogl_offscreen_new_to_texture()</code></a>
+either be an offscreen buffer created with <code class="function">cogl_offscreen_new_to_texture()</code>
 or in the future it may be an onscreen framebuffers too.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -3071,9 +2742,15 @@ or in the future it may be an onscreen framebuffers too.
 <div class="refsect2">
 <a name="cogl-push-framebuffer"></a><h3>cogl_push_framebuffer ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_push_framebuffer               (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> *buffer</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_push_framebuffer</code> has been deprecated since version 1.16 and should not be used in newly-written code. The latest drawing apis take explicit
+                  <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> arguments so this stack of
+                  framebuffers shouldn't be used anymore.</p>
+</div>
 <p>
 Redirects all subsequent drawing to the specified framebuffer. This can
-either be an offscreen buffer created with <a class="link" href="cogl-2.0-experimental-Offscreen-Framebuffers.html#cogl-offscreen-new-to-texture" title="cogl_offscreen_new_to_texture ()"><code class="function">cogl_offscreen_new_to_texture()</code></a>
+either be an offscreen buffer created with <code class="function">cogl_offscreen_new_to_texture()</code>
 or in the future it may be an onscreen framebuffer too.
 </p>
 <p>
@@ -3149,50 +2826,100 @@ corresponding to the bottom right you can do so like this:
 40
 41
 42
-43</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="keyword">static</span><span class="normal"> </span><span class="type">void</span>
-<span class="function">setup_viewport</span><span class="normal"> </span><span class="symbol">(</span><span class="type">unsigned</span><span class="normal"> </span><span class="type">int</span><span class="normal"> width</span><span class="symbol">,</span>
-<span class="normal">                </span><span class="type">unsigned</span><span class="normal"> </span><span class="type">int</span><span class="normal"> height</span><span class="symbol">,</span>
-<span class="normal">                </span><span class="type">float</span><span class="normal"> fovy</span><span class="symbol">,</span>
-<span class="normal">                </span><span class="type">float</span><span class="normal"> aspect</span><span class="symbol">,</span>
-<span class="normal">                </span><span class="type">float</span><span class="normal"> z_near</span><span class="symbol">,</span>
-<span class="normal">                </span><span class="type">float</span><span class="normal"> z_far</span><span class="symbol">)</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="type">float</span><span class="normal"> z_camera</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="usertype">CoglMatrix</span><span class="normal"> projection_matrix</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="usertype">CoglMatrix</span><span class="normal"> mv_matrix</span><span class="symbol">;</span>
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
 
-<span class="normal">  </span><span class="function"><a href="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-set-viewport">cogl_set_viewport</a></span><span class="normal"> </span><span class="symbol">(</span><span class="number">0</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal"> width</span><span class="symbol">,</span><span class="normal"> height</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-perspective">cogl_perspective</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">fovy</span><span class="symbol">,</span><span class="normal"> aspect</span><span class="symbol">,</span><span class="normal"> z_near</span><span class="symbol">,</span><span class="normal"> z_far</span><span class="symbol">);</span>
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Constant { color: #0000c0; text-decoration: underline; }
+.Type { color: #008000; text-decoration: underline; }
 
-<span class="normal">  </span><span class="function"><a href="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-get-projection-matrix">cogl_get_projection_matrix</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">projection_matrix</span><span class="symbol">);</span>
-<span class="normal">  z_camera </span><span class="symbol">=</span><span class="normal"> </span><span class="number">0.5</span><span class="normal"> </span><span class="symbol">*</span><span class="normal"> projection_matrix</span><span class="symbol">.</span><span class="normal">xx</span><span class="symbol">;</span>
+</style>
 
-<span class="normal">  </span><span class="function"><a href="cogl-2.0-experimental-Matrices.html#cogl-matrix-init-identity">cogl_matrix_init_identity</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">mv_matrix</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="cogl-2.0-experimental-Matrices.html#cogl-matrix-translate">cogl_matrix_translate</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">mv_matrix</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">-</span><span class="number">0</span><span class="symbol">.</span><span class="normal">5f</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">-</span><span class="number">0</span><span class="symbol">.</span><span class="normal">5f</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">-</span><span class="normal">z_camera</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="cogl-2.0-experimental-Matrices.html#cogl-matrix-scale">cogl_matrix_scale</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">mv_matrix</span><span class="symbol">,</span><span class="normal"> </span><span class="number">1</span><span class="symbol">.</span><span class="normal">0f </span><span class="symbol">/</span><span class="normal"> width</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1</span><span class="symbol">.</span><span class="normal">0f </span><span class="symbol">/</span><span class="normal"> height</span><span class="symbol">,</span><span class="normal"> </span><span class="number">1</span><span class="symbol">.</span><span class="normal">0f </span><span class="symbol">/</span><span class="normal"> width</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="cogl-2.0-experimental-Matrices.html#cogl-matrix-translate">cogl_matrix_translate</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">mv_matrix</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">.</span><span class="normal">0f</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1.0</span><span class="normal"> </span><span class="symbol">*</span><span class="normal"> height</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">.</span><span class="normal">0f</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-set-modelview-matrix">cogl_set_modelview_matrix</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">mv_matrix</span><span class="symbol">);</span>
-<span class="cbracket">}</span>
+<script type='text/javascript'>
+//<![CDATA[
 
-<span class="keyword">static</span><span class="normal"> </span><span class="type">void</span>
-<span class="function">my_init_framebuffer</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">ClutterStage</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">stage</span><span class="symbol">,</span>
-<span class="normal">                     </span><span class="usertype">CoglFramebuffer</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">framebuffer</span><span class="symbol">,</span>
-<span class="normal">                     </span><span class="type">unsigned</span><span class="normal"> </span><span class="type">int</span><span class="normal"> framebuffer_width</span><span class="symbol">,</span>
-<span class="normal">                     </span><span class="type">unsigned</span><span class="normal"> </span><span class="type">int</span><span class="normal"> framebuffer_height</span><span class="symbol">)</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="usertype">ClutterPerspective</span><span class="normal"> perspective</span><span class="symbol">;</span>
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+<span class="type">static</span> <span class="type">void</span>
+setup_viewport (<span class="type">unsigned</span> <span class="type">int</span> width,
+                <span class="type">unsigned</span> <span class="type">int</span> height,
+                <span class="type">float</span> fovy,
+                <span class="type">float</span> aspect,
+                <span class="type">float</span> z_near,
+                <span class="type">float</span> z_far)
+{
+  <span class="type">float</span> z_camera;
+  CoglMatrix projection_matrix;
+  CoglMatrix mv_matrix;
 
-<span class="normal">  </span><span class="function">clutter_stage_get_perspective</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">stage</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">perspective</span><span class="symbol">);</span>
+  cogl_set_viewport (<span class="number">0</span>, <span class="number">0</span>, width, height);
+  cogl_perspective (fovy, aspect, z_near, z_far);
 
-<span class="normal">  </span><span class="function"><a href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-push-framebuffer">cogl_push_framebuffer</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">framebuffer</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function">setup_viewport</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">framebuffer_width</span><span class="symbol">,</span>
-<span class="normal">                  framebuffer_height</span><span class="symbol">,</span>
-<span class="normal">                  perspective</span><span class="symbol">.</span><span class="normal">fovy</span><span class="symbol">,</span>
-<span class="normal">                  perspective</span><span class="symbol">.</span><span class="normal">aspect</span><span class="symbol">,</span>
-<span class="normal">                  perspective</span><span class="symbol">.</span><span class="normal">z_near</span><span class="symbol">,</span>
-<span class="normal">                  perspective</span><span class="symbol">.</span><span class="normal">z_far</span><span class="symbol">);</span>
-<span class="cbracket">}</span></pre></td>
+  cogl_get_projection_matrix (&amp;projection_matrix);
+  z_camera = <span class="number">0.5</span> * projection_matrix.xx;
+
+  cogl_matrix_init_identity (&amp;mv_matrix);
+  cogl_matrix_translate (&amp;mv_matrix, -<span class="number">0.5f</span>, -<span class="number">0.5f</span>, -z_camera);
+  cogl_matrix_scale (&amp;mv_matrix, <span class="number">1.0f</span> / width, -<span class="number">1.0f</span> / height, <span class="number">1.0f</span> / width);
+  cogl_matrix_translate (&amp;mv_matrix, <span class="number">0.0f</span>, -<span class="number">1.0</span> * height, <span class="number">0.0f</span>);
+  cogl_set_modelview_matrix (&amp;mv_matrix);
+}
+
+<span class="type">static</span> <span class="type">void</span>
+my_init_framebuffer (ClutterStage *stage,
+                     CoglFramebuffer *framebuffer,
+                     <span class="type">unsigned</span> <span class="type">int</span> framebuffer_width,
+                     <span class="type">unsigned</span> <span class="type">int</span> framebuffer_height)
+{
+  ClutterPerspective perspective;
+
+  clutter_stage_get_perspective (stage, &amp;perspective);
+
+  cogl_push_framebuffer (framebuffer);
+  setup_viewport (framebuffer_width,
+                  framebuffer_height,
+                  perspective.fovy,
+                  perspective.aspect,
+                  perspective.z_near,
+                  perspective.z_far);
+}</pre></td>
       </tr>
     </tbody>
   </table>
@@ -3219,6 +2946,12 @@ The previous framebuffer can be restored by calling <a class="link" href="cogl-2
 <div class="refsect2">
 <a name="cogl-pop-framebuffer"></a><h3>cogl_pop_framebuffer ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_pop_framebuffer                (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_pop_framebuffer</code> has been deprecated since version 1.16 and should not be used in newly-written code. The latest drawing apis take explicit
+                  <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#CoglFramebuffer" title="CoglFramebuffer"><span class="type">CoglFramebuffer</span></a> arguments so this stack of
+                  framebuffers shouldn't be used anymore.</p>
+</div>
 <p>
 Restores the framebuffer that was previously at the top of the stack.
 All subsequent drawing will be redirected to this framebuffer.
@@ -3229,6 +2962,6 @@ All subsequent drawing will be redirected to this framebuffer.
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18.1</div>
+          Generated by GTK-Doc V1.19.1</div>
 </body>
 </html>

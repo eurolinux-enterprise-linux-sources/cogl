@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2007,2008,2009,2012 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  */
@@ -64,6 +70,9 @@
 #endif
 #ifndef GL_DEPTH_ATTACHMENT
 #define GL_DEPTH_ATTACHMENT     0x8D00
+#endif
+#ifndef GL_DEPTH_STENCIL_ATTACHMENT
+#define GL_DEPTH_STENCIL_ATTACHMENT 0x821A
 #endif
 #ifndef GL_DEPTH_COMPONENT16
 #define GL_DEPTH_COMPONENT16    0x81A5
@@ -145,8 +154,7 @@ _cogl_framebuffer_gl_flush_viewport_state (CoglFramebuffer *framebuffer)
 static void
 _cogl_framebuffer_gl_flush_clip_state (CoglFramebuffer *framebuffer)
 {
-  CoglClipStack *stack = _cogl_clip_state_get_stack (&framebuffer->clip_state);
-  _cogl_clip_stack_flush (stack, framebuffer);
+  _cogl_clip_stack_flush (framebuffer->clip_stack, framebuffer);
 }
 
 static void
@@ -247,6 +255,35 @@ _cogl_framebuffer_gl_bind (CoglFramebuffer *framebuffer, GLenum target)
       /* glBindFramebuffer is an an extension with OpenGL ES 1.1 */
       if (cogl_has_feature (ctx, COGL_FEATURE_ID_OFFSCREEN))
         GE (ctx, glBindFramebuffer (target, 0));
+
+      /* Initialise the glDrawBuffer state the first time the context
+       * is bound to the default framebuffer. If the winsys is using a
+       * surfaceless context for the initial make current then the
+       * default draw buffer will be GL_NONE so we need to correct
+       * that. We can't do it any earlier because binding GL_BACK when
+       * there is no default framebuffer won't work */
+      if (!ctx->was_bound_to_onscreen)
+        {
+          if (ctx->glDrawBuffer)
+            {
+              GE (ctx, glDrawBuffer (GL_BACK));
+            }
+          else if (ctx->glDrawBuffers)
+            {
+              /* glDrawBuffer isn't available on GLES 3.0 so we need
+               * to be able to use glDrawBuffers as well. On GLES 2
+               * neither is available but the state should always be
+               * GL_BACK anyway so we don't need to set anything. On
+               * desktop GL this must be GL_BACK_LEFT instead of
+               * GL_BACK but as this code path will only be hit for
+               * GLES we can just use GL_BACK. */
+              static const GLenum buffers[] = { GL_BACK };
+
+              GE (ctx, glDrawBuffers (G_N_ELEMENTS (buffers), buffers));
+            }
+
+          ctx->was_bound_to_onscreen = TRUE;
+        }
     }
 }
 
@@ -324,8 +361,8 @@ _cogl_framebuffer_gl_flush_state (CoglFramebuffer *draw_buffer,
           /* NB: Currently we only take advantage of binding separate
            * read/write buffers for offscreen framebuffer blit
            * purposes.  */
-          _COGL_RETURN_IF_FAIL (ctx->private_feature_flags &
-                                COGL_PRIVATE_FEATURE_OFFSCREEN_BLIT);
+          _COGL_RETURN_IF_FAIL (_cogl_has_private_feature
+                                (ctx, COGL_PRIVATE_FEATURE_OFFSCREEN_BLIT));
           _COGL_RETURN_IF_FAIL (draw_buffer->type == COGL_FRAMEBUFFER_TYPE_OFFSCREEN);
           _COGL_RETURN_IF_FAIL (read_buffer->type == COGL_FRAMEBUFFER_TYPE_OFFSCREEN);
 
@@ -365,6 +402,10 @@ _cogl_framebuffer_gl_flush_state (CoglFramebuffer *draw_buffer,
         case COGL_FRAMEBUFFER_STATE_INDEX_FRONT_FACE_WINDING:
           _cogl_framebuffer_gl_flush_front_face_winding_state (draw_buffer);
           break;
+        case COGL_FRAMEBUFFER_STATE_INDEX_DEPTH_WRITE:
+          /* Nothing to do for depth write state change; the state will always
+           * be taken into account when flushing the pipeline's depth state. */
+          break;
         default:
           g_warn_if_reached ();
         }
@@ -380,21 +421,11 @@ create_depth_texture (CoglContext *ctx,
                       int width,
                       int height)
 {
-  CoglPixelFormat format;
-  CoglTexture2D *depth_texture;
+  CoglTexture2D *depth_texture =
+    cogl_texture_2d_new_with_size (ctx, width, height);
 
-  if (ctx->private_feature_flags &
-      (COGL_PRIVATE_FEATURE_EXT_PACKED_DEPTH_STENCIL |
-       COGL_PRIVATE_FEATURE_OES_PACKED_DEPTH_STENCIL))
-    {
-      format = COGL_PIXEL_FORMAT_DEPTH_24_STENCIL_8;
-    }
-  else
-    format = COGL_PIXEL_FORMAT_DEPTH_16;
-
-  depth_texture =  cogl_texture_2d_new_with_size (ctx,
-                                                  width, height,
-                                                  format);
+  cogl_texture_set_components (COGL_TEXTURE (depth_texture),
+                               COGL_TEXTURE_COMPONENTS_DEPTH);
 
   return COGL_TEXTURE (depth_texture);
 }
@@ -411,7 +442,7 @@ attach_depth_texture (CoglContext *ctx,
     {
       /* attach a GL_DEPTH_STENCIL texture to the GL_DEPTH_ATTACHMENT and
        * GL_STENCIL_ATTACHMENT attachement points */
-      g_assert (cogl_texture_get_format (depth_texture) ==
+      g_assert (_cogl_texture_get_format (depth_texture) ==
                 COGL_PIXEL_FORMAT_DEPTH_24_STENCIL_8);
 
       cogl_texture_get_gl_texture (depth_texture,
@@ -430,7 +461,7 @@ attach_depth_texture (CoglContext *ctx,
     {
       /* attach a newly created GL_DEPTH_COMPONENT16 texture to the
        * GL_DEPTH_ATTACHMENT attachement point */
-      g_assert (cogl_texture_get_format (depth_texture) ==
+      g_assert (_cogl_texture_get_format (depth_texture) ==
                 COGL_PIXEL_FORMAT_DEPTH_16);
 
       cogl_texture_get_gl_texture (COGL_TEXTURE (depth_texture),
@@ -459,22 +490,28 @@ try_creating_renderbuffers (CoglContext *ctx,
     {
       GLenum format;
 
+      /* WebGL adds a GL_DEPTH_STENCIL_ATTACHMENT and requires that we
+       * use the GL_DEPTH_STENCIL format. */
+#ifdef HAVE_COGL_WEBGL
+      format = GL_DEPTH_STENCIL;
+#else
       /* Although GL_OES_packed_depth_stencil is mostly equivalent to
        * GL_EXT_packed_depth_stencil, one notable difference is that
        * GL_OES_packed_depth_stencil doesn't allow GL_DEPTH_STENCIL to
        * be passed as an internal format to glRenderbufferStorage.
        */
-      if (ctx->private_feature_flags &
-          COGL_PRIVATE_FEATURE_EXT_PACKED_DEPTH_STENCIL)
+      if (_cogl_has_private_feature
+          (ctx, COGL_PRIVATE_FEATURE_EXT_PACKED_DEPTH_STENCIL))
         format = GL_DEPTH_STENCIL;
       else
         {
           _COGL_RETURN_VAL_IF_FAIL (
-                                  ctx->private_feature_flags &
-                                  COGL_PRIVATE_FEATURE_OES_PACKED_DEPTH_STENCIL,
-                                  NULL);
+            _cogl_has_private_feature (ctx,
+              COGL_PRIVATE_FEATURE_OES_PACKED_DEPTH_STENCIL),
+            NULL);
           format = GL_DEPTH24_STENCIL8;
         }
+#endif
 
       /* Create a renderbuffer for depth and stenciling */
       GE (ctx, glGenRenderbuffers (1, &gl_depth_stencil_handle));
@@ -488,6 +525,14 @@ try_creating_renderbuffers (CoglContext *ctx,
         GE (ctx, glRenderbufferStorage (GL_RENDERBUFFER, format,
                                         width, height));
       GE (ctx, glBindRenderbuffer (GL_RENDERBUFFER, 0));
+
+
+#ifdef HAVE_COGL_WEBGL
+      GE (ctx, glFramebufferRenderbuffer (GL_FRAMEBUFFER,
+                                          GL_DEPTH_STENCIL_ATTACHMENT,
+                                          GL_RENDERBUFFER,
+                                          gl_depth_stencil_handle));
+#else
       GE (ctx, glFramebufferRenderbuffer (GL_FRAMEBUFFER,
                                           GL_STENCIL_ATTACHMENT,
                                           GL_RENDERBUFFER,
@@ -496,6 +541,7 @@ try_creating_renderbuffers (CoglContext *ctx,
                                           GL_DEPTH_ATTACHMENT,
                                           GL_RENDERBUFFER,
                                           gl_depth_stencil_handle));
+#endif
       renderbuffers =
         g_list_prepend (renderbuffers,
                         GUINT_TO_POINTER (gl_depth_stencil_handle));
@@ -714,14 +760,26 @@ _cogl_offscreen_gl_allocate (CoglOffscreen *offscreen,
   CoglContext *ctx = fb->context;
   CoglOffscreenAllocateFlags flags;
   CoglGLFramebuffer *gl_framebuffer = &offscreen->gl_framebuffer;
+  int level_width;
+  int level_height;
+
+  _COGL_RETURN_VAL_IF_FAIL (offscreen->texture_level <
+                            _cogl_texture_get_n_levels (offscreen->texture),
+                            NULL);
+
+  _cogl_texture_get_level_size (offscreen->texture,
+                                offscreen->texture_level,
+                                &level_width,
+                                &level_height,
+                                NULL);
 
   if (fb->config.depth_texture_enabled &&
       offscreen->depth_texture == NULL)
     {
       offscreen->depth_texture =
         create_depth_texture (ctx,
-                              offscreen->texture_level_width,
-                              offscreen->texture_level_height);
+                              level_width,
+                              level_height);
 
       if (!cogl_texture_allocate (offscreen->depth_texture, error))
         {
@@ -750,8 +808,8 @@ _cogl_offscreen_gl_allocate (CoglOffscreen *offscreen,
        try_creating_fbo (ctx,
                          offscreen->texture,
                          offscreen->texture_level,
-                         offscreen->texture_level_width,
-                         offscreen->texture_level_height,
+                         level_width,
+                         level_height,
                          offscreen->depth_texture,
                          &fb->config,
                          flags = 0,
@@ -761,21 +819,27 @@ _cogl_offscreen_gl_allocate (CoglOffscreen *offscreen,
        try_creating_fbo (ctx,
                          offscreen->texture,
                          offscreen->texture_level,
-                         offscreen->texture_level_width,
-                         offscreen->texture_level_height,
+                         level_width,
+                         level_height,
                          offscreen->depth_texture,
                          &fb->config,
                          flags = ctx->last_offscreen_allocate_flags,
                          gl_framebuffer)) ||
 
-      ((ctx->private_feature_flags &
-        (COGL_PRIVATE_FEATURE_EXT_PACKED_DEPTH_STENCIL |
-         COGL_PRIVATE_FEATURE_OES_PACKED_DEPTH_STENCIL)) &&
+      (
+       /* NB: WebGL introduces a DEPTH_STENCIL_ATTACHMENT and doesn't
+        * need an extension to handle _FLAG_DEPTH_STENCIL */
+#ifndef HAVE_COGL_WEBGL
+       (_cogl_has_private_feature
+        (ctx, COGL_PRIVATE_FEATURE_EXT_PACKED_DEPTH_STENCIL) ||
+        _cogl_has_private_feature
+        (ctx, COGL_PRIVATE_FEATURE_OES_PACKED_DEPTH_STENCIL)) &&
+#endif
        try_creating_fbo (ctx,
                          offscreen->texture,
                          offscreen->texture_level,
-                         offscreen->texture_level_width,
-                         offscreen->texture_level_height,
+                         level_width,
+                         level_height,
                          offscreen->depth_texture,
                          &fb->config,
                          flags = COGL_OFFSCREEN_ALLOCATE_FLAG_DEPTH_STENCIL,
@@ -784,8 +848,8 @@ _cogl_offscreen_gl_allocate (CoglOffscreen *offscreen,
       try_creating_fbo (ctx,
                         offscreen->texture,
                         offscreen->texture_level,
-                        offscreen->texture_level_width,
-                        offscreen->texture_level_height,
+                        level_width,
+                        level_height,
                         offscreen->depth_texture,
                         &fb->config,
                         flags = COGL_OFFSCREEN_ALLOCATE_FLAG_DEPTH |
@@ -795,8 +859,8 @@ _cogl_offscreen_gl_allocate (CoglOffscreen *offscreen,
       try_creating_fbo (ctx,
                         offscreen->texture,
                         offscreen->texture_level,
-                        offscreen->texture_level_width,
-                        offscreen->texture_level_height,
+                        level_width,
+                        level_height,
                         offscreen->depth_texture,
                         &fb->config,
                         flags = COGL_OFFSCREEN_ALLOCATE_FLAG_STENCIL,
@@ -805,8 +869,8 @@ _cogl_offscreen_gl_allocate (CoglOffscreen *offscreen,
       try_creating_fbo (ctx,
                         offscreen->texture,
                         offscreen->texture_level,
-                        offscreen->texture_level_width,
-                        offscreen->texture_level_height,
+                        level_width,
+                        level_height,
                         offscreen->depth_texture,
                         &fb->config,
                         flags = COGL_OFFSCREEN_ALLOCATE_FLAG_DEPTH,
@@ -815,8 +879,8 @@ _cogl_offscreen_gl_allocate (CoglOffscreen *offscreen,
       try_creating_fbo (ctx,
                         offscreen->texture,
                         offscreen->texture_level,
-                        offscreen->texture_level_width,
-                        offscreen->texture_level_height,
+                        level_width,
+                        level_height,
                         offscreen->depth_texture,
                         &fb->config,
                         flags = 0,
@@ -893,11 +957,11 @@ _cogl_framebuffer_gl_clear (CoglFramebuffer *framebuffer,
     {
       gl_buffers |= GL_DEPTH_BUFFER_BIT;
 
-      if (ctx->depth_writing_enabled_cache != TRUE)
+      if (ctx->depth_writing_enabled_cache != framebuffer->depth_writing_enabled)
         {
-          GE( ctx, glDepthMask (TRUE));
+          GE( ctx, glDepthMask (framebuffer->depth_writing_enabled));
 
-          ctx->depth_writing_enabled_cache = TRUE;
+          ctx->depth_writing_enabled_cache = framebuffer->depth_writing_enabled;
 
           /* Make sure the DepthMask is updated when the next primitive is drawn */
           ctx->current_pipeline_changes_since_flush |=
@@ -928,8 +992,8 @@ _cogl_framebuffer_init_bits (CoglFramebuffer *framebuffer)
                                  COGL_FRAMEBUFFER_STATE_BIND);
 
 #ifdef HAVE_COGL_GL
-  if ((ctx->private_feature_flags &
-       COGL_PRIVATE_FEATURE_QUERY_FRAMEBUFFER_BITS) &&
+  if (_cogl_has_private_feature
+      (ctx, COGL_PRIVATE_FEATURE_QUERY_FRAMEBUFFER_BITS) &&
       framebuffer->type == COGL_FRAMEBUFFER_TYPE_OFFSCREEN)
     {
       static const struct
@@ -976,10 +1040,9 @@ _cogl_framebuffer_init_bits (CoglFramebuffer *framebuffer)
 
   /* If we don't have alpha textures then the alpha bits are actually
    * stored in the red component */
-  if ((ctx->private_feature_flags &
-       COGL_PRIVATE_FEATURE_ALPHA_TEXTURES) == 0 &&
+  if (!_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_ALPHA_TEXTURES) &&
       framebuffer->type == COGL_FRAMEBUFFER_TYPE_OFFSCREEN &&
-      framebuffer->format == COGL_PIXEL_FORMAT_A_8)
+      framebuffer->internal_format == COGL_PIXEL_FORMAT_A_8)
     {
       framebuffer->bits.alpha = framebuffer->bits.red;
       framebuffer->bits.red = 0;
@@ -1306,7 +1369,7 @@ _cogl_framebuffer_gl_read_pixels_into_bitmap (CoglFramebuffer *framebuffer,
 
   /* NB: All offscreen rendering is done upside down so there is no need
    * to flip in this case... */
-  if ((ctx->private_feature_flags & COGL_PRIVATE_FEATURE_MESA_PACK_INVERT) &&
+  if (_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_MESA_PACK_INVERT) &&
       (source & COGL_READ_PIXELS_NO_FLIP) == 0 &&
       !cogl_is_offscreen (framebuffer))
     {
@@ -1326,8 +1389,8 @@ _cogl_framebuffer_gl_read_pixels_into_bitmap (CoglFramebuffer *framebuffer,
      GL_RGBA/GL_UNSIGNED_BYTE and convert if necessary. We also need
      to use this intermediate buffer if the rowstride has padding
      because GLES does not support setting GL_ROW_LENGTH */
-  if ((!(ctx->private_feature_flags &
-         COGL_PRIVATE_FEATURE_READ_PIXELS_ANY_FORMAT) &&
+  if ((!_cogl_has_private_feature
+       (ctx, COGL_PRIVATE_FEATURE_READ_PIXELS_ANY_FORMAT) &&
        (gl_format != GL_RGBA || gl_type != GL_UNSIGNED_BYTE ||
         cogl_bitmap_get_rowstride (bitmap) != 4 * width)) ||
       (required_format & ~COGL_PREMULT_BIT) != (format & ~COGL_PREMULT_BIT))
@@ -1338,8 +1401,8 @@ _cogl_framebuffer_gl_read_pixels_into_bitmap (CoglFramebuffer *framebuffer,
       uint8_t *tmp_data;
       CoglBool succeeded;
 
-      if ((ctx->private_feature_flags &
-           COGL_PRIVATE_FEATURE_READ_PIXELS_ANY_FORMAT))
+      if (_cogl_has_private_feature
+          (ctx, COGL_PRIVATE_FEATURE_READ_PIXELS_ANY_FORMAT))
         read_format = required_format;
       else
         {
@@ -1350,7 +1413,7 @@ _cogl_framebuffer_gl_read_pixels_into_bitmap (CoglFramebuffer *framebuffer,
 
       if (COGL_PIXEL_FORMAT_CAN_HAVE_PREMULT (read_format))
         read_format = ((read_format & ~COGL_PREMULT_BIT) |
-                       (framebuffer->format & COGL_PREMULT_BIT));
+                       (framebuffer->internal_format & COGL_PREMULT_BIT));
 
       tmp_bmp = _cogl_bitmap_new_with_malloc_buffer (ctx,
                                                      width, height,
@@ -1404,7 +1467,7 @@ _cogl_framebuffer_gl_read_pixels_into_bitmap (CoglFramebuffer *framebuffer,
        * converted to the right format below */
       if (COGL_PIXEL_FORMAT_CAN_HAVE_PREMULT (format))
         bmp_format = ((format & ~COGL_PREMULT_BIT) |
-                      (framebuffer->format & COGL_PREMULT_BIT));
+                      (framebuffer->internal_format & COGL_PREMULT_BIT));
       else
         bmp_format = format;
 

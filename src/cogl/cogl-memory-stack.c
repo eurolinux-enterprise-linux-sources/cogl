@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2011 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  * CoglMemoryStack provides a really simple, but lightning fast
@@ -53,26 +59,22 @@
 #endif
 
 #include "cogl-memory-stack-private.h"
-#include "cogl-queue.h"
+#include "cogl-list.h"
 
 #include <stdint.h>
 
 #include <glib.h>
 
-typedef struct _CoglMemorySubStack CoglMemorySubStack;
-
-COGL_TAILQ_HEAD (CoglMemorySubStackList, CoglMemorySubStack);
-
-struct _CoglMemorySubStack
+typedef struct _CoglMemorySubStack
 {
-  COGL_TAILQ_ENTRY (CoglMemorySubStack) list_node;
+  CoglList link;
   size_t bytes;
   uint8_t *data;
-};
+} CoglMemorySubStack;
 
 struct _CoglMemoryStack
 {
-  CoglMemorySubStackList sub_stacks;
+  CoglList sub_stacks;
 
   CoglMemorySubStack *sub_stack;
   size_t sub_stack_offset;
@@ -93,7 +95,7 @@ _cogl_memory_stack_add_sub_stack (CoglMemoryStack *stack,
 {
   CoglMemorySubStack *sub_stack =
     _cogl_memory_sub_stack_alloc (sub_stack_bytes);
-  COGL_TAILQ_INSERT_TAIL (&stack->sub_stacks, sub_stack, list_node);
+  _cogl_list_insert (stack->sub_stacks.prev, &sub_stack->link);
   stack->sub_stack = sub_stack;
   stack->sub_stack_offset = 0;
 }
@@ -103,7 +105,7 @@ _cogl_memory_stack_new (size_t initial_size_bytes)
 {
   CoglMemoryStack *stack = g_slice_new0 (CoglMemoryStack);
 
-  COGL_TAILQ_INIT (&stack->sub_stacks);
+  _cogl_list_init (&stack->sub_stacks);
 
   _cogl_memory_stack_add_sub_stack (stack, initial_size_bytes);
 
@@ -128,9 +130,9 @@ _cogl_memory_stack_alloc (CoglMemoryStack *stack, size_t bytes)
    * is made then we may need to skip over one or more of the
    * sub-stacks that are too small for the requested allocation
    * size... */
-  for (sub_stack = sub_stack->list_node.tqe_next;
-       sub_stack;
-       sub_stack = sub_stack->list_node.tqe_next)
+  for (_cogl_list_set_iterator (sub_stack->link.next, sub_stack, link);
+       &sub_stack->link != &stack->sub_stacks;
+       _cogl_list_set_iterator (sub_stack->link.next, sub_stack, link))
     {
       if (sub_stack->bytes >= bytes)
         {
@@ -147,11 +149,15 @@ _cogl_memory_stack_alloc (CoglMemoryStack *stack, size_t bytes)
    * requested allocation if that's bigger.
    */
 
-  sub_stack = COGL_TAILQ_LAST (&stack->sub_stacks, CoglMemorySubStackList);
+  sub_stack = _cogl_container_of (stack->sub_stacks.prev,
+                                  CoglMemorySubStack,
+                                  link);
 
   _cogl_memory_stack_add_sub_stack (stack, MAX (sub_stack->bytes, bytes) * 2);
 
-  sub_stack = COGL_TAILQ_LAST (&stack->sub_stacks, CoglMemorySubStackList);
+  sub_stack = _cogl_container_of (stack->sub_stacks.prev,
+                                  CoglMemorySubStack,
+                                  link);
 
   stack->sub_stack_offset += bytes;
 
@@ -161,7 +167,9 @@ _cogl_memory_stack_alloc (CoglMemoryStack *stack, size_t bytes)
 void
 _cogl_memory_stack_rewind (CoglMemoryStack *stack)
 {
-  stack->sub_stack = COGL_TAILQ_FIRST (&stack->sub_stacks);
+  stack->sub_stack = _cogl_container_of (stack->sub_stacks.next,
+                                         CoglMemorySubStack,
+                                         link);
   stack->sub_stack_offset = 0;
 }
 
@@ -175,11 +183,12 @@ _cogl_memory_sub_stack_free (CoglMemorySubStack *sub_stack)
 void
 _cogl_memory_stack_free (CoglMemoryStack *stack)
 {
-  CoglMemorySubStack *sub_stack;
 
-  while ((sub_stack = COGL_TAILQ_FIRST (&stack->sub_stacks)))
+  while (!_cogl_list_empty (&stack->sub_stacks))
     {
-      COGL_TAILQ_REMOVE (&stack->sub_stacks, sub_stack, list_node);
+      CoglMemorySubStack *sub_stack =
+        _cogl_container_of (stack->sub_stacks.next, CoglMemorySubStack, link);
+      _cogl_list_remove (&sub_stack->link);
       _cogl_memory_sub_stack_free (sub_stack);
     }
 

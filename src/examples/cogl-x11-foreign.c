@@ -61,7 +61,7 @@ main (int argc, char **argv)
   unsigned long mask;
   Window xwin;
   CoglVertexP2C4 triangle_vertices[] = {
-      {0, 0.7, 0xff, 0x00, 0x00, 0x80},
+      {0, 0.7, 0xff, 0x00, 0x00, 0xff},
       {-0.7, -0.7, 0x00, 0xff, 0x00, 0xff},
       {0.7, -0.7, 0x00, 0x00, 0xff, 0xff}
   };
@@ -157,10 +157,10 @@ main (int argc, char **argv)
 
   XMapWindow (xdpy, xwin);
 
-  fb = COGL_FRAMEBUFFER (onscreen);
+  fb = onscreen;
 
   cogl_onscreen_set_resizable (onscreen, TRUE);
-  cogl_onscreen_add_resize_handler (onscreen, resize_handler, onscreen);
+  cogl_onscreen_add_resize_callback (onscreen, resize_handler, onscreen, NULL);
 
   triangle = cogl_primitive_new_p2c4 (ctx, COGL_VERTICES_MODE_TRIANGLES,
                                       3, triangle_vertices);
@@ -188,12 +188,14 @@ main (int argc, char **argv)
        * then allow Cogl to dispatch any corresponding event
        * callbacks, such as resize notification callbacks...
        */
-      cogl_poll_get_info (ctx, &poll_fds, &n_poll_fds, &timeout);
+      cogl_poll_renderer_get_info (cogl_context_get_renderer (ctx),
+                                   &poll_fds, &n_poll_fds, &timeout);
       g_poll ((GPollFD *) poll_fds, n_poll_fds, 0);
-      cogl_poll_dispatch (ctx, poll_fds, n_poll_fds);
+      cogl_poll_renderer_dispatch (cogl_context_get_renderer (ctx),
+                                   poll_fds, n_poll_fds);
 
       cogl_framebuffer_clear4f (fb, COGL_BUFFER_BIT_COLOR, 0, 0, 0, 1);
-      cogl_framebuffer_draw_primitive (fb, pipeline, triangle);
+      cogl_primitive_draw (triangle, fb, pipeline);
       cogl_onscreen_swap_buffers (onscreen);
     }
 

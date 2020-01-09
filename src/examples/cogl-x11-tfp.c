@@ -56,6 +56,8 @@ main (int argc, char **argv)
   XSetWindowAttributes xattr;
   unsigned long mask;
   Window xwin;
+  Atom atom_wm_protocols;
+  Atom atom_wm_delete_window;
   int screen;
   Window tfp_xwin;
   Pixmap pixmap;
@@ -147,7 +149,8 @@ main (int argc, char **argv)
                                     DefaultRootWindow (xdpy),
                                     xvisinfo->visual,
                                     AllocNone);
-  mask = CWBorderPixel | CWColormap;
+  xattr.event_mask = StructureNotifyMask;
+  mask = CWBorderPixel | CWColormap | CWEventMask;
 
   xwin = XCreateWindow (xdpy,
                         DefaultRootWindow (xdpy),
@@ -158,6 +161,10 @@ main (int argc, char **argv)
                         InputOutput,
                         xvisinfo->visual,
                         mask, &xattr);
+
+  atom_wm_protocols = XInternAtom (xdpy, "WM_PROTOCOLS", False);
+  atom_wm_delete_window = XInternAtom (xdpy, "WM_DELETE_WINDOW", False);
+  XSetWMProtocols (xdpy, xwin, &atom_wm_delete_window, 1);
 
   XFree (xvisinfo);
 
@@ -179,6 +186,16 @@ main (int argc, char **argv)
 
   gc = XCreateGC (xdpy, tfp_xwin, 0, NULL);
 
+  while (TRUE)
+    {
+      XEvent xev;
+
+      XWindowEvent (xdpy, xwin, StructureNotifyMask, &xev);
+
+      if (xev.xany.type == MapNotify)
+        break;
+    }
+
   pixmap = XCompositeNameWindowPixmap (xdpy, tfp_xwin);
 
   tfp = cogl_texture_pixmap_x11_new (ctx, pixmap, TRUE, &error);
@@ -189,12 +206,12 @@ main (int argc, char **argv)
       return 1;
     }
 
-  fb = COGL_FRAMEBUFFER (onscreen);
-  cogl_push_framebuffer (fb);
+  fb = onscreen;
 
   for (;;)
     {
       unsigned long pixel;
+      CoglPipeline *pipeline;
 
       while (XPending (xdpy))
         {
@@ -207,6 +224,12 @@ main (int argc, char **argv)
               keysym = XLookupKeysym (&event.xkey, 0);
               if (keysym == XK_q || keysym == XK_Q || keysym == XK_Escape)
                 return 0;
+              break;
+            case ClientMessage:
+              if (event.xclient.message_type == atom_wm_protocols &&
+                  event.xclient.data.l[0] == atom_wm_delete_window)
+                return 0;
+              break;
             }
           cogl_xlib_renderer_handle_event (renderer, &event);
         }
@@ -221,8 +244,10 @@ main (int argc, char **argv)
       XFlush (xdpy);
 
       cogl_framebuffer_clear4f (fb, COGL_BUFFER_BIT_COLOR, 0, 0, 0, 1);
-      cogl_set_source_texture (COGL_TEXTURE (tfp));
-      cogl_rectangle (-0.8, 0.8, 0.8, -0.8);
+      pipeline = cogl_pipeline_new (ctx);
+      cogl_pipeline_set_layer_texture (pipeline, 0, tfp);
+      cogl_framebuffer_draw_rectangle (fb, pipeline, -0.8, 0.8, 0.8, -0.8);
+      cogl_object_unref (pipeline);
       cogl_onscreen_swap_buffers (onscreen);
     }
 

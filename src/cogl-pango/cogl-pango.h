@@ -1,24 +1,30 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2008 OpenedHand
  * Copyright (C) 2012 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * Authors:
  *   Neil Roberts <neil@linux.intel.com>
@@ -32,7 +38,20 @@
 #include <glib-object.h>
 #include <pango/pango.h>
 #include <pango/pangocairo.h>
+
+/* XXX: Currently this header may be included both as an internal
+ * header (within the cogl-pango implementation) and as a public
+ * header.
+ *
+ * Since <cogl/cogl.h> should not be included for internal use we
+ * determine the current context and switch between including cogl.h
+ * or specific internal cogl headers here...
+ */
+#ifndef COGL_COMPILATION
 #include <cogl/cogl.h>
+#else
+#include "cogl/cogl-context.h"
+#endif
 
 COGL_BEGIN_DECLS
 
@@ -53,7 +72,7 @@ typedef PangoCairoFontMap CoglPangoFontMap;
  *
  * Return value: (transfer full): the newly created #PangoFontMap
  *
- * Since: 2.0
+ * Since: 1.14
  */
 PangoFontMap *
 cogl_pango_font_map_new (void);
@@ -80,7 +99,7 @@ cogl_pango_font_map_create_context (CoglPangoFontMap *font_map);
  * The default value is %96, meaning that a 10 point font will be 13
  * units high. (10 * 96. / 72. = 13.3).
  *
- * Since: 2.0
+ * Since: 1.14
  */
 void
 cogl_pango_font_map_set_resolution (CoglPangoFontMap *font_map,
@@ -165,7 +184,7 @@ cogl_pango_font_map_get_renderer (CoglPangoFontMap *font_map);
  * @y) within the @framebuffer<!-- -->'s current model-view coordinate
  * space.
  *
- * Since: 2.0
+ * Since: 1.14
  */
 void
 cogl_pango_show_layout (CoglFramebuffer *framebuffer,
@@ -186,7 +205,7 @@ cogl_pango_show_layout (CoglFramebuffer *framebuffer,
  * @y) within the @framebuffer<!-- -->'s current model-view coordinate
  * space.
  *
- * Since: 2.0
+ * Since: 1.14
  */
 void
 cogl_pango_show_layout_line (CoglFramebuffer *framebuffer,
@@ -209,6 +228,22 @@ typedef struct _CoglPangoRendererClass CoglPangoRendererClass;
 
 GType cogl_pango_renderer_get_type (void) G_GNUC_CONST;
 
+/**
+ * cogl_pango_render_layout_subpixel:
+ * @layout: a #PangoLayout
+ * @x: X coordinate (in Pango units) to render the layout at
+ * @y: Y coordinate (in Pango units) to render the layout at
+ * @color: color to use when rendering the layout
+ * @flags:
+ *
+ * Draws a solidly coloured @layout on the given @framebuffer at (@x,
+ * @y) within the @framebuffer<!-- -->'s current model-view coordinate
+ * space.
+ *
+ * Since: 1.0
+ * Deprecated: 1.16: Use cogl_pango_show_layout() instead
+ */
+COGL_DEPRECATED_IN_1_16_FOR (cogl_pango_show_layout)
 void
 cogl_pango_render_layout_subpixel (PangoLayout *layout,
                                    int x,
@@ -216,6 +251,22 @@ cogl_pango_render_layout_subpixel (PangoLayout *layout,
                                    const CoglColor *color,
                                    int flags);
 
+/**
+ * cogl_pango_render_layout:
+ * @layout: a #PangoLayout
+ * @x: X coordinate to render the layout at
+ * @y: Y coordinate to render the layout at
+ * @color: color to use when rendering the layout
+ * @flags:
+ *
+ * Draws a solidly coloured @layout on the given @framebuffer at (@x,
+ * @y) within the @framebuffer<!-- -->'s current model-view coordinate
+ * space.
+ *
+ * Since: 1.0
+ * Deprecated: 1.16: Use cogl_pango_show_layout() instead
+ */
+COGL_DEPRECATED_IN_1_16_FOR (cogl_pango_show_layout)
 void
 cogl_pango_render_layout (PangoLayout *layout,
                           int x,
@@ -233,7 +284,9 @@ cogl_pango_render_layout (PangoLayout *layout,
  * Renders @line at the given coordinates using the given color.
  *
  * Since: 1.0
+ * Deprecated: 1.16: Use cogl_pango_show_layout() instead
  */
+COGL_DEPRECATED_IN_1_16_FOR (cogl_pango_show_layout_line)
 void
 cogl_pango_render_layout_line (PangoLayoutLine *line,
                                int x,

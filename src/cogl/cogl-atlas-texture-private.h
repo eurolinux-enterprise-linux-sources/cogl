@@ -1,37 +1,41 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2009 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  */
 
-#ifndef __COGL_ATLAS_TEXTURE_H
-#define __COGL_ATLAS_TEXTURE_H
+#ifndef _COGL_ATLAS_TEXTURE_PRIVATE_H_
+#define _COGL_ATLAS_TEXTURE_PRIVATE_H_
 
 #include "cogl-object-private.h"
 #include "cogl-texture-private.h"
 #include "cogl-rectangle-map.h"
 #include "cogl-atlas.h"
-
-#define COGL_ATLAS_TEXTURE(tex) ((CoglAtlasTexture *) tex)
-
-typedef struct _CoglAtlasTexture CoglAtlasTexture;
+#include "cogl-atlas-texture.h"
 
 struct _CoglAtlasTexture
 {
@@ -40,7 +44,7 @@ struct _CoglAtlasTexture
   /* The format that the texture is in. This isn't necessarily the
      same format as the atlas texture because we can store
      pre-multiplied and non-pre-multiplied textures together */
-  CoglPixelFormat       format;
+  CoglPixelFormat       internal_format;
 
   /* The rectangle that was used to add this texture to the
      atlas. This includes the 1-pixel border */
@@ -59,17 +63,7 @@ struct _CoglAtlasTexture
 
 CoglAtlasTexture *
 _cogl_atlas_texture_new_from_bitmap (CoglBitmap *bmp,
-                                     CoglTextureFlags flags,
-                                     CoglPixelFormat internal_format,
-                                     CoglError **error);
-
-CoglAtlasTexture *
-_cogl_atlas_texture_new_with_size (CoglContext *ctx,
-                                   int width,
-                                   int height,
-                                   CoglTextureFlags flags,
-                                   CoglPixelFormat internal_format,
-                                   CoglError **error);
+                                     CoglBool can_convert_in_place);
 
 void
 _cogl_atlas_texture_add_reorganize_callback (CoglContext *ctx,
@@ -84,4 +78,4 @@ _cogl_atlas_texture_remove_reorganize_callback (CoglContext *ctx,
 CoglBool
 _cogl_is_atlas_texture (void *object);
 
-#endif /* __COGL_ATLAS_TEXTURE_H */
+#endif /* _COGL_ATLAS_TEXTURE_PRIVATE_H_ */

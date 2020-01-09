@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>The Object Interface</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Cogl 2.0 Reference Manual">
 <link rel="up" href="cogl-general-apis.html" title="General API concepts">
 <link rel="prev" href="cogl-general-apis.html" title="General API concepts">
 <link rel="next" href="cogl-2.0-experimental-Exception-handling.html" title="Exception handling">
-<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.19.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -41,13 +41,13 @@
 <span class="returnvalue">void</span> *              <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-ref" title="cogl_object_ref ()">cogl_object_ref</a>                     (<em class="parameter"><code><span class="type">void</span> *object</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-unref" title="cogl_object_unref ()">cogl_object_unref</a>                   (<em class="parameter"><code><span class="type">void</span> *object</code></em>);
                     <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#CoglUserDataKey" title="CoglUserDataKey">CoglUserDataKey</a>;
-<span class="returnvalue">void</span>                (<a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#CoglUserDataDestroyCallback" title="CoglUserDataDestroyCallback ()">*CoglUserDataDestroyCallback</a>)      (<em class="parameter"><code><span class="type">void</span> *user_data</code></em>);
+typedef             <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#CoglUserDataDestroyCallback" title="CoglUserDataDestroyCallback">CoglUserDataDestroyCallback</a>;
 <span class="returnvalue">void</span> *              <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-get-user-data" title="cogl_object_get_user_data ()">cogl_object_get_user_data</a>           (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#CoglObject" title="CoglObject"><span class="type">CoglObject</span></a> *object</code></em>,
                                                          <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#CoglUserDataKey" title="CoglUserDataKey"><span class="type">CoglUserDataKey</span></a> *key</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-set-user-data" title="cogl_object_set_user_data ()">cogl_object_set_user_data</a>           (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#CoglObject" title="CoglObject"><span class="type">CoglObject</span></a> *object</code></em>,
                                                          <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#CoglUserDataKey" title="CoglUserDataKey"><span class="type">CoglUserDataKey</span></a> *key</code></em>,
                                                          <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#CoglUserDataDestroyCallback" title="CoglUserDataDestroyCallback ()"><span class="type">CoglUserDataDestroyCallback</span></a> destroy</code></em>);
+                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#CoglUserDataDestroyCallback" title="CoglUserDataDestroyCallback"><span class="type">CoglUserDataDestroyCallback</span></a> destroy</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -58,6 +58,12 @@
 <div class="refsect2">
 <a name="CoglObject"></a><h3>CoglObject</h3>
 <pre class="programlisting">typedef struct _CoglObject CoglObject;</pre>
+<p>
+Ref Func: cogl_object_ref
+Unref Func: cogl_object_unref
+Set Value Func: cogl_object_value_set_object
+Get Value Func: cogl_object_value_get_object
+</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -142,23 +148,71 @@ on an object something like this:
 13
 14
 15
-16</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="keyword">static</span><span class="normal"> </span><span class="usertype">CoglUserDataKey</span><span class="normal"> path_private_key</span><span class="symbol">;</span>
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
 
-<span class="keyword">static</span><span class="normal"> </span><span class="type">void</span>
-<span class="function">destroy_path_private_cb</span><span class="normal"> </span><span class="symbol">(</span><span class="type">void</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">data</span><span class="symbol">)</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="function"><a href="http://library.gnome.org/devel/glib/unstable/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">data</span><span class="symbol">);</span>
-<span class="cbracket">}</span>
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Type { color: #008000; text-decoration: underline; }
 
-<span class="keyword">static</span><span class="normal"> </span><span class="type">void</span>
-<span class="function">my_path_set_data</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">CoglPath</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">path</span><span class="symbol">,</span><span class="normal"> </span><span class="type">void</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">data</span><span class="symbol">)</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="function"><a href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-set-user-data">cogl_object_set_user_data</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function">COGL_OBJECT</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">path</span><span class="symbol">),</span>
-<span class="normal">                             </span><span class="symbol">&amp;</span><span class="normal">private_key</span><span class="symbol">,</span>
-<span class="normal">                             data</span><span class="symbol">,</span>
-<span class="normal">                             destroy_path_private_cb</span><span class="symbol">);</span>
-<span class="cbracket">}</span></pre></td>
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+<span class="type">static</span> CoglUserDataKey path_private_key;
+
+<span class="type">static</span> <span class="type">void</span>
+destroy_path_private_cb (<span class="type">void</span> *data)
+{
+  g_free (data);
+}
+
+<span class="type">static</span> <span class="type">void</span>
+my_path_set_data (CoglPath *path, <span class="type">void</span> *data)
+{
+  cogl_object_set_user_data (COGL_OBJECT (path),
+                             &amp;private_key,
+                             data,
+                             destroy_path_private_cb);
+}</pre></td>
       </tr>
     </tbody>
   </table>
@@ -180,25 +234,15 @@ on an object something like this:
 </div>
 <hr>
 <div class="refsect2">
-<a name="CoglUserDataDestroyCallback"></a><h3>CoglUserDataDestroyCallback ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                (*CoglUserDataDestroyCallback)      (<em class="parameter"><code><span class="type">void</span> *user_data</code></em>);</pre>
+<a name="CoglUserDataDestroyCallback"></a><h3>CoglUserDataDestroyCallback</h3>
+<pre class="programlisting">typedef GDestroyNotify CoglUserDataDestroyCallback;
+</pre>
 <p>
 When associating private data with a <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#CoglObject" title="CoglObject"><span class="type">CoglObject</span></a> a callback can be
 given which will be called either if the object is destroyed or if
 <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-set-user-data" title="cogl_object_set_user_data ()"><code class="function">cogl_object_set_user_data()</code></a> is called with NULL user_data for the
 same key.
 </p>
-<div class="variablelist"><table border="0" class="variablelist">
-<colgroup>
-<col align="left" valign="top">
-<col>
-</colgroup>
-<tbody><tr>
-<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
-<td>The data whos association with a <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#CoglObject" title="CoglObject"><span class="type">CoglObject</span></a> has been
-destoyed.</td>
-</tr></tbody>
-</table></div>
 <p class="since">Since 1.4</p>
 </div>
 <hr>
@@ -229,7 +273,7 @@ with which to index the private data.</td>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>The user data previously associated
-with <em class="parameter"><code>object</code></em> using the given <em class="parameter"><code>key</code></em>; or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no associated
+with <em class="parameter"><code>object</code></em> using the given <em class="parameter"><code>key</code></em>; or <code class="literal">NULL</code> if no associated
 data is found. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
 </td>
 </tr>
@@ -243,7 +287,7 @@ data is found. <span class="annotation">[<acronym title="Don't free data after t
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_object_set_user_data           (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#CoglObject" title="CoglObject"><span class="type">CoglObject</span></a> *object</code></em>,
                                                          <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#CoglUserDataKey" title="CoglUserDataKey"><span class="type">CoglUserDataKey</span></a> *key</code></em>,
                                                          <em class="parameter"><code><span class="type">void</span> *user_data</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#CoglUserDataDestroyCallback" title="CoglUserDataDestroyCallback ()"><span class="type">CoglUserDataDestroyCallback</span></a> destroy</code></em>);</pre>
+                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#CoglUserDataDestroyCallback" title="CoglUserDataDestroyCallback"><span class="type">CoglUserDataDestroyCallback</span></a> destroy</code></em>);</pre>
 <p>
 Associates some private <em class="parameter"><code>user_data</code></em> with a given <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#CoglObject" title="CoglObject"><span class="type">CoglObject</span></a>. To
 later remove the association call <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#cogl-object-set-user-data" title="cogl_object_set_user_data ()"><code class="function">cogl_object_set_user_data()</code></a> with
@@ -267,13 +311,13 @@ with which to index the private data.</td>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
 <td>The data to associate with the given object,
-or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to remove a previous association.</td>
+or <code class="literal">NULL</code> to remove a previous association.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>destroy</code></em> :</span></p></td>
-<td>A <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#CoglUserDataDestroyCallback" title="CoglUserDataDestroyCallback ()"><span class="type">CoglUserDataDestroyCallback</span></a> to call if the object is
+<td>A <a class="link" href="cogl-2.0-experimental-The-Object-Interface.html#CoglUserDataDestroyCallback" title="CoglUserDataDestroyCallback"><span class="type">CoglUserDataDestroyCallback</span></a> to call if the object is
 destroyed or if the association is removed by later setting
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> data for the same key.</td>
+<code class="literal">NULL</code> data for the same key.</td>
 </tr>
 </tbody>
 </table></div>
@@ -283,6 +327,6 @@ destroyed or if the association is removed by later setting
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18.1</div>
+          Generated by GTK-Doc V1.19.1</div>
 </body>
 </html>

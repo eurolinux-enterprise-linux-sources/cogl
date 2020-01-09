@@ -1,24 +1,29 @@
 /*
- * Clutter.
+ * Cogl
  *
- * An OpenGL based 'interactive canvas' library.
- *
- * Authored By Neil Roberts  <neil@linux.intel.com>
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2009 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -26,10 +31,10 @@
 #endif
 
 #include <glib.h>
-#include <cogl/cogl.h>
 #include <string.h>
 
 #include "cogl-pango-display-list.h"
+#include "cogl-pango-pipeline-cache.h"
 #include "cogl/cogl-context-private.h"
 
 typedef enum
@@ -88,12 +93,7 @@ struct _CoglPangoDisplayListNode
 
     struct
     {
-      float y_1;
-      float x_11;
-      float x_21;
-      float y_2;
-      float x_12;
-      float x_22;
+      CoglPrimitive *primitive;
     } trapezoid;
   } d;
 };
@@ -219,18 +219,25 @@ _cogl_pango_display_list_add_trapezoid (CoglPangoDisplayList *dl,
                                         float x_12,
                                         float x_22)
 {
+  CoglContext *ctx = dl->pipeline_cache->ctx;
   CoglPangoDisplayListNode *node = g_slice_new (CoglPangoDisplayListNode);
+  CoglVertexP2 vertices[4] = {
+        { x_11, y_1 },
+        { x_12, y_2 },
+        { x_22, y_2 },
+        { x_21, y_1 }
+  };
 
   node->type = COGL_PANGO_DISPLAY_LIST_TRAPEZOID;
   node->color_override = dl->color_override;
   node->color = dl->color;
-  node->d.trapezoid.y_1 = y_1;
-  node->d.trapezoid.x_11 = x_11;
-  node->d.trapezoid.x_21 = x_21;
-  node->d.trapezoid.y_2 = y_2;
-  node->d.trapezoid.x_12 = x_12;
-  node->d.trapezoid.x_22 = x_22;
   node->pipeline = NULL;
+
+  node->d.trapezoid.primitive =
+    cogl_primitive_new_p2 (ctx,
+                           COGL_VERTICES_MODE_TRIANGLE_FAN,
+                           4,
+                           vertices);
 
   _cogl_pango_display_list_append_node (dl, node);
 }
@@ -350,7 +357,7 @@ emit_vertex_buffer_geometry (CoglFramebuffer *fb,
                                                  2 /* n_attributes */);
 
 #ifdef CLUTTER_COGL_HAS_GL
-      if ((ctx->private_feature_flags & COGL_PRIVATE_FEATURE_QUADS))
+      if (_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_QUADS))
         cogl_primitive_set_mode (prim, GL_QUADS);
       else
 #endif
@@ -373,9 +380,9 @@ emit_vertex_buffer_geometry (CoglFramebuffer *fb,
       cogl_object_unref (attributes[1]);
     }
 
-  cogl_framebuffer_draw_primitive (fb,
-                                   pipeline,
-                                   node->d.texture.primitive);
+  cogl_primitive_draw (node->d.texture.primitive,
+                       fb,
+                       pipeline);
 }
 
 static void
@@ -448,25 +455,8 @@ _cogl_pango_display_list_render (CoglFramebuffer *fb,
           break;
 
         case COGL_PANGO_DISPLAY_LIST_TRAPEZOID:
-          {
-            float points[8];
-            CoglPath *path;
-            CoglContext *ctx = fb->context;
-
-            points[0] =  node->d.trapezoid.x_11;
-            points[1] =  node->d.trapezoid.y_1;
-            points[2] =  node->d.trapezoid.x_12;
-            points[3] =  node->d.trapezoid.y_2;
-            points[4] =  node->d.trapezoid.x_22;
-            points[5] =  node->d.trapezoid.y_2;
-            points[6] =  node->d.trapezoid.x_21;
-            points[7] =  node->d.trapezoid.y_1;
-
-            path = cogl_path_new ();
-            cogl_path_polygon (path, points, 4);
-            cogl_framebuffer_fill_path (fb, node->pipeline, path);
-            cogl_object_unref (path);
-          }
+          cogl_framebuffer_draw_primitive (fb, node->pipeline,
+                                           node->d.trapezoid.primitive);
           break;
         }
     }
@@ -483,6 +473,8 @@ _cogl_pango_display_list_node_free (CoglPangoDisplayListNode *node)
       if (node->d.texture.primitive != NULL)
         cogl_object_unref (node->d.texture.primitive);
     }
+  else if (node->type == COGL_PANGO_DISPLAY_LIST_TRAPEZOID)
+    cogl_object_unref (node->d.trapezoid.primitive);
 
   if (node->pipeline)
     cogl_object_unref (node->pipeline);

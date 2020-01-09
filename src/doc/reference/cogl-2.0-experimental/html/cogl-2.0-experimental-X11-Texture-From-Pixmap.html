@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>X11 Texture From Pixmap</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Cogl 2.0 Reference Manual">
 <link rel="up" href="cogl-meta-textures.html" title="Meta Textures">
 <link rel="prev" href="cogl-2.0-experimental-Sliced-Textures.html" title="Sliced Textures">
 <link rel="next" href="cogl-primitive-textures.html" title="Primitive Textures">
-<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.19.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -95,8 +95,8 @@ Checks whether <em class="parameter"><code>object</code></em> points to a <a cla
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the object is a <a class="link" href="cogl-2.0-experimental-X11-Texture-From-Pixmap.html#CoglTexturePixmapX11" title="CoglTexturePixmapX11"><span class="type">CoglTexturePixmapX11</span></a>, and
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise</td>
+<code class="literal">TRUE</code> if the object is a <a class="link" href="cogl-2.0-experimental-X11-Texture-From-Pixmap.html#CoglTexturePixmapX11" title="CoglTexturePixmapX11"><span class="type">CoglTexturePixmapX11</span></a>, and
+<code class="literal">FALSE</code> otherwise</td>
 </tr>
 </tbody>
 </table></div>
@@ -112,7 +112,7 @@ Checks whether <em class="parameter"><code>object</code></em> points to a <a cla
                                                          <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Exception-handling.html#CoglError" title="CoglError"><span class="type">CoglError</span></a> **error</code></em>);</pre>
 <p>
 Creates a texture that contains the contents of <em class="parameter"><code>pixmap</code></em>. If
-<em class="parameter"><code>automatic_updates</code></em> is <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> then Cogl will attempt to listen for
+<em class="parameter"><code>automatic_updates</code></em> is <code class="literal">TRUE</code> then Cogl will attempt to listen for
 damage events on the pixmap and automatically update the texture
 when it changes.
 </p>
@@ -218,8 +218,8 @@ working efficiently.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the texture is using an efficient extension
-and <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise</td>
+<code class="literal">TRUE</code> if the texture is using an efficient extension
+and <code class="literal">FALSE</code> otherwise</td>
 </tr>
 </tbody>
 </table></div>
@@ -236,6 +236,30 @@ and <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.h
   COGL_TEXTURE_PIXMAP_X11_DAMAGE_NON_EMPTY
 } CoglTexturePixmapX11ReportLevel;
 </pre>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><a name="COGL-TEXTURE-PIXMAP-X11-DAMAGE-RAW-RECTANGLES:CAPS"></a><span class="term"><code class="literal">COGL_TEXTURE_PIXMAP_X11_DAMAGE_RAW_RECTANGLES</code></span></p></td>
+<td></td>
+</tr>
+<tr>
+<td><p><a name="COGL-TEXTURE-PIXMAP-X11-DAMAGE-DELTA-RECTANGLES:CAPS"></a><span class="term"><code class="literal">COGL_TEXTURE_PIXMAP_X11_DAMAGE_DELTA_RECTANGLES</code></span></p></td>
+<td></td>
+</tr>
+<tr>
+<td><p><a name="COGL-TEXTURE-PIXMAP-X11-DAMAGE-BOUNDING-BOX:CAPS"></a><span class="term"><code class="literal">COGL_TEXTURE_PIXMAP_X11_DAMAGE_BOUNDING_BOX</code></span></p></td>
+<td></td>
+</tr>
+<tr>
+<td><p><a name="COGL-TEXTURE-PIXMAP-X11-DAMAGE-NON-EMPTY:CAPS"></a><span class="term"><code class="literal">COGL_TEXTURE_PIXMAP_X11_DAMAGE_NON_EMPTY</code></span></p></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
 </div>
 <hr>
 <div class="refsect2">
@@ -247,7 +271,7 @@ and <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.h
 <p>
 Sets the damage object that will be used to track automatic updates
 to the <em class="parameter"><code>texture</code></em>. Damage tracking can be disabled by passing 0 for
-<em class="parameter"><code>damage</code></em>. Otherwise this damage will replace the one used if <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>
+<em class="parameter"><code>damage</code></em>. Otherwise this damage will replace the one used if <code class="literal">TRUE</code>
 was passed for automatic_updates to <a class="link" href="cogl-2.0-experimental-X11-Texture-From-Pixmap.html#cogl-texture-pixmap-x11-new" title="cogl_texture_pixmap_x11_new ()"><code class="function">cogl_texture_pixmap_x11_new()</code></a>.
 </p>
 <p>
@@ -283,6 +307,6 @@ object was created with.</td>
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18.1</div>
+          Generated by GTK-Doc V1.19.1</div>
 </body>
 </html>

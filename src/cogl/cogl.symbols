@@ -1,32 +1,28 @@
-/* cogl2_clip_push_from_path is only for 1.10.x*/
-cogl2_clip_push_from_path
 
-cogl2_path_arc
-cogl2_path_close
-cogl2_path_curve_to
-cogl2_path_ellipse
-cogl2_path_fill
-cogl2_path_get_fill_rule
-cogl2_path_line
-cogl2_path_line_to
-cogl2_path_move_to
-cogl2_path_new
-cogl2_path_polygon
-cogl2_path_polyline
-cogl2_path_rectangle
-cogl2_path_rel_curve_to
-cogl2_path_rel_line_to
-cogl2_path_rel_move_to
-cogl2_path_round_rectangle
-cogl2_path_set_fill_rule
-cogl2_path_stroke
 
 #ifdef COGL_HAS_EGL_PLATFORM_ANDROID_SUPPORT
 cogl_android_set_native_window
 #endif
 
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_atlas_texture_get_gtype
+#endif
+cogl_atlas_texture_new_with_size
+cogl_atlas_texture_new_from_file
+cogl_atlas_texture_new_from_data
+cogl_atlas_texture_new_from_bitmap
+
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_attribute_buffer_get_gtype
+#endif
 cogl_attribute_buffer_new_with_size
 
+cogl_attribute_buffer_new
+cogl_attribute_get_buffer
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_attribute_get_gtype
+#endif
+cogl_attribute_get_normalized
 cogl_attribute_new
 cogl_attribute_new_const_1f
 cogl_attribute_new_const_2f
@@ -38,9 +34,6 @@ cogl_attribute_new_const_3x3fv
 cogl_attribute_new_const_4f
 cogl_attribute_new_const_4fv
 cogl_attribute_new_const_4x4fv
-cogl_attribute_buffer_new
-cogl_attribute_get_buffer
-cogl_attribute_get_normalized
 cogl_attribute_set_buffer
 cogl_attribute_set_normalized
 cogl_attribute_type_get_type
@@ -50,6 +43,9 @@ cogl_begin_gl
 cogl_bitmap_error_get_type
 cogl_bitmap_get_buffer
 cogl_bitmap_get_format
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_bitmap_get_gtype
+#endif
 cogl_bitmap_get_height
 cogl_bitmap_get_rowstride
 cogl_bitmap_get_size_from_file
@@ -94,8 +90,6 @@ cogl_clip_pop
 cogl_clip_push
 #endif
 
-cogl_clip_push_from_path
-cogl_clip_push_from_path_preserve
 cogl_clip_push_rectangle
 
 cogl_clip_push_window_rect
@@ -128,9 +122,13 @@ cogl_color_get_blue_float
 cogl_color_get_green
 cogl_color_get_green_byte
 cogl_color_get_green_float
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_color_get_gtype
+#endif
 cogl_color_get_red
 cogl_color_get_red_byte
 cogl_color_get_red_float
+cogl_color_init_from_hsl
 cogl_color_init_from_4f
 cogl_color_init_from_4fv
 cogl_color_init_from_4ub
@@ -151,14 +149,24 @@ cogl_color_set_green_float
 cogl_color_set_red
 cogl_color_set_red_byte
 cogl_color_set_red_float
+cogl_color_to_hsl
 cogl_color_unpremultiply
 
 
 #ifdef COGL_HAS_EGL_SUPPORT
 cogl_egl_context_get_egl_display
+cogl_egl_context_get_egl_context
+#endif
+
+#ifdef COGL_HAS_GLX_SUPPORT
+cogl_glx_context_get_glx_context
 #endif
 
 cogl_context_get_display
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_context_get_gtype
+#endif
+cogl_context_get_renderer
 cogl_context_new
 
 cogl_create_program
@@ -181,9 +189,13 @@ cogl_depth_test_function_get_type
 
 cogl_disable_fog
 
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_display_get_gtype
+#endif
 cogl_display_get_renderer
 cogl_display_new
 cogl_display_setup
+cogl_display_set_onscreen_template
 
 cogl_double_to_fixed
 
@@ -196,6 +208,9 @@ cogl_error_matches
 cogl_euler_copy
 cogl_euler_equal
 cogl_euler_free
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_euler_get_gtype
+#endif
 cogl_euler_init
 cogl_euler_init_from_matrix
 #if 0
@@ -205,6 +220,7 @@ cogl_euler_init_from_quaternion
 
 cogl_features_available
 cogl_feature_flags_get_type
+cogl_fence_closure_get_user_data
 cogl_fixed_atan
 cogl_fixed_atan2
 cogl_fixed_cos
@@ -222,18 +238,17 @@ cogl_foreach_feature
 
 cogl_flush
 
+cogl_framebuffer_add_fence_callback
 cogl_framebuffer_allocate
+cogl_framebuffer_cancel_fence_callback
 cogl_framebuffer_clear4f
 cogl_framebuffer_clear
 cogl_framebuffer_discard_buffers
-cogl_framebuffer_draw_attributes
-cogl_framebuffer_draw_indexed_attributes
 cogl_framebuffer_draw_primitive
 cogl_framebuffer_draw_rectangle
 cogl_framebuffer_draw_rectangles
 cogl_framebuffer_draw_textured_rectangle
 cogl_framebuffer_draw_textured_rectangles
-cogl_framebuffer_fill_path
 cogl_framebuffer_finish
 cogl_framebuffer_frustum
 cogl_framebuffer_get_alpha_bits
@@ -244,8 +259,12 @@ cogl_framebuffer_get_context
 cogl_framebuffer_get_depth_bits
 cogl_framebuffer_get_depth_texture
 cogl_framebuffer_get_depth_texture_enabled
+cogl_framebuffer_get_depth_write_enabled
 cogl_framebuffer_get_dither_enabled
 cogl_framebuffer_get_green_bits
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_framebuffer_get_gtype
+#endif
 cogl_framebuffer_get_height
 cogl_framebuffer_get_modelview_matrix
 cogl_framebuffer_get_projection_matrix
@@ -263,7 +282,6 @@ cogl_framebuffer_perspective
 cogl_framebuffer_pop_clip
 cogl_framebuffer_pop_matrix
 cogl_framebuffer_push_matrix
-cogl_framebuffer_push_path_clip
 cogl_framebuffer_push_primitive_clip
 cogl_framebuffer_push_rectangle_clip
 cogl_framebuffer_push_scissor_clip
@@ -281,18 +299,25 @@ cogl_framebuffer_rotate_quaternion
 cogl_framebuffer_scale
 cogl_framebuffer_set_color_mask
 cogl_framebuffer_set_depth_texture_enabled
+cogl_framebuffer_set_depth_write_enabled
 cogl_framebuffer_set_dither_enabled
 cogl_framebuffer_set_modelview_matrix
 cogl_framebuffer_set_projection_matrix
 cogl_framebuffer_set_samples_per_pixel
 cogl_framebuffer_set_viewport
-cogl_framebuffer_stroke_path
 cogl_framebuffer_transform
 cogl_framebuffer_translate
 cogl_framebuffer_vdraw_attributes
 /* cogl_framebuffer_vdraw_indexed_attributes */ /* Not Implemented! */
 
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_frame_closure_get_gtype
+#endif
 cogl_frame_info_get_frame_counter
+
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_frame_info_get_gtype
+#endif
 cogl_frame_info_get_output
 cogl_frame_info_get_presentation_time
 cogl_frame_info_get_refresh_rate
@@ -311,7 +336,6 @@ cogl_get_draw_framebuffer
 cogl_get_features
 cogl_get_modelview_matrix
 cogl_get_option_group
-cogl_get_path
 cogl_get_proc_address
 cogl_get_projection_matrix
 cogl_get_rectangle_indices
@@ -320,6 +344,9 @@ cogl_get_static_identity_quaternion
 cogl_get_static_zero_quaternion
 cogl_get_viewport
 
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_gles2_context_get_gtype
+#endif
 cogl_gles2_context_get_vtable
 cogl_gles2_context_new
 cogl_gles2_get_current_vtable
@@ -327,11 +354,12 @@ cogl_gles2_texture_get_handle
 cogl_gles2_texture_2d_new_from_handle
 
 #ifdef COGL_HAS_GLIB_SUPPORT
+cogl_glib_renderer_source_new
 cogl_glib_source_new
 #endif
 
-#ifdef _COGL_SUPPORTS_GTYPE_INTEGRATION
-/* cogl_gtype_matrix_get_type */ /* Not Implemented */
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_gtype_matrix_get_type
 #endif
 
 cogl_handle_get_type
@@ -341,8 +369,14 @@ cogl_handle_unref
 cogl_has_feature
 cogl_has_features
 
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_index_buffer_get_gtype
+#endif
 cogl_index_buffer_new
 cogl_indices_get_buffer
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_indices_get_gtype
+#endif
 cogl_indices_get_offset
 cogl_indices_get_type
 cogl_indices_new
@@ -350,6 +384,7 @@ cogl_indices_new_for_buffer
 cogl_indices_set_offset
 cogl_indices_type_get_type
 
+cogl_is_atlas_texture
 cogl_is_attribute
 cogl_is_attribute_buffer
 cogl_is_bitmap
@@ -366,7 +401,6 @@ cogl_is_material
 cogl_is_matrix_stack
 cogl_is_offscreen
 cogl_is_output
-cogl_is_path
 cogl_is_pipeline
 cogl_is_pixel_buffer
 cogl_is_primitive
@@ -386,6 +420,7 @@ cogl_is_texture_3d
 
 #ifdef COGL_HAS_EGL_PLATFORM_KMS_SUPPORT
 cogl_kms_display_queue_modes_reset
+cogl_kms_display_set_layout
 cogl_kms_renderer_get_kms_fd
 #endif
 
@@ -455,6 +490,9 @@ cogl_matrix_copy
 cogl_matrix_entry_calculate_translation
 cogl_matrix_entry_equal
 cogl_matrix_entry_get
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_matrix_entry_get_gtype
+#endif
 cogl_matrix_entry_is_identity
 cogl_matrix_entry_ref
 cogl_matrix_entry_unref
@@ -462,6 +500,9 @@ cogl_matrix_equal
 cogl_matrix_free
 cogl_matrix_frustum
 cogl_matrix_get_array
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_matrix_get_gtype
+#endif
 cogl_matrix_get_inverse
 cogl_matrix_init_from_array
 cogl_matrix_init_translation
@@ -488,6 +529,9 @@ cogl_matrix_scale
 cogl_matrix_stack_frustum
 cogl_matrix_stack_get
 cogl_matrix_stack_get_entry
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_matrix_stack_get_gtype
+#endif
 cogl_matrix_stack_get_inverse
 cogl_matrix_stack_load_identity
 cogl_matrix_stack_multiply
@@ -511,39 +555,64 @@ cogl_matrix_view_2d_in_perspective
 
 cogl_meta_texture_foreach_in_region
 
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_object_get_gtype
+#endif
 cogl_object_get_user_data
 cogl_object_ref
 cogl_object_set_user_data
 cogl_object_unref
 
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_offscreen_get_gtype
+#endif
 cogl_offscreen_new_to_texture
+cogl_offscreen_new_with_texture
 
+cogl_onscreen_add_dirty_callback
 cogl_onscreen_add_frame_callback
-cogl_onscreen_add_resize_handler
+cogl_onscreen_add_resize_callback
 cogl_onscreen_add_swap_buffers_callback
 #ifndef COGL_WINSYS_INTEGRATED
 cogl_onscreen_clutter_backend_set_size_CLUTTER
 #endif
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_onscreen_dirty_closure_get_gtype
+#endif
 cogl_onscreen_get_buffer_age
 cogl_onscreen_get_frame_counter
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_onscreen_get_gtype
+#endif
 cogl_onscreen_get_resizable
 cogl_onscreen_hide
 cogl_onscreen_new
 cogl_onscreen_set_swap_throttled
+cogl_onscreen_remove_dirty_callback
 cogl_onscreen_remove_frame_callback
-cogl_onscreen_remove_resize_handler
+cogl_onscreen_remove_resize_callback
 cogl_onscreen_remove_swap_buffers_callback
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_onscreen_resize_closure_get_gtype
+#endif
 cogl_onscreen_set_resizable
 cogl_onscreen_set_swap_throttled
 cogl_onscreen_show
 cogl_onscreen_swap_buffers
+cogl_onscreen_swap_buffers_with_damage
 cogl_onscreen_swap_region
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_onscreen_template_get_gtype
+#endif
 cogl_onscreen_template_new
 cogl_onscreen_template_set_samples_per_pixel
 cogl_onscreen_template_set_swap_throttled
 
 cogl_ortho
 
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_output_get_gtype
+#endif
 cogl_output_get_height
 cogl_output_get_mm_height
 cogl_output_get_mm_width
@@ -552,30 +621,6 @@ cogl_output_get_subpixel_order
 cogl_output_get_width
 cogl_output_get_x
 cogl_output_get_y
-
-cogl_path_arc
-cogl_path_close
-cogl_path_copy
-cogl_path_curve_to
-cogl_path_ellipse
-cogl_path_fill
-cogl_path_fill_preserve		/* this is COGL 1.0 API */
-cogl_path_fill_rule_get_type
-cogl_path_get_fill_rule
-cogl_path_line
-cogl_path_line_to
-cogl_path_move_to
-cogl_path_new
-cogl_path_polygon
-cogl_path_polyline
-cogl_path_rectangle
-cogl_path_rel_curve_to
-cogl_path_rel_line_to
-cogl_path_rel_move_to
-cogl_path_round_rectangle
-cogl_path_set_fill_rule
-cogl_path_stroke
-cogl_path_stroke_preserve	/* this is COGL 1.0 API */
 
 cogl_perspective
 
@@ -593,6 +638,9 @@ cogl_pipeline_get_depth_state
 cogl_pipeline_get_diffuse
 cogl_pipeline_get_emission
 cogl_pipeline_get_front_face_winding
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_pipeline_get_gtype
+#endif
 cogl_pipeline_get_layer_mag_filter
 cogl_pipeline_get_layer_min_filter
 cogl_pipeline_get_layer_point_sprite_coords_enabled
@@ -601,6 +649,7 @@ cogl_pipeline_get_layer_wrap_mode_p
 cogl_pipeline_get_layer_wrap_mode_s
 cogl_pipeline_get_layer_wrap_mode_t
 cogl_pipeline_get_n_layers
+cogl_pipeline_get_per_vertex_point_size
 cogl_pipeline_get_point_size
 cogl_pipeline_get_shininess
 cogl_pipeline_get_specular
@@ -632,6 +681,7 @@ cogl_pipeline_set_layer_wrap_mode
 cogl_pipeline_set_layer_wrap_mode_p
 cogl_pipeline_set_layer_wrap_mode_s
 cogl_pipeline_set_layer_wrap_mode_t
+cogl_pipeline_set_per_vertex_point_size
 cogl_pipeline_set_point_size
 cogl_pipeline_remove_layer
 cogl_pipeline_set_shininess
@@ -643,6 +693,9 @@ cogl_pipeline_set_uniform_1f
 cogl_pipeline_set_uniform_1i
 cogl_pipeline_set_user_program
 
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_pixel_buffer_get_gtype
+#endif
 cogl_pixel_buffer_new
 #if 0
 /* not exported in the main APIs for now */
@@ -650,8 +703,8 @@ cogl_pixel_buffer_set_region
 #endif
 cogl_pixel_format_get_type
 
-cogl_poll_dispatch
-cogl_poll_get_info
+cogl_poll_renderer_dispatch
+cogl_poll_renderer_get_info
 
 cogl_polygon
 
@@ -666,6 +719,9 @@ cogl_pop_source
 cogl_primitive_copy
 cogl_primitive_foreach_attribute
 cogl_primitive_get_first_vertex
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_primitive_get_gtype
+#endif
 cogl_primitive_get_indices
 cogl_primitive_get_mode
 cogl_primitive_get_n_vertices
@@ -684,6 +740,7 @@ cogl_primitive_set_first_vertex
 cogl_primitive_set_indices
 cogl_primitive_set_mode
 cogl_primitive_set_n_vertices
+cogl_primitive_draw
 
 cogl_primitive_texture_set_auto_mipmap
 
@@ -725,6 +782,9 @@ cogl_quaternion_copy
 cogl_quaternion_dot_product
 cogl_quaternion_equal
 cogl_quaternion_free
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_quaternion_get_gtype
+#endif
 cogl_quaternion_get_rotation_angle
 cogl_quaternion_get_rotation_axis
 cogl_quaternion_init
@@ -757,6 +817,9 @@ cogl_renderer_check_onscreen_template
 cogl_renderer_connect
 cogl_renderer_foreach_output
 cogl_renderer_get_driver
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_renderer_get_gtype
+#endif
 cogl_renderer_get_n_fragment_texture_units
 cogl_renderer_error_get_type
 cogl_renderer_get_winsys_id
@@ -788,7 +851,6 @@ cogl_sdl_renderer_set_event_type
 
 cogl_set_framebuffer
 cogl_set_modelview_matrix
-cogl_set_path
 cogl_set_projection_matrix
 cogl_set_source
 cogl_set_source_color
@@ -818,6 +880,9 @@ cogl_snippet_get_hook
 cogl_snippet_get_post
 cogl_snippet_get_pre
 cogl_snippet_get_replace
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_snippet_get_gtype
+#endif
 cogl_snippet_new
 cogl_snippet_set_declarations
 cogl_snippet_set_post
@@ -826,9 +891,15 @@ cogl_snippet_set_replace
 
 cogl_sqrti
 
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_sub_texture_get_gtype
+#endif
 cogl_sub_texture_get_parent
 cogl_sub_texture_new
 
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_swap_chain_get_gtype
+#endif
 cogl_swap_chain_new
 cogl_swap_chain_set_has_alpha
 cogl_swap_chain_set_length
@@ -836,13 +907,19 @@ cogl_swap_chain_set_length
 cogl_system_error_get_type
 
 cogl_texture_allocate
+cogl_texture_components_get_type
 cogl_texture_error_get_type
 cogl_texture_flags_get_type
+cogl_texture_get_components
 cogl_texture_get_data
 cogl_texture_get_format
 cogl_texture_get_gl_texture
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_texture_get_gtype
+#endif
 cogl_texture_get_height
 cogl_texture_get_max_waste
+cogl_texture_get_premultiplied
 cogl_texture_get_rowstride
 cogl_texture_get_width
 cogl_texture_is_sliced
@@ -854,10 +931,16 @@ cogl_texture_new_from_sub_texture
 cogl_texture_new_with_size
 #ifdef COGL_HAS_X11
 cogl_texture_pixmap_x11_error_domain
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_texture_pixmap_x11_get_gtype
+#endif
 cogl_texture_pixmap_x11_is_using_tfp_extension
 cogl_texture_pixmap_x11_new
 cogl_texture_pixmap_x11_set_damage_object
 cogl_texture_pixmap_x11_update_area
+#endif
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_texture_rectangle_get_gtype
 #endif
 cogl_texture_rectangle_new_from_bitmap
 cogl_texture_rectangle_new_from_foreign
@@ -865,17 +948,32 @@ cogl_texture_rectangle_new_with_size
 #ifndef COGL_DISABLE_DEPRECATED
 cogl_texture_ref
 #endif
+cogl_texture_set_components
 cogl_texture_set_data
+cogl_texture_set_premultiplied
 cogl_texture_set_region
 cogl_texture_set_region_from_bitmap
 cogl_texture_type_get_type
 #ifndef COGL_DISABLE_DEPRECATED
 cogl_texture_unref
 #endif
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_texture_2d_get_gtype
+#endif
 cogl_texture_2d_new_from_bitmap
 cogl_texture_2d_new_from_data
+cogl_texture_2d_new_from_file
 cogl_texture_2d_new_with_size
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_texture_2d_sliced_get_gtype
+#endif
+cogl_texture_2d_sliced_new_from_bitmap
+cogl_texture_2d_sliced_new_from_data
+cogl_texture_2d_sliced_new_from_file
 cogl_texture_2d_sliced_new_with_size
+#ifdef COGL_HAS_GTYPE_SUPPORT
+cogl_texture_3d_get_gtype
+#endif
 cogl_texture_3d_new_from_bitmap
 cogl_texture_3d_new_from_data
 cogl_texture_3d_new_with_size
@@ -929,13 +1027,22 @@ cogl_winsys_feature_get_type
 
 #ifdef COGL_HAS_WAYLAND_EGL_SERVER_SUPPORT
 cogl_wayland_display_set_compositor_display
+#endif
+#ifdef COGL_HAS_EGL_PLATFORM_WAYLAND_SUPPORT
+cogl_wayland_onscreen_get_shell_surface
+cogl_wayland_onscreen_get_surface
+#endif
+#ifdef COGL_HAS_WAYLAND_EGL_SERVER_SUPPORT
 cogl_wayland_onscreen_resize
-cogl_wayland_renderer_get_compositor
+#endif
+#ifdef COGL_HAS_EGL_PLATFORM_WAYLAND_SUPPORT
+cogl_wayland_onscreen_set_foreign_surface
+#endif
+#ifdef COGL_HAS_WAYLAND_EGL_SERVER_SUPPORT
 cogl_wayland_renderer_get_display
-cogl_wayland_renderer_get_shell
-cogl_wayland_renderer_set_foreign_compositor
+cogl_wayland_renderer_set_event_dispatch_enabled
 cogl_wayland_renderer_set_foreign_display
-cogl_wayland_renderer_set_foreign_shell
+cogl_wayland_texture_set_region_from_shm_buffer
 cogl_wayland_texture_2d_new_from_buffer
 #endif
 
@@ -947,6 +1054,7 @@ cogl_win32_onscreen_set_foreign_window
 cogl_win32_renderer_add_filter
 cogl_win32_renderer_handle_event
 cogl_win32_renderer_remove_filter
+cogl_win32_renderer_set_event_retrieval_enabled
 #endif
 
 #ifdef COGL_HAS_XLIB
@@ -973,11 +1081,28 @@ cogl_x11_onscreen_set_foreign_window_xid
 /* will link without the following) */
 _cogl_atlas_add_reorganize_callback
 _cogl_atlas_new
-_cogl_atlas_remove_reorganize_callback
 _cogl_atlas_reserve_space
 _cogl_atlas_texture_add_reorganize_callback
-_cogl_atlas_texture_new_from_bitmap
-_cogl_atlas_texture_new_with_size
 _cogl_atlas_texture_remove_reorganize_callback
+_cogl_buffer_map_for_fill_or_fallback
+_cogl_buffer_unmap_for_fill_or_fallback
+_cogl_clip_stack_push_rectangle
+_cogl_clip_stack_push_primitive
 _cogl_context_get_default
+_cogl_debug_instances
+_cogl_framebuffer_get_modelview_stack
+_cogl_framebuffer_get_projection_stack
+_cogl_framebuffer_get_stencil_bits
+_cogl_object_default_unref
+_cogl_pipeline_foreach_layer_internal
+_cogl_pipeline_layer_get_texture
+_cogl_pipeline_prune_to_n_layers
+_cogl_primitive_draw
+_cogl_system_error_quark
+_cogl_texture_can_hardware_repeat
+_cogl_texture_get_format
 #endif
+
+cogl_fence_closure_get_user_data
+cogl_framebuffer_add_fence_callback
+cogl_framebuffer_cancel_fence_callback

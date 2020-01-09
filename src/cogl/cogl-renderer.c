@@ -1,24 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2011 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  * Authors:
  *   Robert Bragg <robert@linux.intel.com>
@@ -44,6 +49,7 @@
 #include "cogl-winsys-stub-private.h"
 #include "cogl-config-private.h"
 #include "cogl-error-private.h"
+#include "cogl-gtype-private.h"
 
 #ifdef COGL_HAS_EGL_PLATFORM_XLIB_SUPPORT
 #include "cogl-winsys-egl-x11-private.h"
@@ -90,6 +96,103 @@ extern const CoglDriverVtable _cogl_driver_gles;
 
 extern const CoglDriverVtable _cogl_driver_nop;
 
+typedef struct _CoglDriverDescription
+{
+  CoglDriver id;
+  const char *name;
+  CoglRendererConstraint constraints;
+  /* It would be nice to make this a pointer and then use a compound
+   * literal from C99 to initialise it but we probably can't get away
+   * with using C99 here. Instead we'll just use a fixed-size array.
+   * GCC should complain if someone adds an 8th feature to a
+   * driver. */
+  const CoglPrivateFeature private_features[8];
+  const CoglDriverVtable *vtable;
+  const CoglTextureDriver *texture_driver;
+  const char *libgl_name;
+} CoglDriverDescription;
+
+static CoglDriverDescription _cogl_drivers[] =
+{
+#ifdef HAVE_COGL_GL
+  {
+    COGL_DRIVER_GL,
+    "gl",
+    0,
+    { COGL_PRIVATE_FEATURE_ANY_GL,
+      COGL_PRIVATE_FEATURE_GL_FIXED,
+      COGL_PRIVATE_FEATURE_GL_PROGRAMMABLE,
+      -1 },
+    &_cogl_driver_gl,
+    &_cogl_texture_driver_gl,
+    COGL_GL_LIBNAME,
+  },
+  {
+    COGL_DRIVER_GL3,
+    "gl3",
+    0,
+    { COGL_PRIVATE_FEATURE_ANY_GL,
+      COGL_PRIVATE_FEATURE_GL_PROGRAMMABLE,
+      -1 },
+    &_cogl_driver_gl,
+    &_cogl_texture_driver_gl,
+    COGL_GL_LIBNAME,
+  },
+#endif
+#ifdef HAVE_COGL_GLES2
+  {
+    COGL_DRIVER_GLES2,
+    "gles2",
+    COGL_RENDERER_CONSTRAINT_SUPPORTS_COGL_GLES2,
+    { COGL_PRIVATE_FEATURE_ANY_GL,
+      COGL_PRIVATE_FEATURE_GL_EMBEDDED,
+      COGL_PRIVATE_FEATURE_GL_PROGRAMMABLE,
+      -1 },
+    &_cogl_driver_gles,
+    &_cogl_texture_driver_gles,
+    COGL_GLES2_LIBNAME,
+  },
+#endif
+#ifdef HAVE_COGL_GLES
+  {
+    COGL_DRIVER_GLES1,
+    "gles1",
+    0,
+    { COGL_PRIVATE_FEATURE_ANY_GL,
+      COGL_PRIVATE_FEATURE_GL_EMBEDDED,
+      COGL_PRIVATE_FEATURE_GL_FIXED,
+      -1 },
+    &_cogl_driver_gles,
+    &_cogl_texture_driver_gles,
+    COGL_GLES1_LIBNAME,
+  },
+#endif
+#ifdef USING_EMSCRIPTEN
+  {
+    COGL_DRIVER_WEBGL,
+    "webgl",
+    0,
+    { COGL_PRIVATE_FEATURE_ANY_GL,
+      COGL_PRIVATE_FEATURE_GL_EMBEDDED,
+      COGL_PRIVATE_FEATURE_GL_PROGRAMMABLE,
+      COGL_PRIVATE_FEATURE_GL_WEB,
+      -1 },
+    &_cogl_driver_gles,
+    &_cogl_texture_driver_gles,
+    NULL,
+  },
+#endif
+  {
+    COGL_DRIVER_NOP,
+    "nop",
+    0, /* constraints satisfied */
+    { -1 },
+    &_cogl_driver_nop,
+    NULL, /* texture driver */
+    NULL /* libgl_name */
+  }
+};
+
 static CoglWinsysVtableGetter _cogl_winsys_vtable_getters[] =
 {
 #ifdef COGL_HAS_GLX_SUPPORT
@@ -125,6 +228,7 @@ static CoglWinsysVtableGetter _cogl_winsys_vtable_getters[] =
 static void _cogl_renderer_free (CoglRenderer *renderer);
 
 COGL_OBJECT_DEFINE (Renderer, renderer);
+COGL_GTYPE_DEFINE_CLASS (Renderer, renderer);
 
 typedef struct _CoglNativeFilterClosure
 {
@@ -155,6 +259,8 @@ _cogl_renderer_free (CoglRenderer *renderer)
 {
   const CoglWinsysVtable *winsys = _cogl_renderer_get_winsys (renderer);
 
+  _cogl_closure_list_disconnect_all (&renderer->idle_closures);
+
   if (winsys)
     winsys->renderer_disconnect (renderer);
 
@@ -167,6 +273,8 @@ _cogl_renderer_free (CoglRenderer *renderer)
                    (GFunc) native_filter_closure_free,
                    NULL);
   g_slist_free (renderer->event_filters);
+
+  g_array_free (renderer->poll_fds, TRUE);
 
   g_free (renderer);
 }
@@ -181,8 +289,24 @@ cogl_renderer_new (void)
   renderer->connected = FALSE;
   renderer->event_filters = NULL;
 
+  renderer->poll_fds = g_array_new (FALSE, TRUE, sizeof (CoglPollFD));
+
+  _cogl_list_init (&renderer->idle_closures);
+
 #ifdef COGL_HAS_XLIB_SUPPORT
   renderer->xlib_enable_event_retrieval = TRUE;
+#endif
+
+#ifdef COGL_HAS_WIN32_SUPPORT
+  renderer->win32_enable_event_retrieval = TRUE;
+#endif
+
+#ifdef COGL_HAS_EGL_PLATFORM_WAYLAND_SUPPORT
+  renderer->wayland_enable_event_dispatch = TRUE;
+#endif
+
+#ifdef COGL_HAS_EGL_PLATFORM_KMS_SUPPORT
+  renderer->kms_fd = -1;
 #endif
 
   return _cogl_renderer_object_new (renderer);
@@ -247,111 +371,233 @@ cogl_renderer_check_onscreen_template (CoglRenderer *renderer,
   return TRUE;
 }
 
+typedef CoglBool (*CoglDriverCallback) (CoglDriverDescription *description,
+                                        void *user_data);
+
+static void
+foreach_driver_description (CoglDriver driver_override,
+                            CoglDriverCallback callback,
+                            void *user_data)
+{
+#ifdef COGL_DEFAULT_DRIVER
+  const CoglDriverDescription *default_driver = NULL;
+#endif
+  int i;
+
+  if (driver_override != COGL_DRIVER_ANY)
+    {
+      for (i = 0; i < G_N_ELEMENTS (_cogl_drivers); i++)
+        {
+          if (_cogl_drivers[i].id == driver_override)
+            {
+              callback (&_cogl_drivers[i], user_data);
+              return;
+            }
+        }
+
+      g_warn_if_reached ();
+      return;
+    }
+
+#ifdef COGL_DEFAULT_DRIVER
+  for (i = 0; i < G_N_ELEMENTS (_cogl_drivers); i++)
+    {
+      const CoglDriverDescription *desc = &_cogl_drivers[i];
+      if (g_ascii_strcasecmp (desc->name, COGL_DEFAULT_DRIVER) == 0)
+        {
+          default_driver = desc;
+          break;
+        }
+    }
+
+  if (default_driver)
+    {
+      if (!callback (default_driver, user_data))
+        return;
+    }
+#endif
+
+  for (i = 0; i < G_N_ELEMENTS (_cogl_drivers); i++)
+    {
+#ifdef COGL_DEFAULT_DRIVER
+      if (&_cogl_drivers[i] == default_driver)
+        continue;
+#endif
+
+      if (!callback (&_cogl_drivers[i], user_data))
+        return;
+    }
+}
+
+static CoglDriver
+driver_name_to_id (const char *name)
+{
+  int i;
+
+  for (i = 0; i < G_N_ELEMENTS (_cogl_drivers); i++)
+    {
+      if (g_ascii_strcasecmp (_cogl_drivers[i].name, name) == 0)
+        return _cogl_drivers[i].id;
+    }
+
+  return COGL_DRIVER_ANY;
+}
+
+static const char *
+driver_id_to_name (CoglDriver id)
+{
+  switch (id)
+    {
+      case COGL_DRIVER_GL:
+        return "gl";
+      case COGL_DRIVER_GL3:
+        return "gl3";
+      case COGL_DRIVER_GLES1:
+        return "gles1";
+      case COGL_DRIVER_GLES2:
+        return "gles2";
+      case COGL_DRIVER_WEBGL:
+        return "webgl";
+      case COGL_DRIVER_NOP:
+        return "nop";
+      case COGL_DRIVER_ANY:
+        g_warn_if_reached ();
+        return "any";
+    }
+
+  g_warn_if_reached ();
+  return "unknown";
+}
+
+typedef struct _SatisfyConstraintsState
+{
+  GList *constraints;
+  const CoglDriverDescription *driver_description;
+} SatisfyConstraintsState;
+
+static CoglBool
+satisfy_constraints (CoglDriverDescription *description,
+                     void *user_data)
+{
+  SatisfyConstraintsState *state = user_data;
+  GList *l;
+
+  for (l = state->constraints; l; l = l->next)
+    {
+      CoglRendererConstraint constraint = GPOINTER_TO_UINT (l->data);
+
+      /* Most of the constraints only affect the winsys selection so
+       * we'll filter them out */
+      if (!(constraint & COGL_RENDERER_DRIVER_CONSTRAINTS))
+        continue;
+
+      /* If the driver doesn't satisfy any constraint then continue
+       * to the next driver description */
+      if (!(constraint & description->constraints))
+        return TRUE;
+    }
+
+  state->driver_description = description;
+
+  return FALSE;
+}
+
 static CoglBool
 _cogl_renderer_choose_driver (CoglRenderer *renderer,
                               CoglError **error)
 {
   const char *driver_name = g_getenv ("COGL_DRIVER");
+  CoglDriver driver_override = COGL_DRIVER_ANY;
+  const char *invalid_override = NULL;
   const char *libgl_name;
-  CoglBool support_gles2_constraint = FALSE;
-  GList *l;
+  SatisfyConstraintsState state;
+  const CoglDriverDescription *desc;
+  int i;
 
   if (!driver_name)
     driver_name = _cogl_config_driver;
 
-  for (l = renderer->constraints; l; l = l->next)
+  if (driver_name)
     {
-      CoglRendererConstraint constraint = GPOINTER_TO_UINT (l->data);
-      if (constraint == COGL_RENDERER_CONSTRAINT_SUPPORTS_COGL_GLES2)
+      driver_override = driver_name_to_id (driver_name);
+      if (driver_override == COGL_DRIVER_ANY)
+        invalid_override = driver_name;
+    }
+
+  if (renderer->driver_override != COGL_DRIVER_ANY)
+    {
+      if (driver_override != COGL_DRIVER_ANY &&
+          renderer->driver_override != driver_override)
         {
-          support_gles2_constraint = TRUE;
-
-          if (!driver_name && renderer->driver_override == COGL_DRIVER_ANY)
-            renderer->driver_override = COGL_DRIVER_GLES2;
-          break;
+          _cogl_set_error (error,
+                           COGL_RENDERER_ERROR,
+                           COGL_RENDERER_ERROR_BAD_CONSTRAINT,
+                           "Application driver selection conflicts with driver "
+                           "specified in configuration");
+          return FALSE;
         }
+
+      driver_override = renderer->driver_override;
     }
 
-#ifdef COGL_DEFAULT_DRIVER
-  if (!driver_name)
-    driver_name = COGL_DEFAULT_DRIVER;
-#endif
-
-#ifdef HAVE_COGL_GL
-  if (renderer->driver_override == COGL_DRIVER_GL ||
-      (renderer->driver_override == COGL_DRIVER_ANY &&
-       (driver_name == NULL || !g_ascii_strcasecmp (driver_name, "gl"))))
+  if (driver_override != COGL_DRIVER_ANY)
     {
-      renderer->driver = COGL_DRIVER_GL;
-      libgl_name = COGL_GL_LIBNAME;
-      goto found;
+      CoglBool found = FALSE;
+      int i;
+
+      for (i = 0; i < G_N_ELEMENTS (_cogl_drivers); i++)
+        {
+          if (_cogl_drivers[i].id == driver_override)
+            {
+              found = TRUE;
+              break;
+            }
+        }
+      if (!found)
+        invalid_override = driver_id_to_name (driver_override);
     }
 
-  if (renderer->driver_override == COGL_DRIVER_GL3 ||
-      (renderer->driver_override == COGL_DRIVER_ANY &&
-       (driver_name == NULL || !g_ascii_strcasecmp (driver_name, "gl3"))))
-    {
-      renderer->driver = COGL_DRIVER_GL3;
-      libgl_name = COGL_GL_LIBNAME;
-      goto found;
-    }
-#endif
-
-#ifdef HAVE_COGL_GLES2
-  if (renderer->driver_override == COGL_DRIVER_GLES2 ||
-      (renderer->driver_override == COGL_DRIVER_ANY &&
-       (driver_name == NULL || !g_ascii_strcasecmp (driver_name, "gles2"))))
-    {
-      renderer->driver = COGL_DRIVER_GLES2;
-      libgl_name = COGL_GLES2_LIBNAME;
-      goto found;
-    }
-#endif
-
-#ifdef HAVE_COGL_GLES
-  if (renderer->driver_override == COGL_DRIVER_GLES1 ||
-      (renderer->driver_override == COGL_DRIVER_ANY &&
-       (driver_name == NULL || !g_ascii_strcasecmp (driver_name, "gles1"))))
-    {
-      renderer->driver = COGL_DRIVER_GLES1;
-      libgl_name = COGL_GLES1_LIBNAME;
-      goto found;
-    }
-#endif
-
-  if (renderer->driver_override == COGL_DRIVER_NOP ||
-      (renderer->driver_override == COGL_DRIVER_ANY &&
-       (driver_name == NULL || !g_ascii_strcasecmp (driver_name, "nop"))))
-    {
-      renderer->driver = COGL_DRIVER_NOP;
-      libgl_name = NULL;
-      goto found;
-    }
-
-  _cogl_set_error (error,
-               COGL_DRIVER_ERROR,
-               COGL_DRIVER_ERROR_NO_SUITABLE_DRIVER_FOUND,
-               "No suitable driver found");
-  return FALSE;
-
-found:
-
-  if (support_gles2_constraint &&
-      renderer->driver != COGL_DRIVER_GLES2)
+  if (invalid_override)
     {
       _cogl_set_error (error,
-                   COGL_RENDERER_ERROR,
-                   COGL_RENDERER_ERROR_BAD_CONSTRAINT,
-                   "No suitable driver found");
+                       COGL_RENDERER_ERROR,
+                       COGL_RENDERER_ERROR_BAD_CONSTRAINT,
+                       "Driver \"%s\" is not available",
+                       invalid_override);
       return FALSE;
     }
 
+  state.driver_description = NULL;
+  state.constraints = renderer->constraints;
+
+  foreach_driver_description (driver_override,
+                              satisfy_constraints,
+                              &state);
+
+  if (!state.driver_description)
+    {
+      _cogl_set_error (error,
+                       COGL_RENDERER_ERROR,
+                       COGL_RENDERER_ERROR_BAD_CONSTRAINT,
+                       "No suitable driver found");
+      return FALSE;
+    }
+
+  desc = state.driver_description;
+  renderer->driver = desc->id;
+  renderer->driver_vtable = desc->vtable;
+  renderer->texture_driver = desc->texture_driver;
+  libgl_name = desc->libgl_name;
+
+  memset(renderer->private_features, 0, sizeof (renderer->private_features));
+  for (i = 0; desc->private_features[i] != -1; i++)
+    COGL_FLAGS_SET (renderer->private_features,
+                    desc->private_features[i], TRUE);
+
 #ifndef HAVE_DIRECTLY_LINKED_GL_LIBRARY
 
-  if (renderer->driver == COGL_DRIVER_GL ||
-      renderer->driver == COGL_DRIVER_GL3 ||
-      renderer->driver == COGL_DRIVER_GLES1 ||
-      renderer->driver == COGL_DRIVER_GLES2)
+  if (COGL_FLAGS_GET (renderer->private_features,
+                      COGL_PRIVATE_FEATURE_ANY_GL))
     {
       renderer->libgl_module = g_module_open (libgl_name,
                                               G_MODULE_BIND_LAZY);
@@ -367,30 +613,6 @@ found:
     }
 
 #endif /* HAVE_DIRECTLY_LINKED_GL_LIBRARY */
-
-  switch (renderer->driver)
-    {
-#ifdef HAVE_COGL_GL
-    case COGL_DRIVER_GL:
-    case COGL_DRIVER_GL3:
-      renderer->driver_vtable = &_cogl_driver_gl;
-      renderer->texture_driver = &_cogl_texture_driver_gl;
-      break;
-#endif
-
-#if defined (HAVE_COGL_GLES) || defined (HAVE_COGL_GLES2)
-    case COGL_DRIVER_GLES1:
-    case COGL_DRIVER_GLES2:
-      renderer->driver_vtable = &_cogl_driver_gles;
-      renderer->texture_driver = &_cogl_texture_driver_gles;
-      break;
-#endif
-
-    case COGL_DRIVER_NOP:
-    default:
-      renderer->driver_vtable = &_cogl_driver_nop;
-      renderer->texture_driver = NULL;
-    }
 
   return TRUE;
 }

@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>The Top-Level Context</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Cogl 2.0 Reference Manual">
 <link rel="up" href="cogl-context-apis.html" title="Setting Up A Drawing Context">
 <link rel="prev" href="cogl-2.0-experimental-CoglDisplay---Setup-a-display-pipeline.html" title="CoglDisplay: Setup a display pipeline">
 <link rel="next" href="cogl-pipeline-apis.html" title="Setting Up A GPU Pipeline">
-<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.19.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -195,14 +195,14 @@ Gets whether the given object references an existing context object.
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>object</code></em> :</span></p></td>
-<td>An object or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+<td>An object or <code class="literal">NULL</code>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the <em class="parameter"><code>object</code></em> references a <a class="link" href="cogl-2.0-experimental-The-Top-Level-Context.html#CoglContext" title="CoglContext"><span class="type">CoglContext</span></a>,
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise</td>
+<code class="literal">TRUE</code> if the <em class="parameter"><code>object</code></em> references a <a class="link" href="cogl-2.0-experimental-The-Top-Level-Context.html#CoglContext" title="CoglContext"><span class="type">CoglContext</span></a>,
+<code class="literal">FALSE</code> otherwise</td>
 </tr>
 </tbody>
 </table></div>
@@ -226,7 +226,8 @@ for any state objects that are allocated.
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>display</code></em> :</span></p></td>
-<td>A <a class="link" href="cogl-2.0-experimental-CoglDisplay---Setup-a-display-pipeline.html#CoglDisplay" title="CoglDisplay"><span class="type">CoglDisplay</span></a> pointer</td>
+<td>A <a class="link" href="cogl-2.0-experimental-CoglDisplay---Setup-a-display-pipeline.html#CoglDisplay" title="CoglDisplay"><span class="type">CoglDisplay</span></a> pointer. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
@@ -249,7 +250,7 @@ for any state objects that are allocated.
 <p>
 Retrieves the <a class="link" href="cogl-2.0-experimental-CoglDisplay---Setup-a-display-pipeline.html#CoglDisplay" title="CoglDisplay"><span class="type">CoglDisplay</span></a> that is internally associated with the
 given <em class="parameter"><code>context</code></em>. This will return the same <a class="link" href="cogl-2.0-experimental-CoglDisplay---Setup-a-display-pipeline.html#CoglDisplay" title="CoglDisplay"><span class="type">CoglDisplay</span></a> that was
-passed to <a class="link" href="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-context-new" title="cogl_context_new ()"><code class="function">cogl_context_new()</code></a> or if <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> was passed to
+passed to <a class="link" href="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-context-new" title="cogl_context_new ()"><code class="function">cogl_context_new()</code></a> or if <code class="literal">NULL</code> was passed to
 <a class="link" href="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-context-new" title="cogl_context_new ()"><code class="function">cogl_context_new()</code></a> then this function returns a pointer to the
 display that was automatically setup internally.
 </p>
@@ -299,6 +300,10 @@ given <em class="parameter"><code>context</code></em>. <span class="annotation">
   COGL_FEATURE_ID_GLES2_CONTEXT,
   COGL_FEATURE_ID_DEPTH_TEXTURE,
   COGL_FEATURE_ID_PRESENTATION_TIME,
+  COGL_FEATURE_ID_FENCE,
+  COGL_FEATURE_ID_PER_VERTEX_POINT_SIZE,
+  COGL_FEATURE_ID_TEXTURE_RG,
+  COGL_FEATURE_ID_BUFFER_AGE,
 } CoglFeatureID;
 </pre>
 <p>
@@ -441,6 +446,30 @@ check for them using <a class="link" href="cogl-2.0-experimental-The-Top-Level-C
    time stamps will be recorded in <span class="type">CoglFrameInfo</span> objects.
 </td>
 </tr>
+<tr>
+<td><p><a name="COGL-FEATURE-ID-FENCE:CAPS"></a><span class="term"><code class="literal">COGL_FEATURE_ID_FENCE</code></span></p></td>
+<td></td>
+</tr>
+<tr>
+<td><p><a name="COGL-FEATURE-ID-PER-VERTEX-POINT-SIZE:CAPS"></a><span class="term"><code class="literal">COGL_FEATURE_ID_PER_VERTEX_POINT_SIZE</code></span></p></td>
+<td>Whether cogl_point_size_in
+    can be used as an attribute to set a per-vertex point size.
+</td>
+</tr>
+<tr>
+<td><p><a name="COGL-FEATURE-ID-TEXTURE-RG:CAPS"></a><span class="term"><code class="literal">COGL_FEATURE_ID_TEXTURE_RG</code></span></p></td>
+<td>Support for
+   <a class="link" href="cogl-2.0-experimental-The-Texture-Interface.html#COGL-TEXTURE-COMPONENTS-RG:CAPS"><code class="literal">COGL_TEXTURE_COMPONENTS_RG</code></a> as the internal components of a
+   texture.
+</td>
+</tr>
+<tr>
+<td><p><a name="COGL-FEATURE-ID-BUFFER-AGE:CAPS"></a><span class="term"><code class="literal">COGL_FEATURE_ID_BUFFER_AGE</code></span></p></td>
+<td>Available if the age of <a class="link" href="cogl-2.0-experimental-CoglOnscreen---The-Onscreen-Framebuffer-Interface.html#CoglOnscreen" title="CoglOnscreen"><span class="type">CoglOnscreen</span></a> back
+   buffers are tracked and so <code class="function">cogl_onscreen_get_buffer_age()</code> can be
+   expected to return age values other than 0.
+</td>
+</tr>
 </tbody>
 </table></div>
 <p class="since">Since 1.10</p>
@@ -477,7 +506,7 @@ that certain features are available before depending on them.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the <em class="parameter"><code>feature</code></em> is currently supported or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if
+<code class="literal">TRUE</code> if the <em class="parameter"><code>feature</code></em> is currently supported or <code class="literal">FALSE</code> if
 not.</td>
 </tr>
 </tbody>
@@ -495,7 +524,7 @@ Checks if a list of features are all currently available.
 </p>
 <p>
 This checks all of the listed features using <a class="link" href="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-has-feature" title="cogl_has_feature ()"><code class="function">cogl_has_feature()</code></a> and
-returns <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if all the features are available or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>
+returns <code class="literal">TRUE</code> if all the features are available or <code class="literal">FALSE</code>
 otherwise.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -515,7 +544,7 @@ otherwise.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if all the features are available, <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>
+<code class="literal">TRUE</code> if all the features are available, <code class="literal">FALSE</code>
 otherwise.</td>
 </tr>
 </tbody>
@@ -573,11 +602,14 @@ for a given <em class="parameter"><code>context</code></em> and for each feature
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>callback</code></em> :</span></p></td>
-<td>A <a class="link" href="cogl-2.0-experimental-The-Top-Level-Context.html#CoglFeatureCallback" title="CoglFeatureCallback ()"><span class="type">CoglFeatureCallback</span></a> called for each supported feature</td>
+<td>A <a class="link" href="cogl-2.0-experimental-The-Top-Level-Context.html#CoglFeatureCallback" title="CoglFeatureCallback ()"><span class="type">CoglFeatureCallback</span></a> called for each
+supported feature. <span class="annotation">[<acronym title="The callback is valid only during the call to the method."><span class="acronym">scope call</span></acronym>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
-<td>Private data to pass to the callback</td>
+<td>Private data to pass to the callback. <span class="annotation">[<acronym title="This parameter is a 'user_data', for callbacks; many bindings can pass NULL here."><span class="acronym">closure</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -588,6 +620,10 @@ for a given <em class="parameter"><code>context</code></em> and for each feature
 <div class="refsect2">
 <a name="cogl-push-matrix"></a><h3>cogl_push_matrix ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_push_matrix                    (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_push_matrix</code> has been deprecated since version 1.10 and should not be used in newly-written code. Use <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-push-matrix" title="cogl_framebuffer_push_matrix ()"><code class="function">cogl_framebuffer_push_matrix()</code></a> instead</p>
+</div>
 <p>
 Stores the current model-view matrix on the matrix stack. The matrix
 can later be restored with <a class="link" href="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-pop-matrix" title="cogl_pop_matrix ()"><code class="function">cogl_pop_matrix()</code></a>.
@@ -597,6 +633,10 @@ can later be restored with <a class="link" href="cogl-2.0-experimental-The-Top-L
 <div class="refsect2">
 <a name="cogl-pop-matrix"></a><h3>cogl_pop_matrix ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_pop_matrix                     (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_pop_matrix</code> has been deprecated since version 1.10 and should not be used in newly-written code. Use <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-pop-matrix" title="cogl_framebuffer_pop_matrix ()"><code class="function">cogl_framebuffer_pop_matrix()</code></a> instead</p>
+</div>
 <p>
 Restores the current model-view matrix from the matrix stack.
 </p>
@@ -607,6 +647,10 @@ Restores the current model-view matrix from the matrix stack.
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_scale                          (<em class="parameter"><code><span class="type">float</span> x</code></em>,
                                                          <em class="parameter"><code><span class="type">float</span> y</code></em>,
                                                          <em class="parameter"><code><span class="type">float</span> z</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_scale</code> has been deprecated since version 1.10 and should not be used in newly-written code. Use <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-pop-matrix" title="cogl_framebuffer_pop_matrix ()"><code class="function">cogl_framebuffer_pop_matrix()</code></a> instead</p>
+</div>
 <p>
 Multiplies the current model-view matrix by one that scales the x,
 y and z axes by the given values.
@@ -638,6 +682,10 @@ y and z axes by the given values.
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_translate                      (<em class="parameter"><code><span class="type">float</span> x</code></em>,
                                                          <em class="parameter"><code><span class="type">float</span> y</code></em>,
                                                          <em class="parameter"><code><span class="type">float</span> z</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_translate</code> has been deprecated since version 1.10 and should not be used in newly-written code. Use <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-translate" title="cogl_framebuffer_translate ()"><code class="function">cogl_framebuffer_translate()</code></a> instead</p>
+</div>
 <p>
 Multiplies the current model-view matrix by one that translates the
 model along all three axes according to the given values.
@@ -670,6 +718,10 @@ model along all three axes according to the given values.
                                                          <em class="parameter"><code><span class="type">float</span> x</code></em>,
                                                          <em class="parameter"><code><span class="type">float</span> y</code></em>,
                                                          <em class="parameter"><code><span class="type">float</span> z</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_rotate</code> has been deprecated since version 1.10 and should not be used in newly-written code. Use <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-rotate" title="cogl_framebuffer_rotate ()"><code class="function">cogl_framebuffer_rotate()</code></a> instead</p>
+</div>
 <p>
 Multiplies the current model-view matrix by one that rotates the
 model around the vertex specified by <em class="parameter"><code>x</code></em>, <em class="parameter"><code>y</code></em> and <em class="parameter"><code>z</code></em>. The rotation
@@ -706,6 +758,10 @@ rotation.
 <div class="refsect2">
 <a name="cogl-transform"></a><h3>cogl_transform ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_transform                      (<em class="parameter"><code>const <a class="link" href="cogl-2.0-experimental-Matrices.html#CoglMatrix" title="CoglMatrix"><span class="type">CoglMatrix</span></a> *matrix</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_transform</code> has been deprecated since version 1.10 and should not be used in newly-written code. Use <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-transform" title="cogl_framebuffer_transform ()"><code class="function">cogl_framebuffer_transform()</code></a> instead</p>
+</div>
 <p>
 Multiplies the current model-view matrix by the given matrix.
 </p>
@@ -730,6 +786,10 @@ Multiplies the current model-view matrix by the given matrix.
                                                          <em class="parameter"><code><span class="type">float</span> top</code></em>,
                                                          <em class="parameter"><code><span class="type">float</span> z_near</code></em>,
                                                          <em class="parameter"><code><span class="type">float</span> z_far</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_frustum</code> has been deprecated since version 1.10 and should not be used in newly-written code. Use <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-frustum" title="cogl_framebuffer_frustum ()"><code class="function">cogl_framebuffer_frustum()</code></a> instead</p>
+</div>
 <p>
 Replaces the current projection matrix with a perspective matrix
 for a given viewing frustum defined by 4 side clip planes that
@@ -780,6 +840,10 @@ the near clipping plane</td>
                                                          <em class="parameter"><code><span class="type">float</span> aspect</code></em>,
                                                          <em class="parameter"><code><span class="type">float</span> z_near</code></em>,
                                                          <em class="parameter"><code><span class="type">float</span> z_far</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_perspective</code> has been deprecated since version 1.10 and should not be used in newly-written code. Use <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-perspective" title="cogl_framebuffer_perspective ()"><code class="function">cogl_framebuffer_perspective()</code></a> instead</p>
+</div>
 <p>
 Replaces the current projection matrix with a perspective matrix
 based on the provided values.
@@ -827,6 +891,10 @@ objects near to each other.</div>
                                                          <em class="parameter"><code><span class="type">float</span> top</code></em>,
                                                          <em class="parameter"><code><span class="type">float</span> near</code></em>,
                                                          <em class="parameter"><code><span class="type">float</span> far</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_ortho</code> has been deprecated since version 1.10 and should not be used in newly-written code. Use <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-orthographic" title="cogl_framebuffer_orthographic ()"><code class="function">cogl_framebuffer_orthographic()</code></a> instead</p>
+</div>
 <p>
 Replaces the current projection matrix with an orthographic projection
 matrix. See <a class="xref" href="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-ortho-matrix" title="Figure 1. ">Figure 1, “”</a> to see how the matrix is
@@ -891,6 +959,11 @@ plane (negative if the plane is behind the viewer)</td>
 <div class="refsect2">
 <a name="cogl-get-modelview-matrix"></a><h3>cogl_get_modelview_matrix ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_get_modelview_matrix           (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Matrices.html#CoglMatrix" title="CoglMatrix"><span class="type">CoglMatrix</span></a> *matrix</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_get_modelview_matrix</code> has been deprecated since version 1.10 and should not be used in newly-written code. Use <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-get-modelview-matrix" title="cogl_framebuffer_get_modelview_matrix ()"><code class="function">cogl_framebuffer_get_modelview_matrix()</code></a>
+                  instead</p>
+</div>
 <p>
 Stores the current model-view matrix in <em class="parameter"><code>matrix</code></em>.
 </p>
@@ -910,6 +983,11 @@ Stores the current model-view matrix in <em class="parameter"><code>matrix</code
 <div class="refsect2">
 <a name="cogl-set-modelview-matrix"></a><h3>cogl_set_modelview_matrix ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_set_modelview_matrix           (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Matrices.html#CoglMatrix" title="CoglMatrix"><span class="type">CoglMatrix</span></a> *matrix</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_set_modelview_matrix</code> has been deprecated since version 1.10 and should not be used in newly-written code. Use <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-set-modelview-matrix" title="cogl_framebuffer_set_modelview_matrix ()"><code class="function">cogl_framebuffer_set_modelview_matrix()</code></a>
+                  instead</p>
+</div>
 <p>
 Loads <em class="parameter"><code>matrix</code></em> as the new model-view matrix.
 </p>
@@ -928,6 +1006,11 @@ Loads <em class="parameter"><code>matrix</code></em> as the new model-view matri
 <div class="refsect2">
 <a name="cogl-get-projection-matrix"></a><h3>cogl_get_projection_matrix ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_get_projection_matrix          (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Matrices.html#CoglMatrix" title="CoglMatrix"><span class="type">CoglMatrix</span></a> *matrix</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_get_projection_matrix</code> has been deprecated since version 1.10 and should not be used in newly-written code. Use <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-get-projection-matrix" title="cogl_framebuffer_get_projection_matrix ()"><code class="function">cogl_framebuffer_get_projection_matrix()</code></a>
+                  instead</p>
+</div>
 <p>
 Stores the current projection matrix in <em class="parameter"><code>matrix</code></em>.
 </p>
@@ -947,6 +1030,11 @@ Stores the current projection matrix in <em class="parameter"><code>matrix</code
 <div class="refsect2">
 <a name="cogl-set-projection-matrix"></a><h3>cogl_set_projection_matrix ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_set_projection_matrix          (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Matrices.html#CoglMatrix" title="CoglMatrix"><span class="type">CoglMatrix</span></a> *matrix</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_set_projection_matrix</code> has been deprecated since version 1.10 and should not be used in newly-written code. Use <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-set-projection-matrix" title="cogl_framebuffer_set_projection_matrix ()"><code class="function">cogl_framebuffer_set_projection_matrix()</code></a>
+                  instead</p>
+</div>
 <p>
 Loads matrix as the new projection matrix.
 </p>
@@ -968,6 +1056,10 @@ Loads matrix as the new projection matrix.
                                                          <em class="parameter"><code><span class="type">int</span> y</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> width</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> height</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_set_viewport</code> has been deprecated since version 1.8 and should not be used in newly-written code. Use <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-set-viewport" title="cogl_framebuffer_set_viewport ()"><code class="function">cogl_framebuffer_set_viewport()</code></a> instead</p>
+</div>
 <p>
 Replaces the current viewport with the given values.
 </p>
@@ -1001,6 +1093,11 @@ Replaces the current viewport with the given values.
 <div class="refsect2">
 <a name="cogl-get-viewport"></a><h3>cogl_get_viewport ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_get_viewport                   (<em class="parameter"><code><span class="type">float</span> v[4]</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_get_viewport</code> has been deprecated since version 1.10 and should not be used in newly-written code. Use <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-get-viewport4fv" title="cogl_framebuffer_get_viewport4fv ()"><code class="function">cogl_framebuffer_get_viewport4fv()</code></a>
+                  instead</p>
+</div>
 <p>
 Stores the current viewport in <em class="parameter"><code>v</code></em>. <em class="parameter"><code>v</code></em>[0] and <em class="parameter"><code>v</code></em>[1] get the x and y
 position of the viewport and <em class="parameter"><code>v</code></em>[2] and <em class="parameter"><code>v</code></em>[3] get the width and
@@ -1023,11 +1120,17 @@ of <span class="type">float</span>s to receive the viewport dimensions. <span cl
 <div class="refsect2">
 <a name="cogl-set-source"></a><h3>cogl_set_source ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_set_source                     (<em class="parameter"><code><span class="type">void</span> *material</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_set_source</code> has been deprecated since version 1.16 and should not be used in newly-written code. Latest drawing apis all take an explicit
+                  <a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> argument so this stack of
+                  <span class="type">CoglMaterial</span>s shouldn't be used.</p>
+</div>
 <p>
 This function changes the material at the top of the source stack.
 The material at the top of this stack defines the GPU state used to
 process subsequent primitives, such as rectangles drawn with
-<a class="link" href="cogl-2.0-experimental-Rectangles.html#cogl-rectangle" title="cogl_rectangle ()"><code class="function">cogl_rectangle()</code></a> or vertices drawn using <a href="../cogl/cogl-Vertex-Buffers.html#cogl-vertex-buffer-draw"><code class="function">cogl_vertex_buffer_draw()</code></a>.
+<a class="link" href="cogl-2.0-experimental-Rectangles.html#cogl-rectangle" title="cogl_rectangle ()"><code class="function">cogl_rectangle()</code></a> or vertices drawn using <code class="function">cogl_vertex_buffer_draw()</code>.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -1036,7 +1139,7 @@ process subsequent primitives, such as rectangles drawn with
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><em class="parameter"><code>material</code></em> :</span></p></td>
-<td>A <a href="../cogl/cogl-Materials.html#CoglMaterial"><span class="type">CoglMaterial</span></a>
+<td>A <span class="type">CoglMaterial</span>
 </td>
 </tr></tbody>
 </table></div>
@@ -1046,6 +1149,12 @@ process subsequent primitives, such as rectangles drawn with
 <div class="refsect2">
 <a name="cogl-set-source-color"></a><h3>cogl_set_source_color ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_set_source_color               (<em class="parameter"><code>const <a class="link" href="cogl-2.0-experimental-Color-Type.html#CoglColor" title="struct CoglColor"><span class="type">CoglColor</span></a> *color</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_set_source_color</code> has been deprecated since version 1.16 and should not be used in newly-written code. Latest drawing apis all take an explicit
+                  <a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> argument so this stack of
+                  <span class="type">CoglMaterial</span>s shouldn't be used.</p>
+</div>
 <p>
 This is a convenience function for creating a solid fill source material
 from the given color. This color will be used for any subsequent drawing
@@ -1080,6 +1189,12 @@ if you already have the color components.
                                                          <em class="parameter"><code><span class="type">uint8_t</span> green</code></em>,
                                                          <em class="parameter"><code><span class="type">uint8_t</span> blue</code></em>,
                                                          <em class="parameter"><code><span class="type">uint8_t</span> alpha</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_set_source_color4ub</code> has been deprecated since version 1.16 and should not be used in newly-written code. Latest drawing apis all take an explicit
+                  <a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> argument so this stack of
+                  <span class="type">CoglMaterial</span>s shouldn't be used.</p>
+</div>
 <p>
 This is a convenience function for creating a solid fill source material
 from the given color using unsigned bytes for each component. This
@@ -1122,6 +1237,12 @@ between 0 and 255.
                                                          <em class="parameter"><code><span class="type">float</span> green</code></em>,
                                                          <em class="parameter"><code><span class="type">float</span> blue</code></em>,
                                                          <em class="parameter"><code><span class="type">float</span> alpha</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_set_source_color4f</code> has been deprecated since version 1.16 and should not be used in newly-written code. Latest drawing apis all take an explicit
+                  <a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> argument so this stack of
+                  <span class="type">CoglMaterial</span>s shouldn't be used.</p>
+</div>
 <p>
 This is a convenience function for creating a solid fill source material
 from the given color using normalized values for each component. This color
@@ -1162,6 +1283,12 @@ range, they will be clamped.
 <div class="refsect2">
 <a name="cogl-set-source-texture"></a><h3>cogl_set_source_texture ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_set_source_texture             (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-The-Texture-Interface.html#CoglTexture" title="CoglTexture"><span class="type">CoglTexture</span></a> *texture</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_set_source_texture</code> has been deprecated since version 1.16 and should not be used in newly-written code. Latest drawing apis all take an explicit
+                  <a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> argument so this stack of
+                  <span class="type">CoglMaterial</span>s shouldn't be used.</p>
+</div>
 <p>
 This is a convenience function for creating a material with the first
 layer set to <em class="parameter"><code>texture</code></em> and setting that material as the source with
@@ -1196,6 +1323,12 @@ cogl_set_source (material);
 <div class="refsect2">
 <a name="cogl-get-source"></a><h3>cogl_get_source ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span> *              cogl_get_source                     (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_get_source</code> has been deprecated since version 1.16 and should not be used in newly-written code. Latest drawing apis all take an explicit
+                  <a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> argument so this stack of
+                  <span class="type">CoglMaterial</span>s shouldn't be used.</p>
+</div>
 <p>
 Returns the current source material as previously set using
 <a class="link" href="cogl-2.0-experimental-The-Top-Level-Context.html#cogl-set-source" title="cogl_set_source ()"><code class="function">cogl_set_source()</code></a>.
@@ -1226,6 +1359,12 @@ modifying such materials is undefined.</div>
 <div class="refsect2">
 <a name="cogl-push-source"></a><h3>cogl_push_source ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_push_source                    (<em class="parameter"><code><span class="type">void</span> *material</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_push_source</code> has been deprecated since version 1.16 and should not be used in newly-written code. Latest drawing apis all take an explicit
+                  <a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> argument so this stack of
+                  <span class="type">CoglMaterial</span>s shouldn't be used.</p>
+</div>
 <p>
 Pushes the given <em class="parameter"><code>material</code></em> to the top of the source stack. The
 material at the top of this stack defines the GPU state used to
@@ -1238,7 +1377,7 @@ process later primitives as defined by <a class="link" href="cogl-2.0-experiment
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><em class="parameter"><code>material</code></em> :</span></p></td>
-<td>A <a href="../cogl/cogl-Materials.html#CoglMaterial"><span class="type">CoglMaterial</span></a>
+<td>A <span class="type">CoglMaterial</span>
 </td>
 </tr></tbody>
 </table></div>
@@ -1248,6 +1387,12 @@ process later primitives as defined by <a class="link" href="cogl-2.0-experiment
 <div class="refsect2">
 <a name="cogl-pop-source"></a><h3>cogl_pop_source ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_pop_source                     (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_pop_source</code> has been deprecated since version 1.16 and should not be used in newly-written code. Latest drawing apis all take an explicit
+                  <a class="link" href="cogl-2.0-experimental-Pipeline.html#CoglPipeline" title="CoglPipeline"><span class="type">CoglPipeline</span></a> argument so this stack of
+                  <span class="type">CoglMaterial</span>s shouldn't be used.</p>
+</div>
 <p>
 Removes the material at the top of the source stack. The material
 at the top of this stack defines the GPU state used to process
@@ -1260,6 +1405,10 @@ later primitives as defined by <a class="link" href="cogl-2.0-experimental-The-T
 <a name="cogl-clear"></a><h3>cogl_clear ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                cogl_clear                          (<em class="parameter"><code>const <a class="link" href="cogl-2.0-experimental-Color-Type.html#CoglColor" title="struct CoglColor"><span class="type">CoglColor</span></a> *color</code></em>,
                                                          <em class="parameter"><code><span class="type">unsigned long </span> buffers</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_clear</code> has been deprecated since version 1.16 and should not be used in newly-written code. Use <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-clear" title="cogl_framebuffer_clear ()"><code class="function">cogl_framebuffer_clear()</code></a> api instead</p>
+</div>
 <p>
 Clears all the auxiliary buffers identified in the <em class="parameter"><code>buffers</code></em> mask, and if
 that includes the color buffer then the specified <em class="parameter"><code>color</code></em> is used.
@@ -1316,6 +1465,10 @@ Flags for <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Fram
                                                          <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-The-Top-Level-Context.html#CoglReadPixelsFlags" title="enum CoglReadPixelsFlags"><span class="type">CoglReadPixelsFlags</span></a> source</code></em>,
                                                          <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglPixelFormat" title="enum CoglPixelFormat"><span class="type">CoglPixelFormat</span></a> format</code></em>,
                                                          <em class="parameter"><code><span class="type">uint8_t</span> *pixels</code></em>);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+<p><code class="literal">cogl_read_pixels</code> has been deprecated since version 1.16 and should not be used in newly-written code. Use <a class="link" href="cogl-2.0-experimental-CoglFramebuffer---The-Framebuffer-Interface.html#cogl-framebuffer-read-pixels" title="cogl_framebuffer_read_pixels ()"><code class="function">cogl_framebuffer_read_pixels()</code></a> instead</p>
+</div>
 <p>
 This reads a rectangle of pixels from the current framebuffer where
 position (0, 0) is the top left. The pixel at (x, y) is the first
@@ -1403,6 +1556,6 @@ starts to use ARBfb programs itself for the material API.
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18.1</div>
+          Generated by GTK-Doc V1.19.1</div>
 </body>
 </html>

@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2007,2008,2009,2010 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  */
@@ -261,30 +268,12 @@ _cogl_util_pixel_format_from_masks (unsigned long r_mask,
  *
  * Note: Only Gcc >= 4.6 supports the c11 _Static_assert which lets us
  * print a nice message if the compile time assertion fails.
- *
- * Note: this assertion macro can only be used in C code where it is
- * valid to use a typedef. This macro should not be used in headers
- * because we can't guarantee a unique name for the typedef due to
- * the name being based on the line number of the file it's used in.
- *
- * Although we can remove this limitation if the compiler supports
- * _Static_assert we currently choose to maintain the limitation in
- * any case to help ensure we don't accidentally create code that
- * doesn't compile on some toolchains because we forgot about this
- * limitation.
  */
 #ifdef HAVE_STATIC_ASSERT
 #define _COGL_STATIC_ASSERT(EXPRESSION, MESSAGE) \
-  _Static_assert (EXPRESSION, MESSAGE); \
-  _COGL_TYPEDEF_ASSERT(EXPRESSION)
+  _Static_assert (EXPRESSION, MESSAGE);
 #else
-#define _COGL_STATIC_ASSERT(EXPRESSION, MESSAGE) \
-  _COGL_TYPEDEF_ASSERT(EXPRESSION)
-
-/* So that we can safely use _Static_assert() if we want to add
- * assertions to internal headers we define it to a NOP here
- * if it's not supported by the compiler. */
-#define _Static_assert(EXPRESSION, MESSAGE)
+#define _COGL_STATIC_ASSERT(EXPRESSION, MESSAGE)
 #endif
 
 #ifdef HAVE_MEMMEM

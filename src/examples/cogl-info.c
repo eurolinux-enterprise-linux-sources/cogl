@@ -115,6 +115,12 @@ struct {
     "Depth Textures",
     "CoglFramebuffers can be configured to render their depth buffer into "
     "a texture"
+  },
+  {
+    COGL_FEATURE_ID_PER_VERTEX_POINT_SIZE,
+    "Per-vertex point size",
+    "cogl_point_size_in can be used as an attribute to specify a per-vertex "
+    "point size"
   }
 };
 
@@ -227,7 +233,11 @@ main (int argc, char **argv)
   const char *winsys_name;
   OutputState output_state;
 
+#ifdef COGL_HAS_EMSCRIPTEN_SUPPORT
+  ctx = cogl_sdl_context_new (SDL_USEREVENT, &error);
+#else
   ctx = cogl_context_new (NULL, &error);
+#endif
   if (!ctx) {
       fprintf (stderr, "Failed to create context: %s\n", error->message);
       return 1;

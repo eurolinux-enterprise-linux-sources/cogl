@@ -15,7 +15,6 @@ create_texture (CoglContext *context)
   return cogl_texture_2d_new_from_data (context,
                                         2, 1, /* width/height */
                                         COGL_PIXEL_FORMAT_RGBA_8888_PRE,
-                                        COGL_PIXEL_FORMAT_ANY,
                                         4, /* rowstride */
                                         data,
                                         NULL /* error */);
@@ -24,7 +23,7 @@ create_texture (CoglContext *context)
 void
 test_alpha_test (void)
 {
-  CoglTexture *tex = COGL_TEXTURE (create_texture (test_ctx));
+  CoglTexture *tex = create_texture (test_ctx);
   CoglPipeline *pipeline = cogl_pipeline_new (test_ctx);
   int fb_width = cogl_framebuffer_get_width (test_fb);
   int fb_height = cogl_framebuffer_get_height (test_fb);

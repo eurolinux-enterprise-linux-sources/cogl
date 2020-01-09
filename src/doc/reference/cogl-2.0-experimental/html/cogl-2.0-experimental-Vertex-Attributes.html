@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Vertex Attributes</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Cogl 2.0 Reference Manual">
 <link rel="up" href="cogl-buffer-layout-apis.html" title="Describing the layout of GPU Memory">
 <link rel="prev" href="cogl-buffer-layout-apis.html" title="Describing the layout of GPU Memory">
 <link rel="next" href="cogl-2.0-experimental-Indices.html" title="Indices">
-<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.19.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -90,6 +90,11 @@ applicable:
 <li class="listitem">"cogl_tex_coord0_in", "cogl_tex_coord1", ...
 (used for vertex texture coordinates)</li>
 <li class="listitem">"cogl_normal_in" (used for vertex normals)</li>
+<li class="listitem">"cogl_point_size_in" (used to set the size of points
+   per-vertex. Note this can only be used if
+   <code class="literal">COGL_FEATURE_ID_POINT_SIZE_ATTRIBUTE</code> is advertised and
+   <a class="link" href="cogl-2.0-experimental-Pipeline.html#cogl-pipeline-set-per-vertex-point-size" title="cogl_pipeline_set_per_vertex_point_size ()"><code class="function">cogl_pipeline_set_per_vertex_point_size()</code></a> is called on the pipeline.
+   </li>
 </ul></div>
 <p>
 </p>
@@ -106,12 +111,62 @@ example it's common to define a structure for a single vertex like:
 2
 3
 4
-5</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="keyword">typedef</span><span class="normal"> </span><span class="keyword">struct</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="type">float</span><span class="normal"> x</span><span class="symbol">,</span><span class="normal"> y</span><span class="symbol">,</span><span class="normal"> z</span><span class="symbol">;</span><span class="normal"> </span><span class="comment">/* position attribute */</span>
-<span class="normal">  </span><span class="type">float</span><span class="normal"> s</span><span class="symbol">,</span><span class="normal"> t</span><span class="symbol">;</span><span class="normal"> </span><span class="comment">/* texture coordinate attribute */</span>
-<span class="cbracket">}</span><span class="normal"> MyVertex</span><span class="symbol">;</span></pre></td>
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
+
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Comment { color: #c00000; font-weight: bold; }
+.Type { color: #008000; text-decoration: underline; }
+
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+<span class="type">typedef</span> <span class="type">struct</span>
+{
+  <span class="type">float</span> x, y, z; <span class="comment">/*</span><span class="comment"> position attribute </span><span class="comment">*/</span>
+  <span class="type">float</span> s, t; <span class="comment">/*</span><span class="comment"> texture coordinate attribute </span><span class="comment">*/</span>
+} MyVertex;</pre></td>
       </tr>
     </tbody>
   </table>
@@ -126,8 +181,56 @@ And then create an array of vertex data something like:
   <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
     <tbody>
       <tr>
-        <td class="listing_lines" align="right"><pre>1</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="usertype">MyVertex</span><span class="normal"> vertices</span><span class="symbol">[</span><span class="number">100</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">=</span><span class="normal"> </span><span class="cbracket">{</span><span class="normal"> </span><span class="symbol">....</span><span class="normal"> </span><span class="cbracket">}</span></pre></td>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25</pre></td>
+        <td class="listing_code"><pre class="programlisting"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="syntax" content="cpp" />
+<meta name="settings" content="use_xhtml,use_css,pre_wrap,no_foldcolumn,prevent_copy=" />
+<meta name="colorscheme" content="none" />
+<style type="text/css">
+
+pre { white-space: pre-wrap; font-family: monospace; color: #000000; background-color: #ffffff; }
+body { font-family: monospace; color: #000000; background-color: #ffffff; }
+* { font-size: 1em; }
+.Constant { color: #0000c0; text-decoration: underline; }
+
+</style>
+
+<script type='text/javascript'>
+//<![CDATA[
+
+//]]>
+</script>
+</head>
+<body>
+<pre id='vimCodeElement'>
+MyVertex vertices[<span class="number">100</span>] = { .... }</pre></td>
       </tr>
     </tbody>
   </table>
@@ -209,8 +312,10 @@ the first attribute value. (Usually
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Vertex-Attributes.html#CoglAttribute" title="CoglAttribute"><span class="type">CoglAttribute</span></a> describing the
-layout for a list of attribute values stored in <em class="parameter"><code>array</code></em>.</td>
+<td>A newly allocated <a class="link" href="cogl-2.0-experimental-Vertex-Attributes.html#CoglAttribute" title="CoglAttribute"><span class="type">CoglAttribute</span></a>
+describing the layout for a list of attribute values
+stored in <em class="parameter"><code>array</code></em>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -238,8 +343,8 @@ Gets whether the given object references a <a class="link" href="cogl-2.0-experi
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the <em class="parameter"><code>object</code></em> references a <a class="link" href="cogl-2.0-experimental-Vertex-Attributes.html#CoglAttribute" title="CoglAttribute"><span class="type">CoglAttribute</span></a>,
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise</td>
+<code class="literal">TRUE</code> if the <em class="parameter"><code>object</code></em> references a <a class="link" href="cogl-2.0-experimental-Vertex-Attributes.html#CoglAttribute" title="CoglAttribute"><span class="type">CoglAttribute</span></a>,
+<code class="literal">FALSE</code> otherwise</td>
 </tr>
 </tbody>
 </table></div>
@@ -323,8 +428,9 @@ will default to FALSE.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>the <a class="link" href="cogl-2.0-experimental-CoglAttributeBuffer---Buffers-of-vertex-attributes.html#CoglAttributeBuffer" title="CoglAttributeBuffer"><span class="type">CoglAttributeBuffer</span></a> that was set with
-<a class="link" href="cogl-2.0-experimental-Vertex-Attributes.html#cogl-attribute-set-buffer" title="cogl_attribute_set_buffer ()"><code class="function">cogl_attribute_set_buffer()</code></a> or <a class="link" href="cogl-2.0-experimental-Vertex-Attributes.html#cogl-attribute-new" title="cogl_attribute_new ()"><code class="function">cogl_attribute_new()</code></a>.</td>
+<td>the <a class="link" href="cogl-2.0-experimental-CoglAttributeBuffer---Buffers-of-vertex-attributes.html#CoglAttributeBuffer" title="CoglAttributeBuffer"><span class="type">CoglAttributeBuffer</span></a> that was
+set with <a class="link" href="cogl-2.0-experimental-Vertex-Attributes.html#cogl-attribute-set-buffer" title="cogl_attribute_set_buffer ()"><code class="function">cogl_attribute_set_buffer()</code></a> or <a class="link" href="cogl-2.0-experimental-Vertex-Attributes.html#cogl-attribute-new" title="cogl_attribute_new ()"><code class="function">cogl_attribute_new()</code></a>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -364,6 +470,6 @@ Sets a new <a class="link" href="cogl-2.0-experimental-CoglAttributeBuffer---Buf
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.18.1</div>
+          Generated by GTK-Doc V1.19.1</div>
 </body>
 </html>

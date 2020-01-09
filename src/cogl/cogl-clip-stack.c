@@ -1,23 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2007,2008,2009,2010 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  */
@@ -37,7 +43,6 @@
 #include "cogl-framebuffer-private.h"
 #include "cogl-journal-private.h"
 #include "cogl-util.h"
-#include "cogl-path-private.h"
 #include "cogl-matrix-private.h"
 #include "cogl-primitives-private.h"
 #include "cogl-private.h"
@@ -250,57 +255,6 @@ _cogl_clip_stack_push_rectangle (CoglClipStack *stack,
 }
 
 CoglClipStack *
-_cogl_clip_stack_push_from_path (CoglClipStack *stack,
-                                 CoglPath *path,
-                                 CoglMatrixEntry *modelview_entry,
-                                 CoglMatrixEntry *projection_entry,
-                                 const float *viewport)
-{
-  float x_1, y_1, x_2, y_2;
-
-  _cogl_path_get_bounds (path, &x_1, &y_1, &x_2, &y_2);
-
-  /* If the path is a simple rectangle then we can divert to pushing a
-     rectangle clip instead which usually won't involve the stencil
-     buffer */
-  if (_cogl_path_is_rectangle (path))
-    return _cogl_clip_stack_push_rectangle (stack,
-                                            x_1, y_1,
-                                            x_2, y_2,
-                                            modelview_entry,
-                                            projection_entry,
-                                            viewport);
-  else
-    {
-      CoglClipStackPath *entry;
-      CoglMatrix modelview;
-      CoglMatrix projection;
-      float transformed_corners[8];
-
-      entry = _cogl_clip_stack_push_entry (stack,
-                                           sizeof (CoglClipStackPath),
-                                           COGL_CLIP_STACK_PATH);
-
-      entry->path = cogl_path_copy (path);
-
-      entry->matrix_entry = cogl_matrix_entry_ref (modelview_entry);
-
-      cogl_matrix_entry_get (modelview_entry, &modelview);
-      cogl_matrix_entry_get (projection_entry, &projection);
-
-      get_transformed_corners (x_1, y_1, x_2, y_2,
-                               &modelview,
-                               &projection,
-                               viewport,
-                               transformed_corners);
-      _cogl_clip_stack_entry_set_bounds ((CoglClipStack *) entry,
-                                         transformed_corners);
-
-      return (CoglClipStack *) entry;
-    }
-}
-
-CoglClipStack *
 _cogl_clip_stack_push_primitive (CoglClipStack *stack,
                                  CoglPrimitive *primitive,
                                  float bounds_x1,
@@ -330,7 +284,7 @@ _cogl_clip_stack_push_primitive (CoglClipStack *stack,
   entry->bounds_y2 = bounds_y2;
 
   cogl_matrix_entry_get (modelview_entry, &modelview);
-  cogl_matrix_entry_get (modelview_entry, &projection);
+  cogl_matrix_entry_get (projection_entry, &projection);
 
   get_transformed_corners (bounds_x1, bounds_y1, bounds_x2, bounds_y2,
                            &modelview,
@@ -378,15 +332,6 @@ _cogl_clip_stack_unref (CoglClipStack *entry)
         case COGL_CLIP_STACK_WINDOW_RECT:
           g_slice_free1 (sizeof (CoglClipStackWindowRect), entry);
           break;
-
-        case COGL_CLIP_STACK_PATH:
-          {
-            CoglClipStackPath *path_entry = (CoglClipStackPath *) entry;
-            cogl_matrix_entry_unref (path_entry->matrix_entry);
-            cogl_object_unref (path_entry->path);
-            g_slice_free1 (sizeof (CoglClipStackPath), entry);
-            break;
-          }
         case COGL_CLIP_STACK_PRIMITIVE:
           {
             CoglClipStackPrimitive *primitive_entry =

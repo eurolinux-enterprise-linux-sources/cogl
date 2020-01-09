@@ -1,22 +1,29 @@
 /*
  * Cogl
  *
- * An object oriented GL/GLES Abstraction/Utility Layer
+ * A Low Level GPU Graphics and Utilities API
  *
  * Copyright (C) 2007,2008,2009 Intel Corporation.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *
  *
  */
@@ -28,10 +35,18 @@
 #ifndef __COGL_BITMAP_H__
 #define __COGL_BITMAP_H__
 
+/* XXX: We forward declare CoglBitmap here to allow for circular
+ * dependencies between some headers */
+typedef struct _CoglBitmap CoglBitmap;
+
 #include <cogl/cogl-types.h>
 #include <cogl/cogl-buffer.h>
 #include <cogl/cogl-context.h>
 #include <cogl/cogl-pixel-buffer.h>
+
+#ifdef COGL_HAS_GTYPE_SUPPORT
+#include <glib-object.h>
+#endif
 
 #ifdef COGL_HAS_ANDROID_SUPPORT
 #include <android/asset_manager.h>
@@ -39,7 +54,14 @@
 
 COGL_BEGIN_DECLS
 
-typedef struct _CoglBitmap CoglBitmap;
+#ifdef COGL_HAS_GTYPE_SUPPORT
+/**
+ * cogl_bitmap_get_gtype:
+ *
+ * Returns: a #GType that can be used with the GLib type system.
+ */
+GType cogl_bitmap_get_gtype (void);
+#endif
 
 /**
  * SECTION:cogl-bitmap
@@ -60,8 +82,8 @@ typedef struct _CoglBitmap CoglBitmap;
  * Loads an image file from disk. This function can be safely called from
  * within a thread.
  *
- * Return value: a #CoglBitmap to the new loaded image data, or
- *   %NULL if loading the image failed.
+ * Return value: (transfer full): a #CoglBitmap to the new loaded
+ *               image data, or %NULL if loading the image failed.
  *
  * Since: 1.0
  */
@@ -79,8 +101,8 @@ cogl_bitmap_new_from_file (const char *filename,
  *
  * Loads an Android asset into a newly allocated #CoglBitmap.
  *
- * Return value: A newly allocated #CoglBitmap holding the image data of the
- *               specified asset.
+ * Return value: (transfer full): A newly allocated #CoglBitmap
+ *               holding the image data of the specified asset.
  *
  * Since: 2.0
  */
@@ -107,7 +129,7 @@ cogl_android_bitmap_new_from_asset (CoglContext *context,
  * Wraps some image data that has been uploaded into a #CoglBuffer as
  * a #CoglBitmap. The data is not copied in this process.
  *
- * Return value: a #CoglBitmap encapsulating the given @buffer.
+ * Return value: (transfer full): a #CoglBitmap encapsulating the given @buffer.
  *
  * Since: 1.8
  * Stability: unstable
@@ -143,8 +165,8 @@ cogl_bitmap_new_from_buffer (CoglBuffer *buffer,
  * writing into it. The stride can be retrieved with
  * cogl_bitmap_get_rowstride().</note>
  *
- * Return value: a #CoglPixelBuffer representing the newly created array or
- *               %NULL on failure
+ * Return value: (transfer full): a #CoglPixelBuffer representing the
+ *               newly created array or %NULL on failure
  *
  * Since: 1.10
  * Stability: Unstable
@@ -171,7 +193,7 @@ cogl_bitmap_new_with_size (CoglContext *context,
  * cogl_framebuffer_read_pixels_into_bitmap() to read data directly
  * into an application buffer with the specified rowstride.
  *
- * Return value: A new #CoglBitmap.
+ * Return value: (transfer full): A new #CoglBitmap.
  * Since: 1.10
  * Stability: unstable
  */
@@ -233,8 +255,8 @@ cogl_bitmap_get_rowstride (CoglBitmap *bitmap);
  * cogl_bitmap_get_buffer:
  * @bitmap: A #CoglBitmap
  *
- * Return value: the #CoglPixelBuffer that this buffer uses for
- *   storage. Note that if the bitmap was created with
+ * Return value: (transfer none): the #CoglPixelBuffer that this
+ *   buffer uses for storage. Note that if the bitmap was created with
  *   cogl_bitmap_new_from_file() then it will not actually be using a
  *   pixel buffer and this function will return %NULL.
  * Stability: unstable

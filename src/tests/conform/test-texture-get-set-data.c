@@ -5,12 +5,13 @@
 #include "test-utils.h"
 
 static void
-check_texture (int width, int height, CoglTextureFlags flags)
+check_texture (int width, int height, TestUtilsTextureFlags flags)
 {
   CoglTexture *tex;
   uint8_t *data, *p;
   int y, x;
   int rowstride;
+  CoglBitmap *bmp;
 
   p = data = g_malloc (width * height * 4);
   for (y = 0; y < height; y++)
@@ -22,12 +23,14 @@ check_texture (int width, int height, CoglTextureFlags flags)
         *(p++) = (x ^ y);
       }
 
-  tex = cogl_texture_new_from_data (width, height,
-                                    flags,
-                                    COGL_PIXEL_FORMAT_RGBA_8888,
-                                    COGL_PIXEL_FORMAT_RGBA_8888,
-                                    width * 4,
-                                    data);
+  bmp = cogl_bitmap_new_for_data (test_ctx,
+                                  width, height,
+                                  COGL_PIXEL_FORMAT_RGBA_8888,
+                                  width * 4,
+                                  data);
+
+  tex = test_utils_texture_new_from_bitmap (bmp, flags,
+                                            FALSE);
 
   /* Replace the bottom right quarter of the data with negated data to
      test set_region */
@@ -129,13 +132,13 @@ void
 test_texture_get_set_data (void)
 {
   /* First try without atlasing */
-  check_texture (256, 256, COGL_TEXTURE_NO_ATLAS);
+  check_texture (256, 256, TEST_UTILS_TEXTURE_NO_ATLAS);
   /* Try again with atlasing. This should end up testing the atlas
      backend and the sub texture backend */
   check_texture (256, 256, 0);
   /* Try with a really big texture in the hope that it will end up
      sliced. */
-  check_texture (4, 5128, COGL_TEXTURE_NO_ATLAS);
+  check_texture (4, 5128, TEST_UTILS_TEXTURE_NO_ATLAS);
   /* And in the other direction. */
-  check_texture (5128, 4, COGL_TEXTURE_NO_ATLAS);
+  check_texture (5128, 4, TEST_UTILS_TEXTURE_NO_ATLAS);
 }
