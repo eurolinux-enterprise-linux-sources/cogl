@@ -676,7 +676,9 @@ _cogl_winsys_onscreen_deinit (CoglOnscreen *onscreen)
       /* Cogl always needs a valid context bound to something so if we
        * are destroying the onscreen that is currently bound we'll
        * switch back to the dummy drawable. */
-      if (egl_display->dummy_surface != EGL_NO_SURFACE &&
+      if ((egl_display->dummy_surface != EGL_NO_SURFACE ||
+           (egl_renderer->private_features &
+            COGL_EGL_WINSYS_FEATURE_SURFACELESS_CONTEXT) != 0) &&
           (egl_display->current_draw_surface == egl_onscreen->egl_surface ||
            egl_display->current_read_surface == egl_onscreen->egl_surface))
         {
@@ -1024,6 +1026,13 @@ _cogl_egl_create_image (CoglContext *ctx,
    * always be used in conjunction with the EGL_NATIVE_PIXMAP_KHR target */
 #ifdef EGL_KHR_image_pixmap
   if (target == EGL_NATIVE_PIXMAP_KHR)
+    egl_ctx = EGL_NO_CONTEXT;
+  else
+#endif
+#if COGL_HAS_WAYLAND_EGL_SERVER_SUPPORT
+  /* The WL_bind_wayland_display spec states that EGL_NO_CONTEXT is to be used
+   * in conjunction with the EGL_WAYLAND_BUFFER_WL target */
+  if (target == EGL_WAYLAND_BUFFER_WL)
     egl_ctx = EGL_NO_CONTEXT;
   else
 #endif

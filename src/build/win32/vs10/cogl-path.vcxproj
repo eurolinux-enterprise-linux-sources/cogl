@@ -87,6 +87,7 @@
       <ModuleDefinitionFile>$(IntDir)\$(ProjectName).def</ModuleDefinitionFile>
       <ImportLibrary>$(TargetDir)$(ProjectName)-$(ApiVersion).lib</ImportLibrary>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)$(CoglDllPrefix)$(ProjectName)$(CoglDllSuffix).pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
@@ -113,6 +114,7 @@
       <ModuleDefinitionFile>$(IntDir)\$(ProjectName).def</ModuleDefinitionFile>
       <ImportLibrary>$(TargetDir)$(ProjectName)-$(ApiVersion).lib</ImportLibrary>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)$(CoglDllPrefix)$(ProjectName)$(CoglDllSuffix).pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
@@ -139,6 +141,7 @@
       <ModuleDefinitionFile>$(IntDir)\$(ProjectName).def</ModuleDefinitionFile>
       <ImportLibrary>$(TargetDir)$(ProjectName)-$(ApiVersion).lib</ImportLibrary>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)$(CoglDllPrefix)$(ProjectName)$(CoglDllSuffix).pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -164,6 +167,7 @@
       <ModuleDefinitionFile>$(IntDir)\$(ProjectName).def</ModuleDefinitionFile>
       <ImportLibrary>$(TargetDir)$(ProjectName)-$(ApiVersion).lib</ImportLibrary>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)$(CoglDllPrefix)$(ProjectName)$(CoglDllSuffix).pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -171,8 +175,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
- <ClCompile Include="..\..\..\cogl-path\cogl-path.c" />
  <ClCompile Include="..\..\..\cogl-path\cogl1-path.c" />
+ <ClCompile Include="..\..\..\cogl-path\cogl-path.c" />
  <ClCompile Include="..\..\..\cogl-path\tesselator\dict.c" />
  <ClCompile Include="..\..\..\cogl-path\tesselator\geom.c" />
  <ClCompile Include="..\..\..\cogl-path\tesselator\mesh.c" />

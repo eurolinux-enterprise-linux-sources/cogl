@@ -147,6 +147,8 @@ get_winsys_name_for_id (CoglWinsysID winsys_id)
       return "EGL + KMS platform";
     case COGL_WINSYS_ID_EGL_ANDROID:
       return "EGL + Android platform";
+    case COGL_WINSYS_ID_EGL_MIR:
+      return "EGL + Mir platform";
     case COGL_WINSYS_ID_WGL:
       return "EGL + Windows WGL platform";
     case COGL_WINSYS_ID_SDL:
@@ -194,9 +196,6 @@ output_cb (CoglOutput *output, void *user_data)
           cogl_output_get_mm_height (output));
   switch (cogl_output_get_subpixel_order (output))
     {
-    case COGL_SUBPIXEL_ORDER_UNKNOWN:
-      order = "unknown";
-      break;
     case COGL_SUBPIXEL_ORDER_NONE:
       order = "non-standard";
       break;
@@ -211,6 +210,9 @@ output_cb (CoglOutput *output, void *user_data)
       break;
     case COGL_SUBPIXEL_ORDER_VERTICAL_BGR:
       order = "vertical,bgr";
+      break;
+    default:
+      order = "unknown";
       break;
     }
   printf ("  » sub pixel order = %s\n", order);

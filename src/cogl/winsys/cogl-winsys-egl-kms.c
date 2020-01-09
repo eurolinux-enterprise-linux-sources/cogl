@@ -40,6 +40,7 @@
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
+#include <errno.h>
 #include <stddef.h>
 #include <drm.h>
 #include <xf86drm.h>
@@ -72,6 +73,7 @@ typedef struct _CoglRendererKMS
   int opened_fd;
   struct gbm_device *gbm;
   CoglClosure *swap_notify_idle;
+  CoglBool     page_flips_not_supported;
 } CoglRendererKMS;
 
 typedef struct _CoglOutputKMS
@@ -110,6 +112,9 @@ typedef struct _CoglOnscreenKMS
   struct gbm_bo *current_bo;
   struct gbm_bo *next_bo;
   CoglBool pending_swap_notify;
+
+  EGLSurface *pending_egl_surface;
+  struct gbm_surface *pending_surface;
 } CoglOnscreenKMS;
 
 static const char device_name[] = "/dev/dri/card0";
@@ -120,7 +125,11 @@ _cogl_winsys_renderer_disconnect (CoglRenderer *renderer)
   CoglRendererEGL *egl_renderer = renderer->winsys;
   CoglRendererKMS *kms_renderer = egl_renderer->platform;
 
-  eglTerminate (egl_renderer->edpy);
+  if (egl_renderer->edpy != EGL_NO_DISPLAY)
+    eglTerminate (egl_renderer->edpy);
+
+  if (kms_renderer->gbm != NULL)
+    gbm_device_destroy (kms_renderer->gbm);
 
   if (kms_renderer->opened_fd >= 0)
     close (kms_renderer->opened_fd);
@@ -221,14 +230,8 @@ queue_swap_notify_for_onscreen (CoglOnscreen *onscreen)
 }
 
 static void
-page_flip_handler (int fd,
-                   unsigned int frame,
-                   unsigned int sec,
-                   unsigned int usec,
-                   void *data)
+process_flip (CoglFlipKMS *flip)
 {
-  CoglFlipKMS *flip = data;
-
   /* We're only ready to dispatch a swap notification once all outputs
    * have flipped... */
   flip->pending--;
@@ -237,10 +240,6 @@ page_flip_handler (int fd,
       CoglOnscreen *onscreen = flip->onscreen;
       CoglOnscreenEGL *egl_onscreen = onscreen->winsys;
       CoglOnscreenKMS *kms_onscreen = egl_onscreen->platform;
-      CoglContext *context = COGL_FRAMEBUFFER (onscreen)->context;
-      CoglRenderer *renderer = context->display->renderer;
-      CoglRendererEGL *egl_renderer = renderer->winsys;
-      CoglRendererKMS *kms_renderer = egl_renderer->platform;
 
       queue_swap_notify_for_onscreen (onscreen);
 
@@ -259,9 +258,24 @@ page_flip_handler (int fd,
 }
 
 static void
+page_flip_handler (int fd,
+                   unsigned int frame,
+                   unsigned int sec,
+                   unsigned int usec,
+                   void *data)
+{
+  CoglFlipKMS *flip = data;
+
+  process_flip (flip);
+}
+
+static void
 handle_drm_event (CoglRendererKMS *kms_renderer)
 {
   drmEventContext evctx;
+
+  if (kms_renderer->page_flips_not_supported)
+    return;
 
   memset (&evctx, 0, sizeof evctx);
   evctx.version = DRM_EVENT_CONTEXT_VERSION;
@@ -299,6 +313,8 @@ _cogl_winsys_renderer_connect (CoglRenderer *renderer,
   kms_renderer->fd = -1;
   kms_renderer->opened_fd = -1;
 
+  egl_renderer->edpy = EGL_NO_DISPLAY;
+
   if (renderer->kms_fd >= 0)
     {
       kms_renderer->fd = renderer->kms_fd;
@@ -323,7 +339,7 @@ _cogl_winsys_renderer_connect (CoglRenderer *renderer,
       _cogl_set_error (error, COGL_WINSYS_ERROR,
                    COGL_WINSYS_ERROR_INIT,
                    "Couldn't create gbm device");
-      goto close_fd;
+      goto fail;
     }
 
   egl_renderer->edpy = eglGetDisplay ((EGLNativeDisplayType)kms_renderer->gbm);
@@ -332,11 +348,11 @@ _cogl_winsys_renderer_connect (CoglRenderer *renderer,
       _cogl_set_error (error, COGL_WINSYS_ERROR,
                    COGL_WINSYS_ERROR_INIT,
                    "Couldn't get eglDisplay");
-      goto destroy_gbm_device;
+      goto fail;
     }
 
   if (!_cogl_winsys_egl_renderer_connect_common (renderer, error))
-    goto egl_terminate;
+    goto fail;
 
   _cogl_poll_renderer_add_fd (renderer,
                               kms_renderer->fd,
@@ -347,14 +363,7 @@ _cogl_winsys_renderer_connect (CoglRenderer *renderer,
 
   return TRUE;
 
-egl_terminate:
-  eglTerminate (egl_renderer->edpy);
-destroy_gbm_device:
-  gbm_device_destroy (kms_renderer->gbm);
-close_fd:
-  if (kms_renderer->opened_fd >= 0)
-    close (kms_renderer->opened_fd);
-
+fail:
   _cogl_winsys_renderer_disconnect (renderer);
 
   return FALSE;
@@ -576,27 +585,37 @@ flip_all_crtcs (CoglDisplay *display, CoglFlipKMS *flip, int fb_id)
   CoglRendererEGL *egl_renderer = display->renderer->winsys;
   CoglRendererKMS *kms_renderer = egl_renderer->platform;
   GList *l;
+  gboolean needs_flip = FALSE;
 
   for (l = kms_display->crtcs; l; l = l->next)
     {
       CoglKmsCrtc *crtc = l->data;
-      int ret;
+      int ret = 0;
 
       if (crtc->count == 0 || crtc->ignore)
         continue;
 
-      ret = drmModePageFlip (kms_renderer->fd,
-                             crtc->id, fb_id,
-                             DRM_MODE_PAGE_FLIP_EVENT, flip);
+      needs_flip = TRUE;
 
-      if (ret)
+      if (!kms_renderer->page_flips_not_supported)
         {
-          g_warning ("Failed to flip: %m");
-          continue;
+          ret = drmModePageFlip (kms_renderer->fd,
+                                 crtc->id, fb_id,
+                                 DRM_MODE_PAGE_FLIP_EVENT, flip);
+          if (ret != 0 && ret != -EACCES)
+            {
+              g_warning ("Failed to flip: %m");
+              kms_renderer->page_flips_not_supported = TRUE;
+              break;
+            }
         }
 
-      flip->pending++;
+      if (ret == 0)
+        flip->pending++;
     }
+
+  if (kms_renderer->page_flips_not_supported && needs_flip)
+    flip->pending = 1;
 }
 
 static void
@@ -644,15 +663,24 @@ _cogl_winsys_egl_display_setup (CoglDisplay *display,
       return FALSE;
     }
 
+  /* Force a full modeset / drmModeSetCrtc on
+   * the first swap buffers call.
+   */
+  kms_display->pending_set_crtc = TRUE;
+
+  if (kms_renderer->opened_fd < 0)
+    return TRUE;
+
   output0 = find_output (0,
                          kms_renderer->fd,
                          resources,
                          NULL,
                          0, /* n excluded connectors */
                          error);
-  kms_display->outputs = g_list_append (kms_display->outputs, output0);
   if (!output0)
     return FALSE;
+
+  kms_display->outputs = g_list_append (kms_display->outputs, output0);
 
   if (getenv ("COGL_KMS_MIRROR"))
     mirror = TRUE;
@@ -715,10 +743,6 @@ _cogl_winsys_egl_display_setup (CoglDisplay *display,
 
   kms_display->width = output0->mode.hdisplay;
   kms_display->height = output0->mode.vdisplay;
-
-  /* We defer setting the crtc modes until the first swap_buffers request of a
-   * CoglOnscreen framebuffer. */
-  kms_display->pending_set_crtc = TRUE;
 
   return TRUE;
 }
@@ -868,10 +892,28 @@ _cogl_winsys_onscreen_swap_buffers_with_damage (CoglOnscreen *onscreen,
   while (kms_onscreen->next_fb_id != 0)
     handle_drm_event (kms_renderer);
 
+  if (kms_onscreen->pending_egl_surface)
+    {
+      eglDestroySurface (egl_renderer->edpy, egl_onscreen->egl_surface);
+      egl_onscreen->egl_surface = kms_onscreen->pending_egl_surface;
+      kms_onscreen->pending_egl_surface = NULL;
+
+      _cogl_framebuffer_winsys_update_size (COGL_FRAMEBUFFER (kms_display->onscreen),
+                                            kms_display->width, kms_display->height);
+      context->current_draw_buffer_changes |= COGL_FRAMEBUFFER_STATE_BIND;
+    }
   parent_vtable->onscreen_swap_buffers_with_damage (onscreen,
                                                     rectangles,
                                                     n_rectangles);
 
+  if (kms_onscreen->pending_surface)
+    {
+      free_current_bo (onscreen);
+      if (kms_onscreen->surface)
+        gbm_surface_destroy (kms_onscreen->surface);
+      kms_onscreen->surface = kms_onscreen->pending_surface;
+      kms_onscreen->pending_surface = NULL;
+    }
   /* Now we need to set the CRTC to whatever is the front buffer */
   kms_onscreen->next_bo = gbm_surface_lock_front_buffer (kms_onscreen->surface);
 
@@ -929,6 +971,13 @@ _cogl_winsys_onscreen_swap_buffers_with_damage (CoglOnscreen *onscreen,
     {
       /* Ensure the onscreen remains valid while it has any pending flips... */
       cogl_object_ref (flip->onscreen);
+
+      /* Process flip right away if we can't wait for vblank */
+      if (kms_renderer->page_flips_not_supported)
+        {
+          setup_crtc_modes (context->display, kms_onscreen->next_fb_id);
+          process_flip (flip);
+        }
     }
 }
 
@@ -982,11 +1031,20 @@ _cogl_winsys_onscreen_init (CoglOnscreen *onscreen,
   kms_onscreen = g_slice_new0 (CoglOnscreenKMS);
   egl_onscreen->platform = kms_onscreen;
 
+  /* If a kms_fd is set then the display width and height
+   * won't be available until cogl_kms_display_set_layout
+   * is called. In that case, defer creating the surface
+   * until then.
+   */
+  if (kms_display->width == 0 ||
+      kms_display->height == 0)
+    return TRUE;
+
   kms_onscreen->surface =
     gbm_surface_create (kms_renderer->gbm,
                         kms_display->width,
                         kms_display->height,
-                        GBM_BO_FORMAT_XRGB8888,
+                        GBM_FORMAT_XRGB8888,
                         GBM_BO_USE_SCANOUT |
                         GBM_BO_USE_RENDERING);
 
@@ -1186,7 +1244,7 @@ cogl_kms_display_set_layout (CoglDisplay *display,
 
       new_surface = gbm_surface_create (kms_renderer->gbm,
                                         width, height,
-                                        GBM_BO_FORMAT_XRGB8888,
+                                        GBM_FORMAT_XRGB8888,
                                         GBM_BO_USE_SCANOUT |
                                         GBM_BO_USE_RENDERING);
 
@@ -1212,13 +1270,29 @@ cogl_kms_display_set_layout (CoglDisplay *display,
           return FALSE;
         }
 
-      eglDestroySurface (egl_renderer->edpy, egl_onscreen->egl_surface);
-      gbm_surface_destroy (kms_onscreen->surface);
+      if (kms_onscreen->pending_egl_surface)
+        eglDestroySurface (egl_renderer->edpy, kms_onscreen->pending_egl_surface);
+      if (kms_onscreen->pending_surface)
+        gbm_surface_destroy (kms_onscreen->pending_surface);
 
-      kms_onscreen->surface = new_surface;
-      egl_onscreen->egl_surface = new_egl_surface;
+      /* If there's already a surface, wait until the next swap to switch
+       * it out, otherwise, if we're just starting up we can use the new
+       * surface right away.
+       */
+      if (kms_onscreen->surface != NULL)
+        {
+          kms_onscreen->pending_surface = new_surface;
+          kms_onscreen->pending_egl_surface = new_egl_surface;
+        }
+      else
+        {
+          CoglFramebuffer *framebuffer = COGL_FRAMEBUFFER (kms_display->onscreen);
 
-      _cogl_framebuffer_winsys_update_size (COGL_FRAMEBUFFER (kms_display->onscreen), width, height);
+          kms_onscreen->surface = new_surface;
+          egl_onscreen->egl_surface = new_egl_surface;
+
+          _cogl_framebuffer_winsys_update_size (framebuffer, width, height);
+        }
     }
 
   kms_display->width = width;

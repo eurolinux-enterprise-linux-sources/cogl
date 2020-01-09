@@ -2,34 +2,23 @@
 %global with_wayland 1
 %endif
 
-#global with_tests 1
+%global with_tests 1
 
 Name:          cogl
-Version:       1.18.2
-Release:       12%{?dist}
+Version:       1.22.2
+Release:       1%{?dist}
 Summary:       A library for using 3D graphics hardware to draw pretty pictures
 
-Group:         Development/Libraries
 License:       LGPLv2+
 URL:           http://www.clutter-project.org/
-Source0:       http://download.gnome.org/sources/cogl/1.18/cogl-%{version}.tar.xz
+Source0:       http://download.gnome.org/sources/cogl/1.22/cogl-%{version}.tar.xz
 
-# Support for quadbuffer stereo (patches upstream as of the Cogl 1.20
-# development branch)
-Patch10: Add-support-for-setting-up-stereo-CoglOnscreens.patch
-Patch11: CoglTexturePixmapX11-add-support-for-stereo-content.patch
-Patch12: video-memory-purge.patch
-
-# See https://bugzilla.gnome.org/show_bug.cgi?id=768190
-Patch21: 0001-examples-cogl-crate.c-fix-bug-when-waiting-for-next-.patch
-Patch22: 0002-CoglGPUInfo-fix-check-for-NVIDIA.patch
-Patch23: 0003-CoglWinsysGLX-factor-out-some-duplicated-code.patch
-Patch24: 0004-Usability-of-SGI_video_sync-is-per-display-not-per-r.patch
-Patch25: 0005-Fix-the-get_clock_time-without-GLX_OML_sync_control.patch
-Patch26: 0006-For-NVIDIA-proprietary-drivers-implement-sync-events.patch
-Patch27: 0007-Add-cogl_xlib_renderer_set_threaded_swap_wait_enable.patch
-
-BuildRequires: autoconf automake libtool gettext-devel
+# Vaguely related to https://bugzilla.gnome.org/show_bug.cgi?id=772419
+# but on the 1.22 branch, and the static inline in the header is gross
+# ajax promises he'll clean this up.
+Patch0: 0001-egl-Use-eglGetPlatformDisplay-not-eglGetDisplay.patch
+# Backported from upstream to fix the build
+Patch1: cogl-1.22.2-fix-ifdef.patch
 
 BuildRequires: cairo-devel
 BuildRequires: chrpath
@@ -79,7 +68,6 @@ options we are interested in for the future.
 
 %package devel
 Summary:       %{name} development environment
-Group:         Development/Libraries
 Requires:      %{name}%{?_isa} = %{version}-%{release}
 
 %description devel
@@ -87,7 +75,6 @@ Header files and libraries for building and developing apps with %{name}.
 
 %package       doc
 Summary:       Documentation for %{name}
-Group:         Documentation
 Requires:      %{name} = %{version}-%{release}
 BuildArch:     noarch
 
@@ -97,7 +84,6 @@ This package contains documentation for %{name}.
 %if 0%{?with_tests}
 %package       tests
 Summary:       Tests for %{name}
-Group:         Development/Tools
 
 %description   tests
 This package contains the installable tests for %{cogl}.
@@ -105,22 +91,11 @@ This package contains the installable tests for %{cogl}.
 
 %prep
 %setup -q
-
-%patch10 -p1
-%patch11 -p1
-%patch12 -p1
-
-%patch21 -p1 -b .cogl-crate
-%patch22 -p1 -b .gpuinfo
-%patch23 -p1 -b .duplicated-code
-%patch24 -p1 -b .video-sync
-%patch25 -p1 -b .clock-time
-%patch26 -p1 -b .threaded-sync-events
-%patch27 -p1 -b .swap-wait-setter
+%patch0 -p1
+%patch1 -p1
 
 %build
 CFLAGS="$RPM_OPT_FLAGS -fPIC"
-autoreconf -vif
 %configure \
   --enable-cairo=yes \
   --enable-cogl-pango=yes \
@@ -139,7 +114,7 @@ autoreconf -vif
 make %{?_smp_mflags} V=1
 
 %install
-make install DESTDIR=%{buildroot} INSTALL='install -p'
+%make_install
 
 #Remove libtool archives.
 find %{buildroot} -name '*.la' -delete
@@ -153,12 +128,16 @@ chrpath --delete $RPM_BUILD_ROOT%{_libdir}/libcogl-pango.so
 
 %find_lang %{name}
 
+%check
+# make check
+
 %post -p /sbin/ldconfig
 
 %postun -p /sbin/ldconfig
 
 %files -f %{name}.lang
-%doc COPYING NEWS README ChangeLog
+%license COPYING
+%doc NEWS README
 %{_libdir}/libcogl*.so.20*
 %{_libdir}/girepository-1.0/Cogl*.typelib
 
@@ -179,6 +158,10 @@ chrpath --delete $RPM_BUILD_ROOT%{_libdir}/libcogl-pango.so
 %endif
 
 %changelog
+* Fri Aug 26 2016 Kalev Lember <klember@redhat.com> - 1.22.2-1
+- Update to 1.22.2
+- Resolves: #1386835
+
 * Wed Jun 29 2016 Owen Taylor <otaylor@redhat.com> - 1.18.2-12
 - Add patches to improve display synchronization on NVIDIA
     

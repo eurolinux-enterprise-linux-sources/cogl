@@ -107,6 +107,12 @@
 #ifndef GL_PACK_INVERT_MESA
 #define GL_PACK_INVERT_MESA 0x8758
 #endif
+#ifndef GL_BACK_LEFT
+#define GL_BACK_LEFT				0x0402
+#endif
+#ifndef GL_BACK_RIGHT
+#define GL_BACK_RIGHT				0x0403
+#endif
 
 #ifndef GL_COLOR
 #define GL_COLOR 0x1800
@@ -234,6 +240,42 @@ _cogl_framebuffer_gl_flush_front_face_winding_state (CoglFramebuffer *framebuffe
   context->current_pipeline_changes_since_flush |=
     COGL_PIPELINE_STATE_CULL_FACE;
   context->current_pipeline_age--;
+}
+
+static void
+_cogl_framebuffer_gl_flush_stereo_mode_state (CoglFramebuffer *framebuffer)
+{
+  CoglContext *ctx = framebuffer->context;
+  GLenum draw_buffer = GL_BACK;
+
+  if (framebuffer->type == COGL_FRAMEBUFFER_TYPE_OFFSCREEN)
+    return;
+
+  if (!ctx->glDrawBuffer)
+    return;
+
+  /* The one-shot default draw buffer setting in _cogl_framebuffer_gl_bind
+   * must have already happened. If not it would override what we set here. */
+  g_assert (ctx->was_bound_to_onscreen);
+
+  switch (framebuffer->stereo_mode)
+    {
+    case COGL_STEREO_BOTH:
+      draw_buffer = GL_BACK;
+      break;
+    case COGL_STEREO_LEFT:
+      draw_buffer = GL_BACK_LEFT;
+      break;
+    case COGL_STEREO_RIGHT:
+      draw_buffer = GL_BACK_RIGHT;
+      break;
+    }
+
+  if (ctx->current_gl_draw_buffer != draw_buffer)
+    {
+      GE (ctx, glDrawBuffer (draw_buffer));
+      ctx->current_gl_draw_buffer = draw_buffer;
+    }
 }
 
 void
@@ -405,6 +447,9 @@ _cogl_framebuffer_gl_flush_state (CoglFramebuffer *draw_buffer,
         case COGL_FRAMEBUFFER_STATE_INDEX_DEPTH_WRITE:
           /* Nothing to do for depth write state change; the state will always
            * be taken into account when flushing the pipeline's depth state. */
+          break;
+        case COGL_FRAMEBUFFER_STATE_INDEX_STEREO_MODE:
+          _cogl_framebuffer_gl_flush_stereo_mode_state (draw_buffer);
           break;
         default:
           g_warn_if_reached ();
@@ -765,7 +810,7 @@ _cogl_offscreen_gl_allocate (CoglOffscreen *offscreen,
 
   _COGL_RETURN_VAL_IF_FAIL (offscreen->texture_level <
                             _cogl_texture_get_n_levels (offscreen->texture),
-                            NULL);
+                            FALSE);
 
   _cogl_texture_get_level_size (offscreen->texture,
                                 offscreen->texture_level,
@@ -992,29 +1037,35 @@ _cogl_framebuffer_init_bits (CoglFramebuffer *framebuffer)
                                  COGL_FRAMEBUFFER_STATE_BIND);
 
 #ifdef HAVE_COGL_GL
-  if (_cogl_has_private_feature
-      (ctx, COGL_PRIVATE_FEATURE_QUERY_FRAMEBUFFER_BITS) &&
-      framebuffer->type == COGL_FRAMEBUFFER_TYPE_OFFSCREEN)
+  if ((ctx->driver == COGL_DRIVER_GL3 &&
+       framebuffer->type == COGL_FRAMEBUFFER_TYPE_ONSCREEN) ||
+      (_cogl_has_private_feature (ctx, COGL_PRIVATE_FEATURE_QUERY_FRAMEBUFFER_BITS) &&
+       framebuffer->type == COGL_FRAMEBUFFER_TYPE_OFFSCREEN))
     {
-      static const struct
-      {
+      gboolean is_offscreen = framebuffer->type == COGL_FRAMEBUFFER_TYPE_OFFSCREEN;
+      const struct {
         GLenum attachment, pname;
         size_t offset;
-      } params[] =
-          {
-            { GL_COLOR_ATTACHMENT0, GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE,
-              offsetof (CoglFramebufferBits, red) },
-            { GL_COLOR_ATTACHMENT0, GL_FRAMEBUFFER_ATTACHMENT_GREEN_SIZE,
-              offsetof (CoglFramebufferBits, green) },
-            { GL_COLOR_ATTACHMENT0, GL_FRAMEBUFFER_ATTACHMENT_BLUE_SIZE,
-              offsetof (CoglFramebufferBits, blue) },
-            { GL_COLOR_ATTACHMENT0, GL_FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE,
-              offsetof (CoglFramebufferBits, alpha) },
-            { GL_DEPTH_ATTACHMENT, GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE,
-              offsetof (CoglFramebufferBits, depth) },
-            { GL_STENCIL_ATTACHMENT, GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE,
-              offsetof (CoglFramebufferBits, stencil) },
-          };
+      } params[] = {
+        { is_offscreen ? GL_COLOR_ATTACHMENT0 : GL_BACK_LEFT,
+          GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE,
+          offsetof (CoglFramebufferBits, red) },
+        { is_offscreen ? GL_COLOR_ATTACHMENT0 : GL_BACK_LEFT,
+          GL_FRAMEBUFFER_ATTACHMENT_GREEN_SIZE,
+          offsetof (CoglFramebufferBits, green) },
+        { is_offscreen ? GL_COLOR_ATTACHMENT0 : GL_BACK_LEFT,
+          GL_FRAMEBUFFER_ATTACHMENT_BLUE_SIZE,
+          offsetof (CoglFramebufferBits, blue) },
+        { is_offscreen ? GL_COLOR_ATTACHMENT0 : GL_BACK_LEFT,
+          GL_FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE,
+          offsetof (CoglFramebufferBits, alpha) },
+        { is_offscreen ? GL_DEPTH_ATTACHMENT : GL_DEPTH,
+          GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE,
+          offsetof (CoglFramebufferBits, depth) },
+        { is_offscreen ? GL_STENCIL_ATTACHMENT : GL_STENCIL,
+          GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE,
+          offsetof (CoglFramebufferBits, stencil) },
+      };
       int i;
 
       for (i = 0; i < G_N_ELEMENTS (params); i++)

@@ -154,6 +154,7 @@
       <ModuleDefinitionFile>$(IntDir)\cogl.def</ModuleDefinitionFile>
       <ImportLibrary>$(TargetDir)$(ProjectName)-$(ApiVersion).lib</ImportLibrary>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)$(CoglDllPrefix)$(ProjectName)$(CoglDllSuffix).pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
@@ -180,6 +181,7 @@
       <ModuleDefinitionFile>$(IntDir)\cogl.def</ModuleDefinitionFile>
       <ImportLibrary>$(TargetDir)$(ProjectName)-$(ApiVersion).lib</ImportLibrary>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)$(CoglDllPrefix)$(ProjectName)$(CoglDllSuffix).pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
@@ -206,6 +208,7 @@
       <ModuleDefinitionFile>$(IntDir)\cogl.def</ModuleDefinitionFile>
       <ImportLibrary>$(TargetDir)$(ProjectName)-$(ApiVersion).lib</ImportLibrary>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)$(CoglDllPrefix)$(ProjectName)$(CoglDllSuffix).pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
@@ -232,6 +235,7 @@
       <ModuleDefinitionFile>$(IntDir)\cogl.def</ModuleDefinitionFile>
       <ImportLibrary>$(TargetDir)$(ProjectName)-$(ApiVersion).lib</ImportLibrary>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)$(CoglDllPrefix)$(ProjectName)$(CoglDllSuffix).pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
@@ -258,6 +262,7 @@
       <ModuleDefinitionFile>$(IntDir)\cogl.def</ModuleDefinitionFile>
       <ImportLibrary>$(TargetDir)$(ProjectName)-$(ApiVersion).lib</ImportLibrary>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)$(CoglDllPrefix)$(ProjectName)$(CoglDllSuffix).pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -286,6 +291,7 @@
       <ModuleDefinitionFile>$(IntDir)\cogl.def</ModuleDefinitionFile>
       <ImportLibrary>$(TargetDir)$(ProjectName)-$(ApiVersion).lib</ImportLibrary>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)$(CoglDllPrefix)$(ProjectName)$(CoglDllSuffix).pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -311,6 +317,7 @@
       <ModuleDefinitionFile>$(IntDir)\cogl.def</ModuleDefinitionFile>
       <ImportLibrary>$(TargetDir)$(ProjectName)-$(ApiVersion).lib</ImportLibrary>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)$(CoglDllPrefix)$(ProjectName)$(CoglDllSuffix).pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -336,6 +343,7 @@
       <ModuleDefinitionFile>$(IntDir)\cogl.def</ModuleDefinitionFile>
       <ImportLibrary>$(TargetDir)$(ProjectName)-$(ApiVersion).lib</ImportLibrary>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)$(CoglDllPrefix)$(ProjectName)$(CoglDllSuffix).pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -357,108 +365,108 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\..\cogl\cogl-win32-renderer.c" />
-    <ClCompile Include="..\..\..\cogl\.\driver\nop\cogl-driver-nop.c" />
-    <ClCompile Include="..\..\..\cogl\.\driver\nop\cogl-framebuffer-nop.c" />
-    <ClCompile Include="..\..\..\cogl\.\driver\nop\cogl-attribute-nop.c" />
-    <ClCompile Include="..\..\..\cogl\.\driver\nop\cogl-clip-stack-nop.c" />
-    <ClCompile Include="..\..\..\cogl\.\driver\nop\cogl-texture-2d-nop.c" />
-    <ClCompile Include="..\..\..\cogl\.\driver\gl\cogl-pipeline-opengl.c" />
-    <ClCompile Include="..\..\..\cogl\.\driver\gl\cogl-pipeline-fragend-glsl.c" />
-    <ClCompile Include="..\..\..\cogl\.\driver\gl\gl\cogl-pipeline-fragend-arbfp.c" />
-    <ClCompile Include="..\..\..\cogl\.\driver\gl\gl\cogl-pipeline-progend-fixed-arbfp.c" />
-    <ClCompile Include="..\..\..\cogl\.\driver\gl\cogl-pipeline-fragend-fixed.c" />
-    <ClCompile Include="..\..\..\cogl\.\driver\gl\cogl-pipeline-vertend-glsl.c" />
-    <ClCompile Include="..\..\..\cogl\.\driver\gl\cogl-pipeline-vertend-fixed.c" />
-    <ClCompile Include="..\..\..\cogl\.\driver\gl\cogl-pipeline-progend-fixed.c" />
-    <ClCompile Include="..\..\..\cogl\.\driver\gl\cogl-pipeline-progend-glsl.c" />
-    <ClCompile Include="..\..\..\cogl\.\winsys\cogl-winsys.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-gpu-info.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-context.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-renderer.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-swap-chain.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-onscreen-template.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-display.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-object.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-util.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-bitmap.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-bitmap-conversion.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-primitives.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-bitmap-pixbuf.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-clip-stack.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-feature-private.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-color.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-buffer.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-pixel-buffer.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-index-buffer.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-attribute-buffer.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-indices.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-attribute.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-primitive.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-matrix.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-vector.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-euler.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-quaternion.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-matrix-stack.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-depth-state.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-node.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-pipeline.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-pipeline-layer.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-pipeline-state.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-pipeline-layer-state.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-pipeline-debug.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-glsl-shader.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-pipeline-snippet.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-pipeline-cache.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-pipeline-hash-table.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-sampler-cache.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-blend-string.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-debug.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-sub-texture.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-texture.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-texture-2d.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-texture-2d-sliced.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-texture-3d.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-texture-rectangle.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-rectangle-map.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-atlas.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-atlas-texture.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-meta-texture.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-primitive-texture.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-blit.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-spans.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-journal.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-frame-info.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-framebuffer.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-onscreen.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-output.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-profile.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-bitmask.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-gtype.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-point-in-poly.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-list.c" />
-    <ClCompile Include="..\..\..\cogl\.\winsys\cogl-winsys-stub.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-config.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-boxed-value.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-snippet.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-poll.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-memory-stack.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-magazine.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-gles2-context.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-error.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-closure-list.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-fence.c" />
-    <ClCompile Include="..\..\..\cogl\.\deprecated\cogl-clip-state.c" />
-    <ClCompile Include="..\..\..\cogl\.\deprecated\cogl-fixed.c" />
-    <ClCompile Include="..\..\..\cogl\.\deprecated\cogl-vertex-buffer.c" />
-    <ClCompile Include="..\..\..\cogl\.\deprecated\cogl-material-compat.c" />
-    <ClCompile Include="..\..\..\cogl\.\deprecated\cogl-program.c" />
-    <ClCompile Include="..\..\..\cogl\.\deprecated\cogl-auto-texture.c" />
-    <ClCompile Include="..\..\..\cogl\.\deprecated\cogl-shader.c" />
-    <ClCompile Include="..\..\..\cogl\.\deprecated\cogl-clutter.c" />
-    <ClCompile Include="..\..\..\cogl\.\deprecated\cogl-framebuffer-deprecated.c" />
-    <ClCompile Include="..\..\..\cogl\.\deprecated\cogl-texture-deprecated.c" />
-    <ClCompile Include="..\..\..\cogl\.\cogl-glib-source.c" />
+    <ClCompile Include="..\..\..\cogl\driver\nop\cogl-driver-nop.c" />
+    <ClCompile Include="..\..\..\cogl\driver\nop\cogl-framebuffer-nop.c" />
+    <ClCompile Include="..\..\..\cogl\driver\nop\cogl-attribute-nop.c" />
+    <ClCompile Include="..\..\..\cogl\driver\nop\cogl-clip-stack-nop.c" />
+    <ClCompile Include="..\..\..\cogl\driver\nop\cogl-texture-2d-nop.c" />
+    <ClCompile Include="..\..\..\cogl\driver\gl\cogl-pipeline-opengl.c" />
+    <ClCompile Include="..\..\..\cogl\driver\gl\cogl-pipeline-fragend-glsl.c" />
+    <ClCompile Include="..\..\..\cogl\driver\gl\gl\cogl-pipeline-fragend-arbfp.c" />
+    <ClCompile Include="..\..\..\cogl\driver\gl\gl\cogl-pipeline-progend-fixed-arbfp.c" />
+    <ClCompile Include="..\..\..\cogl\driver\gl\cogl-pipeline-fragend-fixed.c" />
+    <ClCompile Include="..\..\..\cogl\driver\gl\cogl-pipeline-vertend-glsl.c" />
+    <ClCompile Include="..\..\..\cogl\driver\gl\cogl-pipeline-vertend-fixed.c" />
+    <ClCompile Include="..\..\..\cogl\driver\gl\cogl-pipeline-progend-fixed.c" />
+    <ClCompile Include="..\..\..\cogl\driver\gl\cogl-pipeline-progend-glsl.c" />
+    <ClCompile Include="..\..\..\cogl\winsys\cogl-winsys.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-gpu-info.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-context.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-renderer.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-swap-chain.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-onscreen-template.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-display.c" />
+    <ClCompile Include="..\..\..\cogl\cogl.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-object.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-util.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-bitmap.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-bitmap-conversion.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-primitives.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-bitmap-pixbuf.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-clip-stack.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-feature-private.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-color.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-buffer.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-pixel-buffer.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-index-buffer.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-attribute-buffer.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-indices.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-attribute.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-primitive.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-matrix.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-vector.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-euler.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-quaternion.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-matrix-stack.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-depth-state.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-node.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-pipeline.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-pipeline-layer.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-pipeline-state.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-pipeline-layer-state.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-pipeline-debug.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-glsl-shader.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-pipeline-snippet.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-pipeline-cache.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-pipeline-hash-table.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-sampler-cache.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-blend-string.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-debug.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-sub-texture.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-texture.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-texture-2d.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-texture-2d-sliced.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-texture-3d.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-texture-rectangle.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-rectangle-map.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-atlas.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-atlas-texture.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-meta-texture.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-primitive-texture.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-blit.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-spans.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-journal.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-frame-info.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-framebuffer.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-onscreen.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-output.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-profile.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-bitmask.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-gtype.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-point-in-poly.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-list.c" />
+    <ClCompile Include="..\..\..\cogl\winsys\cogl-winsys-stub.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-config.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-boxed-value.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-snippet.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-poll.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-memory-stack.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-magazine.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-gles2-context.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-error.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-closure-list.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-fence.c" />
+    <ClCompile Include="..\..\..\cogl\deprecated\cogl-clip-state.c" />
+    <ClCompile Include="..\..\..\cogl\deprecated\cogl-fixed.c" />
+    <ClCompile Include="..\..\..\cogl\deprecated\cogl-vertex-buffer.c" />
+    <ClCompile Include="..\..\..\cogl\deprecated\cogl-material-compat.c" />
+    <ClCompile Include="..\..\..\cogl\deprecated\cogl-program.c" />
+    <ClCompile Include="..\..\..\cogl\deprecated\cogl-auto-texture.c" />
+    <ClCompile Include="..\..\..\cogl\deprecated\cogl-shader.c" />
+    <ClCompile Include="..\..\..\cogl\deprecated\cogl-clutter.c" />
+    <ClCompile Include="..\..\..\cogl\deprecated\cogl-framebuffer-deprecated.c" />
+    <ClCompile Include="..\..\..\cogl\deprecated\cogl-texture-deprecated.c" />
+    <ClCompile Include="..\..\..\cogl\cogl-glib-source.c" />
     <ClCompile Include="..\..\..\cogl\cogl-enum-types.c" />
     <ClCompile Include="..\..\..\cogl\driver\gl\gl\cogl-driver-gl.c" />
     <ClCompile Include="..\..\..\cogl\driver\gl\gl\cogl-texture-driver-gl.c" />

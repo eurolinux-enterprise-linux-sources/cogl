@@ -59,6 +59,8 @@
 #include "cogl-attribute-gl-private.h"
 #include "cogl-clutter.h"
 
+#include "deprecated/cogl-framebuffer-deprecated.h"
+
 CoglFuncPtr
 cogl_get_proc_address (const char* name)
 {
@@ -760,7 +762,7 @@ _cogl_init (void)
       bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
 #endif
 
-#ifdef COGL_HAS_GTYPE_SUPPORT
+#if defined(COGL_HAS_GTYPE_SUPPORT) && !GLIB_CHECK_VERSION (2, 36, 0)
       g_type_init ();
 #endif
 

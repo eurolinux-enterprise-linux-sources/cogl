@@ -24,7 +24,7 @@ m4_define([cogl_version],
 
 dnl Since the core Cogl library has to also maintain support for the
 dnl Cogl 1.x API for Clutter then we track the 1.x version separately.
-m4_define([cogl_1_minor_version], [18])
+m4_define([cogl_1_minor_version], [22])
 m4_define([cogl_1_micro_version], [2])
 m4_define([cogl_1_version], [1.cogl_1_minor_version.cogl_1_micro_version])
 
@@ -55,9 +55,9 @@ dnl ================================================================
 #
 #  5. If any interfaces have been removed since the last public release,
 #     then set AGE to 0.
-m4_define([cogl_lt_current], 22)
-m4_define([cogl_lt_revision], 0)
-m4_define([cogl_lt_age], 2)
+m4_define([cogl_lt_current], 24)
+m4_define([cogl_lt_revision], 2)
+m4_define([cogl_lt_age], 4)
 # We do also tell libtool the pretty version:
 m4_define([cogl_lt_release], [cogl_version])
 
@@ -73,7 +73,7 @@ dnl ================================================================
 #
 # Possible status values are: git, snapshot or release
 #
-m4_define([cogl_release_status], [release])
+m4_define([cogl_release_status], [git])
 
 AC_INIT(cogl, [cogl_1_version])
 AC_CONFIG_SRCDIR(cogl/cogl.h)
@@ -97,6 +97,7 @@ m4_define([xrandr_req_version],         [1.2])
 m4_define([cairo_req_version],          [1.10])
 m4_define([wayland_req_version],        [1.0.0])
 m4_define([wayland_server_req_version], [1.1.90])
+m4_define([mirclient_req_version],      [0.9.0])
 
 dnl These variables get copied into the generated README
 AC_SUBST([GLIB_REQ_VERSION], [glib_req_version])
@@ -110,13 +111,13 @@ AC_SUBST([GI_REQ_VERSION], [gi_req_version])
 AC_SUBST([UPROF_REQ_VERSION], [uprof_req_version])
 AC_SUBST([WAYLAND_REQ_VERSION], [wayland_req_version])
 AC_SUBST([WAYLAND_SERVER_REQ_VERSION], [wayland_server_req_version])
+AC_SUBST([MIRCLIENT_REQ_VERSION], [mirclient_req_version])
 
 # Save this value here, since automake will set cflags later and we
 # want to know if the user specified custom cflags or not.
 cflags_set=${CFLAGS+set}
 
-AM_INIT_AUTOMAKE([1.11 foreign -Wno-portability no-define no-dist-gzip
-                  dist-xz tar-ustar])
+AM_INIT_AUTOMAKE([1.14 foreign -Wno-portability no-define no-dist-gzip dist-xz tar-ustar subdir-objects])
 AM_SILENT_RULES([yes])
 
 AH_BOTTOM([#include "config-custom.h"])
@@ -369,11 +370,12 @@ AC_ARG_ENABLE(
   enable_maintainer_flags=maintainer_default
 )
 
-MAINTAINER_COMPILER_FLAGS="-Wall -Wcast-align -Wuninitialized
-                           -Wno-strict-aliasing -Wempty-body -Wformat
-                           -Wformat-security -Winit-self -Wundef
-                           -Wdeclaration-after-statement -Wvla
-                           -Wpointer-arith -Wmissing-declarations"
+MAINTAINER_COMPILER_FLAGS="-Wall -Wcast-align -Wformat -Wformat-security
+                           -Werror=uninitialized -Werror=no-strict-aliasing
+                           -Werror=empty-body -Werror=init-self -Werror=undef
+                           -Werror=declaration-after-statement -Werror=vla
+                           -Werror=pointer-arith -Werror=missing-declarations
+                           -Werror=maybe-uninitialized"
 
 AS_CASE(
   [$enable_maintainer_flags],
@@ -1151,6 +1153,29 @@ AS_IF([test "x$enable_android_egl_platform" = "xyes"],
 AM_CONDITIONAL(SUPPORT_EGL_PLATFORM_ANDROID,
                [test "x$enable_android_egl_platform" = "xyes"])
 
+
+dnl Mir EGL platform
+AC_ARG_ENABLE(
+  [mir-egl-platform],
+  [AC_HELP_STRING([--enable-mir-egl-platform=@<:@no/yes@:>@], [Enable support for the Mir egl platform @<:@default=no@:>@])],
+  [],
+  enable_mir_egl_platform=no
+)
+AS_IF([test "x$enable_mir_egl_platform" = "xyes"],
+      [
+        EGL_PLATFORM_COUNT=$((EGL_PLATFORM_COUNT+1))
+        NEED_EGL=yes
+        EGL_PLATFORMS="$EGL_PLATFORMS mir"
+
+        PKG_CHECK_MODULES(MIR_CLIENT,
+                          [mirclient >= mirclient_req_version])
+        COGL_PKG_REQUIRES="$COGL_PKG_REQUIRES mirclient >= mirclient_req_version"
+
+        COGL_DEFINES_SYMBOLS="$COGL_DEFINES_SYMBOLS COGL_HAS_EGL_PLATFORM_MIR_SUPPORT"
+      ])
+AM_CONDITIONAL(SUPPORT_EGL_PLATFORM_MIR,
+               [test "x$enable_mir_egl_platform" = "xyes"])
+
 dnl This should go last, since it's the default fallback and we need
 dnl to check the value of $EGL_PLATFORM_COUNT here.
 AC_ARG_ENABLE(
@@ -1253,7 +1278,7 @@ AC_SUBST(GDKPIXBUF_PREFIX)
 dnl ================================================================
 dnl I18n stuff.
 dnl ================================================================
-AM_GNU_GETTEXT_VERSION([0.17])
+AM_GNU_GETTEXT_VERSION([0.19])
 AM_GNU_GETTEXT([external])
 
 GETTEXT_PACKAGE="cogl"

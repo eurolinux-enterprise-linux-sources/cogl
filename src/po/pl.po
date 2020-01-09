@@ -1,28 +1,24 @@
-# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-# Aviary.pl
-# Jeśli masz jakiekolwiek uwagi odnoszące się do tłumaczenia lub chcesz
-# pomóc w jego rozwijaniu i pielęgnowaniu, napisz do nas:
-# gnomepl@aviary.pl
-# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-# Piotr Drąg <piotrdrag@gmail.com>, 2011-2013.
-# Aviary.pl <gnomepl@aviary.pl>, 2011-2013.
+# Polish translation for cogl.
+# Copyright © 2011-2016 the cogl authors.
+# This file is distributed under the same license as the cogl package.
+# Piotr Drąg <piotrdrag@gmail.com>, 2011-2016.
+# Aviary.pl <community-poland@mozilla.org>, 2011-2016.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: cogl\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=clutter\n"
-"POT-Creation-Date: 2014-07-04 14:34+0100\n"
-"PO-Revision-Date: 2013-02-16 21:21+0100\n"
+"POT-Creation-Date: 2016-07-15 15:58+0000\n"
+"PO-Revision-Date: 2016-08-22 20:58+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
-"Language-Team: Polish <gnomepl@aviary.pl>\n"
+"Language-Team: Polish <community-poland@mozilla.org>\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
-"X-Poedit-Language: Polish\n"
-"X-Poedit-Country: Poland\n"
 
 #: cogl/cogl-debug.c:181
 msgid "Supported debug values:"
@@ -122,7 +118,7 @@ msgstr "Śledzenie przetwarzania"
 
 #: cogl/cogl-debug-options.h:60
 msgid "Show how geometry is being batched in the journal"
-msgstr "Wyświetla, jak wymiary są przetwarzane w dzienniku"
+msgstr "Wyświetla, jak wymiary są przetwarzane w dzienniku"
 
 #: cogl/cogl-debug-options.h:64
 msgid "Trace matrices"
@@ -189,11 +185,11 @@ msgstr "Główny powód"
 
 #: cogl/cogl-debug-options.h:95
 msgid "Disable Journal batching"
-msgstr "Wyłączenie przetwarzania w dzienniku"
+msgstr "Wyłączenie przetwarzania w dzienniku"
 
 #: cogl/cogl-debug-options.h:96
 msgid "Disable batching of geometry in the Cogl Journal."
-msgstr "Wyłącza przetwarzanie wymiarów w dzienniku biblioteki Cogl."
+msgstr "Wyłącza przetwarzanie wymiarów w dzienniku biblioteki Cogl."
 
 #: cogl/cogl-debug-options.h:100
 msgid "Disable GL Vertex Buffers"
@@ -241,7 +237,7 @@ msgstr "Wyłącza użycie atlasowania tekstur"
 
 #: cogl/cogl-debug-options.h:125
 msgid "Disable sharing the texture atlas between text and images"
-msgstr "Wyłączenie współdzielenia atlasu tekstur między tekstem a obrazami"
+msgstr "Wyłączenie współdzielenia atlasu tekstur między tekstem a obrazami"
 
 #: cogl/cogl-debug-options.h:126
 msgid ""
@@ -249,8 +245,8 @@ msgid ""
 "atlas. Otherwise it will try to share the atlas with images."
 msgstr ""
 "Jeśli ustawiono, to pamięć podręczna glifów zawsze będzie używała oddzielnej "
-"tekstury dla swojego atlasu. W innym przypadku spróbuje współdzielić atlas z "
-"obrazami."
+"tekstury dla swojego atlasu. W innym przypadku spróbuje współdzielić atlas "
+"z obrazami."
 
 #: cogl/cogl-debug-options.h:131
 msgid "Disable texturing"
@@ -294,7 +290,7 @@ msgstr "Wyłącza użycie mieszania"
 
 #: cogl/cogl-debug-options.h:156
 msgid "Disable non-power-of-two textures"
-msgstr "Wyłącznie tekstur o rozmiarach niebędących potęgą liczby 2"
+msgstr "Wyłącznie tekstur o rozmiarach niebędących potęgą liczby 2"
 
 #: cogl/cogl-debug-options.h:157
 msgid ""
@@ -344,7 +340,7 @@ msgstr "Wyłączenie pamięci podręcznych programów"
 
 #: cogl/cogl-debug-options.h:183
 msgid "Disable fallback caches for arbfp and glsl programs"
-msgstr "Wyłącza zapasowe pamięci podręczne dla programów ARBfp i GLSL"
+msgstr "Wyłącza zapasowe pamięci podręczne dla programów ARBfp i GLSL"
 
 #: cogl/cogl-debug-options.h:187
 msgid "Disable read pixel optimization"
@@ -354,8 +350,8 @@ msgstr "Wyłączenie optymalizacji pikseli odczytu"
 msgid ""
 "Disable optimization for reading 1px for simple scenes of opaque rectangles"
 msgstr ""
-"Wyłącza optymalizację odczytywania 1 piksela dla prostych scen z "
-"nieprzezroczystymi prostokątami"
+"Wyłącza optymalizację odczytywania 1 piksela dla prostych scen "
+"z nieprzezroczystymi prostokątami"
 
 #: cogl/cogl-debug-options.h:193
 msgid "Trace clipping"
@@ -364,7 +360,7 @@ msgstr "Śledzenie przycinania"
 #: cogl/cogl-debug-options.h:194
 msgid "Logs information about how Cogl is implementing clipping"
 msgstr ""
-"Zapisuje informacje o tym, jak biblioteka Cogl implementuje przycinanie"
+"Zapisuje informacje o tym, jak biblioteka Cogl implementuje przycinanie"
 
 #: cogl/cogl-debug-options.h:198
 msgid "Trace performance concerns"

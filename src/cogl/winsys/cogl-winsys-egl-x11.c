@@ -641,7 +641,7 @@ _cogl_winsys_egl_context_created (CoglDisplay *display,
         }
     }
 
-  XFree (xvisinfo);
+  xlib_renderer->xvisinfo = xvisinfo;
 
   if (!_cogl_winsys_egl_make_current (display,
                                       egl_display->dummy_surface,
@@ -685,24 +685,6 @@ _cogl_winsys_egl_cleanup_context (CoglDisplay *display)
       XDestroyWindow (xlib_renderer->xdpy, xlib_display->dummy_xwin);
       xlib_display->dummy_xwin = None;
     }
-}
-
-/* XXX: This is a particularly hacky _cogl_winsys interface... */
-static XVisualInfo *
-_cogl_winsys_xlib_get_visual_info (void)
-{
-  CoglDisplayEGL *egl_display;
-
-  _COGL_GET_CONTEXT (ctx, NULL);
-
-  _COGL_RETURN_VAL_IF_FAIL (ctx->display->winsys, FALSE);
-
-  egl_display = ctx->display->winsys;
-
-  if (!egl_display->found_egl_config)
-    return NULL;
-
-  return get_visual_info (ctx->display, egl_display->egl_config);
 }
 
 #ifdef EGL_KHR_image_pixmap
@@ -784,6 +766,7 @@ _cogl_winsys_texture_pixmap_x11_free (CoglTexturePixmapX11 *tex_pixmap)
 
 static CoglBool
 _cogl_winsys_texture_pixmap_x11_update (CoglTexturePixmapX11 *tex_pixmap,
+                                        CoglTexturePixmapStereoMode stereo_mode,
                                         CoglBool needs_mipmap)
 {
   if (needs_mipmap)
@@ -798,7 +781,8 @@ _cogl_winsys_texture_pixmap_x11_damage_notify (CoglTexturePixmapX11 *tex_pixmap)
 }
 
 static CoglTexture *
-_cogl_winsys_texture_pixmap_x11_get_texture (CoglTexturePixmapX11 *tex_pixmap)
+_cogl_winsys_texture_pixmap_x11_get_texture (CoglTexturePixmapX11 *tex_pixmap,
+                                             CoglTexturePixmapStereoMode stereo_mode)
 {
   CoglTexturePixmapEGL *egl_tex_pixmap = tex_pixmap->winsys;
 
@@ -848,8 +832,6 @@ _cogl_winsys_egl_xlib_get_vtable (void)
 
       vtable.onscreen_x11_get_window_xid =
         _cogl_winsys_onscreen_x11_get_window_xid;
-
-      vtable.xlib_get_visual_info = _cogl_winsys_xlib_get_visual_info;
 
 #ifdef EGL_KHR_image_pixmap
       /* X11 tfp support... */

@@ -1,3 +1,81 @@
+Cogl 1.22.2                                                        2016-08-25
+
+  • List of changes since Cogl 1.22.0
+
+  » Skip journal dumping if not supported [#728355]
+  » Support glMapBufferRange from ES3 [#728355]
+  » Improvements in the KMS winsys [#756926, #758073]
+  » Require gettext 0.19 to avoid hacks [#760285]
+  » Respect the Wayland spec for EGL surface creation [#765351]
+
+Many thanks to:
+
+  Cédric Valmary
+  Emmanuele Bassi
+  Ray Strode
+  Daniel Stone
+  Piotr Drąg
+  Javier Jardón
+  Murray Cumming
+  Sjoerd Simons
+
+Cogl 1.22.0                                                        2015-09-16
+
+  • List of changes since Cogl 1.21.2
+
+  » Improvements in handling errors in the KMS winsys [#754540]
+  » Fix crashers in Wayland and GLX winsys [#754667, #754888]
+
+Many thanks to:
+
+  Ray Strode
+  Lionel Landwerlin
+  Chao-Hsiung Liao
+
+Cogl 1.21.2                                                        2015-08-21
+
+  • List of changes since Cogl 1.20.0
+
+  » Add X11-specific API for retrieving the renderer's visual
+  » Improvement to the MSVC build
+  » Support KMS drivers without page flip
+  » Do not use deprecated OpenGL API with the GL3 driver
+
+Many thanks to:
+
+  Chun-wei Fan
+  Cédric Valmary
+  Jasper St. Pierre
+  Adel Gadllah
+  Marek Chalupa
+  Ray Strode
+  Robert Bragg
+  Rui Matos
+  Samir Ribic
+  Ting-Wei Lan
+
+Cogl 1.20.0                                                        2015-03-23
+
+  • List of changes since Cogl 1.18.2
+
+  » Support for "quad buffer" based stereo rendering
+  » Support for Mir window system
+  » A number of updates for the Wayland support
+  » Improved vblank sync when using glXWaitForMSC
+
+Many thanks to:
+
+  Marco Trevisan (Treviño)
+  Owen W. Taylor
+  Robert Bragg
+  Rui Matos
+  Adel Gadllah
+  Chris Wilson
+  Necdet Yücel
+  Sebastian Rasmussen
+  Seong-ho Cho
+  Ting-Wei Lan
+
 Cogl 1.18.2                                                        2014-06-03
 
   • List of changes since Cogl 1.18.0
