@@ -1,12 +1,9 @@
-%if 0%{?fedora}
 %global with_wayland 1
-%endif
-
 %global with_tests 1
 
 Name:          cogl
 Version:       1.22.2
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       A library for using 3D graphics hardware to draw pretty pictures
 
 License:       LGPLv2+
@@ -158,6 +155,10 @@ chrpath --delete $RPM_BUILD_ROOT%{_libdir}/libcogl-pango.so
 %endif
 
 %changelog
+* Fri Oct 27 2017 Kalev Lember <klember@redhat.com> - 1.22.2-2
+- Enable wayland support
+- Resolves: #1488576
+
 * Fri Aug 26 2016 Kalev Lember <klember@redhat.com> - 1.22.2-1
 - Update to 1.22.2
 - Resolves: #1386835
