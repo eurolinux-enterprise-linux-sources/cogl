@@ -1,0 +1,44 @@
+diff -up cogl-1.14.0/cogl/winsys/cogl-winsys-glx.c.jx cogl-1.14.0/cogl/winsys/cogl-winsys-glx.c
+--- cogl-1.14.0/cogl/winsys/cogl-winsys-glx.c.jx	2013-02-21 10:41:08.000000000 -0500
++++ cogl-1.14.0/cogl/winsys/cogl-winsys-glx.c	2014-01-29 16:16:00.501264635 -0500
+@@ -698,30 +698,18 @@ update_winsys_features (CoglContext *con
+   COGL_FLAGS_SET (context->features,
+                   COGL_FEATURE_ID_ONSCREEN_MULTIPLE, TRUE);
+ 
+-  if (glx_renderer->glXCopySubBuffer || context->glBlitFramebuffer)
++  /* our swrast has working CopySubBuffer, but not BlitFramebuffer */
++  if (context->gpu.architecture == COGL_GPU_INFO_ARCHITECTURE_LLVMPIPE ||
++      context->gpu.architecture == COGL_GPU_INFO_ARCHITECTURE_SOFTPIPE ||
++      context->gpu.architecture == COGL_GPU_INFO_ARCHITECTURE_SWRAST)
+     {
+-      CoglGpuInfoArchitecture arch;
++      context->glBlitFramebuffer = NULL;
++    }
+ 
+-      /* XXX: ONGOING BUG:
+-       * (Don't change the line above since we use this to grep for
+-       * un-resolved bug workarounds as part of the release process.)
+-       *
+-       * "The "drisw" binding in Mesa for loading sofware renderers is
+-       * broken, and neither glBlitFramebuffer nor glXCopySubBuffer
+-       * work correctly."
+-       * - ajax
+-       * - https://bugzilla.gnome.org/show_bug.cgi?id=674208
+-       *
+-       * This is broken in software Mesa at least as of 7.10
+-       */
+-      arch = context->gpu.architecture;
+-      if (arch != COGL_GPU_INFO_ARCHITECTURE_LLVMPIPE &&
+-          arch != COGL_GPU_INFO_ARCHITECTURE_SOFTPIPE &&
+-          arch != COGL_GPU_INFO_ARCHITECTURE_SWRAST)
+-	{
+-	  COGL_FLAGS_SET (context->winsys_features,
+-			  COGL_WINSYS_FEATURE_SWAP_REGION, TRUE);
+-	}
++  if (glx_renderer->glXCopySubBuffer || context->glBlitFramebuffer)
++    {
++      COGL_FLAGS_SET (context->winsys_features,
++		      COGL_WINSYS_FEATURE_SWAP_REGION, TRUE);
+     }
+ 
+   /* Note: glXCopySubBuffer and glBlitFramebuffer won't be throttled

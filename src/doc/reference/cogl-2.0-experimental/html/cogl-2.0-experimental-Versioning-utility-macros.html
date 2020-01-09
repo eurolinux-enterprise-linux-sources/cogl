@@ -1,0 +1,296 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Versioning utility macros</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<link rel="home" href="index.html" title="Cogl 2.0 Reference Manual">
+<link rel="up" href="cogl-utilities.html" title="Utilities">
+<link rel="prev" href="cogl-2.0-experimental-Quaternions-(Rotations).html" title="Quaternions (Rotations)">
+<link rel="next" href="cogl-integration.html" title="Binding and Integrating">
+<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="cogl-2.0-experimental-Quaternions-(Rotations).html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="cogl-utilities.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Cogl 2.0 Reference Manual</th>
+<td><a accesskey="n" href="cogl-integration.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#cogl-2.0-experimental-Versioning-utility-macros.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#cogl-2.0-experimental-Versioning-utility-macros.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="cogl-2.0-experimental-Versioning-utility-macros"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="cogl-2.0-experimental-Versioning-utility-macros.top_of_page"></a>Versioning utility macros</span></h2>
+<p>Versioning utility macros — Macros for determining the version of Cogl being used</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="cogl-2.0-experimental-Versioning-utility-macros.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">#define             <a class="link" href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION-MAJOR:CAPS" title="COGL_VERSION_MAJOR">COGL_VERSION_MAJOR</a>
+#define             <a class="link" href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION-MINOR:CAPS" title="COGL_VERSION_MINOR">COGL_VERSION_MINOR</a>
+#define             <a class="link" href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION-MICRO:CAPS" title="COGL_VERSION_MICRO">COGL_VERSION_MICRO</a>
+#define             <a class="link" href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION-STRING:CAPS" title="COGL_VERSION_STRING">COGL_VERSION_STRING</a>
+#define             <a class="link" href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION:CAPS" title="COGL_VERSION">COGL_VERSION</a>
+#define             <a class="link" href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION-ENCODE:CAPS" title="COGL_VERSION_ENCODE()">COGL_VERSION_ENCODE</a>                 (major,
+                                                         minor,
+                                                         micro)
+#define             <a class="link" href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION-CHECK:CAPS" title="COGL_VERSION_CHECK()">COGL_VERSION_CHECK</a>                  (major,
+                                                         minor,
+                                                         micro)
+#define             <a class="link" href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION-GET-MAJOR:CAPS" title="COGL_VERSION_GET_MAJOR()">COGL_VERSION_GET_MAJOR</a>              (version)
+#define             <a class="link" href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION-GET-MINOR:CAPS" title="COGL_VERSION_GET_MINOR()">COGL_VERSION_GET_MINOR</a>              (version)
+#define             <a class="link" href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION-GET-MICRO:CAPS" title="COGL_VERSION_GET_MICRO()">COGL_VERSION_GET_MICRO</a>              (version)
+</pre>
+</div>
+<div class="refsect1">
+<a name="cogl-2.0-experimental-Versioning-utility-macros.description"></a><h2>Description</h2>
+<p>
+Cogl offers a set of macros for checking the version of the library
+at compile time.
+</p>
+</div>
+<div class="refsect1">
+<a name="cogl-2.0-experimental-Versioning-utility-macros.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="COGL-VERSION-MAJOR:CAPS"></a><h3>COGL_VERSION_MAJOR</h3>
+<pre class="programlisting">#define COGL_VERSION_MAJOR COGL_VERSION_MAJOR_INTERNAL
+</pre>
+<p>
+The major version of the Cogl library (1, if <a class="link" href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION:CAPS" title="COGL_VERSION"><code class="literal">COGL_VERSION</code></a> is 1.2.3)
+</p>
+<p class="since">Since 1.12.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="COGL-VERSION-MINOR:CAPS"></a><h3>COGL_VERSION_MINOR</h3>
+<pre class="programlisting">#define COGL_VERSION_MINOR COGL_VERSION_MINOR_INTERNAL
+</pre>
+<p>
+The minor version of the Cogl library (2, if <a class="link" href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION:CAPS" title="COGL_VERSION"><code class="literal">COGL_VERSION</code></a> is 1.2.3)
+</p>
+<p class="since">Since 1.12.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="COGL-VERSION-MICRO:CAPS"></a><h3>COGL_VERSION_MICRO</h3>
+<pre class="programlisting">#define COGL_VERSION_MICRO COGL_VERSION_MICRO_INTERNAL
+</pre>
+<p>
+The micro version of the Cogl library (3, if <a class="link" href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION:CAPS" title="COGL_VERSION"><code class="literal">COGL_VERSION</code></a> is 1.2.3)
+</p>
+<p class="since">Since 1.12.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="COGL-VERSION-STRING:CAPS"></a><h3>COGL_VERSION_STRING</h3>
+<pre class="programlisting">#define COGL_VERSION_STRING COGL_VERSION_STRING_INTERNAL
+</pre>
+<p>
+The full version of the Cogl library, in string form (suited for
+string concatenation)
+</p>
+<p class="since">Since 1.12.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="COGL-VERSION:CAPS"></a><h3>COGL_VERSION</h3>
+<pre class="programlisting">#define             COGL_VERSION</pre>
+<p>
+The Cogl version encoded into a single integer using the
+<a class="link" href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION-ENCODE:CAPS" title="COGL_VERSION_ENCODE()"><code class="function">COGL_VERSION_ENCODE()</code></a> macro. This can be used for quick comparisons
+with particular versions.
+</p>
+<p class="since">Since 1.12.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="COGL-VERSION-ENCODE:CAPS"></a><h3>COGL_VERSION_ENCODE()</h3>
+<pre class="programlisting">#define             COGL_VERSION_ENCODE(major, minor, micro)</pre>
+<p>
+Encodes a 3 part version number into a single integer. This can be
+used to compare the Cogl version. For example if there is a known
+bug in Cogl versions between 1.3.2 and 1.3.4 you could use the
+following code to provide a workaround:
+</p>
+<p>
+</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="preproc">#if</span><span class="normal"> <a href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION:CAPS">COGL_VERSION</a> </span><span class="symbol">&gt;=</span><span class="normal"> </span><span class="function"><a href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION-ENCODE:CAPS">COGL_VERSION_ENCODE</a></span><span class="normal"> </span><span class="symbol">(</span><span class="number">1</span><span class="symbol">,</span><span class="normal"> </span><span class="number">3</span><span class="symbol">,</span><span class="normal"> </span><span class="number">2</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">&amp;&amp;</span><span class="normal"> </span><span class="symbol">\</span>
+<span class="normal">    <a href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION:CAPS">COGL_VERSION</a> </span><span class="symbol">&lt;=</span><span class="normal"> </span><span class="function"><a href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION-ENCODE:CAPS">COGL_VERSION_ENCODE</a></span><span class="normal"> </span><span class="symbol">(</span><span class="number">1</span><span class="symbol">,</span><span class="normal"> </span><span class="number">3</span><span class="symbol">,</span><span class="normal"> </span><span class="number">4</span><span class="symbol">)</span>
+<span class="normal">  </span><span class="comment">/* Do the workaround */</span>
+<span class="preproc">#endif</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p>
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>major</code></em> :</span></p></td>
+<td>The major part of a version number</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>minor</code></em> :</span></p></td>
+<td>The minor part of a version number</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>micro</code></em> :</span></p></td>
+<td>The micro part of a version number</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 1.12.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="COGL-VERSION-CHECK:CAPS"></a><h3>COGL_VERSION_CHECK()</h3>
+<pre class="programlisting">#define             COGL_VERSION_CHECK(major, minor, micro)</pre>
+<p>
+A convenient macro to check whether the Cogl version being compiled
+against is at least the given version number. For example if the
+function cogl_pipeline_frobnicate was added in version 2.0.1 and
+you want to conditionally use that function when it is available,
+you could write the following:
+</p>
+<p>
+</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="preproc">#if</span><span class="normal"> </span><span class="function"><a href="cogl-2.0-experimental-Versioning-utility-macros.html#COGL-VERSION-CHECK:CAPS">COGL_VERSION_CHECK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="number">2</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal"> </span><span class="number">1</span><span class="symbol">)</span>
+<span class="function">cogl_pipeline_frobnicate</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">pipeline</span><span class="symbol">);</span>
+<span class="preproc">#else</span>
+<span class="comment">/* Frobnication is not supported. Use a red color instead */</span>
+<span class="function">cogl_pipeline_set_color_4f</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">pipeline</span><span class="symbol">,</span><span class="normal"> </span><span class="number">1</span><span class="symbol">.</span><span class="normal">0f</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">.</span><span class="normal">0f</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">.</span><span class="normal">0f</span><span class="symbol">,</span><span class="normal"> </span><span class="number">1</span><span class="symbol">.</span><span class="normal">0f</span><span class="symbol">);</span>
+<span class="preproc">#endif</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p>
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>major</code></em> :</span></p></td>
+<td>The major part of a version number</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>minor</code></em> :</span></p></td>
+<td>The minor part of a version number</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>micro</code></em> :</span></p></td>
+<td>The micro part of a version number</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the Cogl version being compiled against is
+greater than or equal to the given three part version number.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 1.12.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="COGL-VERSION-GET-MAJOR:CAPS"></a><h3>COGL_VERSION_GET_MAJOR()</h3>
+<pre class="programlisting">#define             COGL_VERSION_GET_MAJOR(version)</pre>
+<p>
+Extracts the major part of an encoded version number.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>version</code></em> :</span></p></td>
+<td>An encoded version number</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 1.12.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="COGL-VERSION-GET-MINOR:CAPS"></a><h3>COGL_VERSION_GET_MINOR()</h3>
+<pre class="programlisting">#define             COGL_VERSION_GET_MINOR(version)</pre>
+<p>
+Extracts the minor part of an encoded version number.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>version</code></em> :</span></p></td>
+<td>An encoded version number</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 1.12.0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="COGL-VERSION-GET-MICRO:CAPS"></a><h3>COGL_VERSION_GET_MICRO()</h3>
+<pre class="programlisting">#define             COGL_VERSION_GET_MICRO(version)</pre>
+<p>
+Extracts the micro part of an encoded version number.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>version</code></em> :</span></p></td>
+<td>An encoded version number</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 1.12.0</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.18.1</div>
+</body>
+</html>

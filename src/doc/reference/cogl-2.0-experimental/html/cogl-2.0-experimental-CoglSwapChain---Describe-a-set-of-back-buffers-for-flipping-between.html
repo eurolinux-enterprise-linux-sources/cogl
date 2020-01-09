@@ -1,0 +1,87 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>CoglSwapChain: Describe a set of back buffers for flipping between</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<link rel="home" href="index.html" title="Cogl 2.0 Reference Manual">
+<link rel="up" href="cogl-context-apis.html" title="Setting Up A Drawing Context">
+<link rel="prev" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html" title="CoglRenderer: Connect to a backend renderer">
+<link rel="next" href="cogl-2.0-experimental-CoglOnscreenTemplate---Describe-a-template-for-onscreen-framebuffers.html" title="CoglOnscreenTemplate: Describe a template for onscreen framebuffers">
+<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="cogl-2.0-experimental-CoglRenderer---Connect-to-a-backend-renderer.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="cogl-context-apis.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Cogl 2.0 Reference Manual</th>
+<td><a accesskey="n" href="cogl-2.0-experimental-CoglOnscreenTemplate---Describe-a-template-for-onscreen-framebuffers.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.top_of_page"></a>CoglSwapChain: Describe a set of back buffers for flipping between</span></h2>
+<p>CoglSwapChain: Describe a set of back buffers for flipping between</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">                    <a class="link" href="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.html#CoglSwapChain" title="CoglSwapChain">CoglSwapChain</a>;
+<a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglBool" title="CoglBool"><span class="returnvalue">CoglBool</span></a>            <a class="link" href="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.html#cogl-is-swap-chain" title="cogl_is_swap_chain ()">cogl_is_swap_chain</a>                  (<em class="parameter"><code><span class="type">void</span> *object</code></em>);
+
+<a class="link" href="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.html#CoglSwapChain" title="CoglSwapChain"><span class="returnvalue">CoglSwapChain</span></a> *     <a class="link" href="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.html#cogl-swap-chain-new" title="cogl_swap_chain_new ()">cogl_swap_chain_new</a>                 (<em class="parameter"><code><span class="type">void</span></code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.html#cogl-swap-chain-set-has-alpha" title="cogl_swap_chain_set_has_alpha ()">cogl_swap_chain_set_has_alpha</a>       (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.html#CoglSwapChain" title="CoglSwapChain"><span class="type">CoglSwapChain</span></a> *swap_chain</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglBool" title="CoglBool"><span class="type">CoglBool</span></a> has_alpha</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.html#cogl-swap-chain-set-length" title="cogl_swap_chain_set_length ()">cogl_swap_chain_set_length</a>          (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.html#CoglSwapChain" title="CoglSwapChain"><span class="type">CoglSwapChain</span></a> *swap_chain</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> length</code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.description"></a><h2>Description</h2>
+</div>
+<div class="refsect1">
+<a name="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="CoglSwapChain"></a><h3>CoglSwapChain</h3>
+<pre class="programlisting">typedef struct _CoglSwapChain CoglSwapChain;</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="cogl-is-swap-chain"></a><h3>cogl_is_swap_chain ()</h3>
+<pre class="programlisting"><a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglBool" title="CoglBool"><span class="returnvalue">CoglBool</span></a>            cogl_is_swap_chain                  (<em class="parameter"><code><span class="type">void</span> *object</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="cogl-swap-chain-new"></a><h3>cogl_swap_chain_new ()</h3>
+<pre class="programlisting"><a class="link" href="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.html#CoglSwapChain" title="CoglSwapChain"><span class="returnvalue">CoglSwapChain</span></a> *     cogl_swap_chain_new                 (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="cogl-swap-chain-set-has-alpha"></a><h3>cogl_swap_chain_set_has_alpha ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                cogl_swap_chain_set_has_alpha       (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.html#CoglSwapChain" title="CoglSwapChain"><span class="type">CoglSwapChain</span></a> *swap_chain</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="cogl-2.0-experimental-Common-Types.html#CoglBool" title="CoglBool"><span class="type">CoglBool</span></a> has_alpha</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="cogl-swap-chain-set-length"></a><h3>cogl_swap_chain_set_length ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                cogl_swap_chain_set_length          (<em class="parameter"><code><a class="link" href="cogl-2.0-experimental-CoglSwapChain---Describe-a-set-of-back-buffers-for-flipping-between.html#CoglSwapChain" title="CoglSwapChain"><span class="type">CoglSwapChain</span></a> *swap_chain</code></em>,
+                                                         <em class="parameter"><code><span class="type">int</span> length</code></em>);</pre>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.18.1</div>
+</body>
+</html>

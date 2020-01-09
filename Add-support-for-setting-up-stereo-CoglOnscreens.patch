@@ -1,0 +1,392 @@
+From 0c547943ce2e7daae80bfbe72aa3e8ea88e1ba0b Mon Sep 17 00:00:00 2001
+From: "Owen W. Taylor" <otaylor@fishsoup.net>
+Date: Mon, 28 Apr 2014 12:37:32 -0400
+Subject: [PATCH 4/8] Add support for setting up stereo CoglOnscreens
+
+If we want to show quad-buffer stereo with Cogl, we need to pick an
+appropriate fbconfig for creating the CoglOnscreen objects. Add
+cogl_onscreen_template_set_stereo_enabled() to indicate whether
+stereo support is needed.
+
+Add cogl_framebuffer_get_stereo_mode() to see if a framebuffer was
+created with stereo support.
+
+Add cogl_framebuffer_get_stereo_mode() to pick whether to draw to
+the left, right, or both buffers.
+---
+ cogl/cogl-context-private.h                     |  1 +
+ cogl/cogl-framebuffer-private.h                 |  8 +++-
+ cogl/cogl-framebuffer.c                         | 41 +++++++++++++++++++
+ cogl/cogl-framebuffer.h                         | 52 +++++++++++++++++++++++++
+ cogl/cogl-onscreen-template.c                   |  8 ++++
+ cogl/cogl-onscreen-template.h                   | 18 +++++++++
+ cogl/cogl-types.h                               | 15 +++++++
+ cogl/driver/gl/cogl-framebuffer-gl.c            | 32 +++++++++++++++
+ cogl/winsys/cogl-winsys-glx-feature-functions.h |  1 +
+ cogl/winsys/cogl-winsys-glx.c                   |  8 +++-
+ 10 files changed, 181 insertions(+), 3 deletions(-)
+
+diff --git a/cogl/cogl-context-private.h b/cogl/cogl-context-private.h
+index 31033d0..f725993 100644
+--- a/cogl/cogl-context-private.h
++++ b/cogl/cogl-context-private.h
+@@ -242,6 +242,7 @@ struct _CoglContext
+ 
+   CoglBool current_gl_dither_enabled;
+   CoglColorMask current_gl_color_mask;
++  GLenum current_gl_draw_buffer;
+ 
+   /* Clipping */
+   /* TRUE if we have a valid clipping stack flushed. In that case
+diff --git a/cogl/cogl-framebuffer-private.h b/cogl/cogl-framebuffer-private.h
+index 267dbf6..747a699 100644
+--- a/cogl/cogl-framebuffer-private.h
++++ b/cogl/cogl-framebuffer-private.h
+@@ -54,6 +54,7 @@ typedef struct
+   int samples_per_pixel;
+   CoglBool swap_throttled;
+   CoglBool depth_texture_enabled;
++  CoglBool stereo_enabled;
+ } CoglFramebufferConfig;
+ 
+ /* Flags to pass to _cogl_offscreen_new_to_texture_full */
+@@ -78,7 +79,8 @@ typedef enum _CoglFramebufferStateIndex
+   COGL_FRAMEBUFFER_STATE_INDEX_PROJECTION         = 5,
+   COGL_FRAMEBUFFER_STATE_INDEX_COLOR_MASK         = 6,
+   COGL_FRAMEBUFFER_STATE_INDEX_FRONT_FACE_WINDING = 7,
+-  COGL_FRAMEBUFFER_STATE_INDEX_MAX                = 8
++  COGL_FRAMEBUFFER_STATE_INDEX_STEREO_MODE        = 8,
++  COGL_FRAMEBUFFER_STATE_INDEX_MAX                = 9
+ } CoglFramebufferStateIndex;
+ 
+ typedef enum _CoglFramebufferState
+@@ -90,7 +92,8 @@ typedef enum _CoglFramebufferState
+   COGL_FRAMEBUFFER_STATE_MODELVIEW          = 1<<4,
+   COGL_FRAMEBUFFER_STATE_PROJECTION         = 1<<5,
+   COGL_FRAMEBUFFER_STATE_COLOR_MASK         = 1<<6,
+-  COGL_FRAMEBUFFER_STATE_FRONT_FACE_WINDING = 1<<7
++  COGL_FRAMEBUFFER_STATE_FRONT_FACE_WINDING = 1<<7,
++  COGL_FRAMEBUFFER_STATE_STEREO_MODE        = 1<<8
+ } CoglFramebufferState;
+ 
+ #define COGL_FRAMEBUFFER_STATE_ALL ((1<<COGL_FRAMEBUFFER_STATE_INDEX_MAX) - 1)
+@@ -144,6 +147,7 @@ struct _CoglFramebuffer
+ 
+   CoglBool            dither_enabled;
+   CoglColorMask       color_mask;
++  CoglStereoMode      stereo_mode;
+ 
+   /* We journal the textured rectangles we want to submit to OpenGL so
+    * we have an oppertunity to batch them together into less draw
+diff --git a/cogl/cogl-framebuffer.c b/cogl/cogl-framebuffer.c
+index 136ae86..05981b5 100644
+--- a/cogl/cogl-framebuffer.c
++++ b/cogl/cogl-framebuffer.c
+@@ -1077,6 +1077,14 @@ _cogl_framebuffer_compare_front_face_winding_state (CoglFramebuffer *a,
+     return 0;
+ }
+ 
++static unsigned long
++_cogl_framebuffer_compare_stereo_mode (CoglFramebuffer *a,
++				       CoglFramebuffer *b)
++{
++  return a->stereo_mode != b->stereo_mode ?
++    COGL_FRAMEBUFFER_STATE_STEREO_MODE : 0;
++}
++
+ unsigned long
+ _cogl_framebuffer_compare (CoglFramebuffer *a,
+                            CoglFramebuffer *b,
+@@ -1125,6 +1133,10 @@ _cogl_framebuffer_compare (CoglFramebuffer *a,
+           differences |=
+             _cogl_framebuffer_compare_front_face_winding_state (a, b);
+           break;
++        case COGL_FRAMEBUFFER_STATE_INDEX_STEREO_MODE:
++          differences |=
++            _cogl_framebuffer_compare_stereo_mode (a, b);
++          break;
+         default:
+           g_warn_if_reached ();
+         }
+@@ -1212,6 +1224,12 @@ _cogl_framebuffer_get_stencil_bits (CoglFramebuffer *framebuffer)
+   return bits.stencil;
+ }
+ 
++gboolean
++cogl_framebuffer_get_is_stereo (CoglFramebuffer *framebuffer)
++{
++  return framebuffer->config.stereo_enabled;
++}
++
+ CoglColorMask
+ cogl_framebuffer_get_color_mask (CoglFramebuffer *framebuffer)
+ {
+@@ -1232,6 +1250,29 @@ cogl_framebuffer_set_color_mask (CoglFramebuffer *framebuffer,
+       COGL_FRAMEBUFFER_STATE_COLOR_MASK;
+ }
+ 
++CoglStereoMode
++cogl_framebuffer_get_stereo_mode (CoglFramebuffer *framebuffer)
++{
++  return framebuffer->stereo_mode;
++}
++
++void
++cogl_framebuffer_set_stereo_mode (CoglFramebuffer *framebuffer,
++				  CoglStereoMode   stereo_mode)
++{
++  if (framebuffer->stereo_mode == stereo_mode)
++    return;
++
++  /* Stereo mode changes don't go through the journal */
++  _cogl_framebuffer_flush_journal (framebuffer);
++
++  framebuffer->stereo_mode = stereo_mode;
++
++  if (framebuffer->context->current_draw_buffer == framebuffer)
++    framebuffer->context->current_draw_buffer_changes |=
++      COGL_FRAMEBUFFER_STATE_STEREO_MODE;
++}
++
+ CoglBool
+ cogl_framebuffer_get_dither_enabled (CoglFramebuffer *framebuffer)
+ {
+diff --git a/cogl/cogl-framebuffer.h b/cogl/cogl-framebuffer.h
+index e3fdb12..595a374 100644
+--- a/cogl/cogl-framebuffer.h
++++ b/cogl/cogl-framebuffer.h
+@@ -733,6 +733,23 @@ cogl_framebuffer_get_alpha_bits (CoglFramebuffer *framebuffer);
+ int
+ cogl_framebuffer_get_depth_bits (CoglFramebuffer *framebuffer);
+ 
++/*
++ * cogl_framebuffer_get_is_stereo:
++ * @framebuffer: a pointer to a #CoglFramebuffer
++ *
++ * Retrieves whether @framebuffer has separate left and right
++ * buffers for use with stereo drawing. See
++ * cogl_framebuffer_set_stereo_mode().
++ *
++ * Return value: %TRUE if @framebuffer has separate left and
++ * right buffers.
++ *
++ * Since: 1.20
++ * Stability: unstable
++ */
++CoglBool
++cogl_framebuffer_get_is_stereo (CoglFramebuffer *framebuffer);
++
+ /**
+  * cogl_framebuffer_get_dither_enabled:
+  * @framebuffer: a pointer to a #CoglFramebuffer
+@@ -825,6 +842,41 @@ CoglPixelFormat
+ cogl_framebuffer_get_color_format (CoglFramebuffer *framebuffer);
+ 
+ /**
++ * cogl_framebuffer_get_stereo_mode:
++ * @framebuffer: a pointer to a #CoglFramebuffer
++ *
++ * Gets the current #CoglStereoMode, which defines which stereo buffers
++ * should be drawn to. See cogl_framebuffer_set_stereo_mode().
++ *
++ * Returns: A #CoglStereoMode
++ * Since: 1.20
++ * Stability: unstable
++ */
++CoglStereoMode
++cogl_framebuffer_get_stereo_mode (CoglFramebuffer *framebuffer);
++
++/**
++ * cogl_framebuffer_set_stereo_mode:
++ * @framebuffer: a pointer to a #CoglFramebuffer
++ * @stereo_mode: A #CoglStereoMode specifying which stereo buffers
++ *               should be drawn tow.
++ *
++ * Sets which stereo buffers should be drawn to. The default
++ * is %COGL_STEREO_BOTH, which means that both the left and
++ * right buffers will be affected by drawing. For this to have
++ * an effect, the display system must support stereo drawables,
++ * and the framebuffer must have been created with stereo
++ * enabled. (See cogl_onscreen_template_set_stereo_enabled(),
++ * cogl_framebuffer_get_is_stereo().)
++ *
++ * Since: 1.20
++ * Stability: unstable
++ */
++void
++cogl_framebuffer_set_stereo_mode (CoglFramebuffer *framebuffer,
++				  CoglStereoMode stereo_mode);
++
++/**
+  * cogl_framebuffer_set_depth_texture_enabled:
+  * @framebuffer: A #CoglFramebuffer
+  * @enabled: TRUE or FALSE
+diff --git a/cogl/cogl-onscreen-template.c b/cogl/cogl-onscreen-template.c
+index 5fa5b99..8854069 100644
+--- a/cogl/cogl-onscreen-template.c
++++ b/cogl/cogl-onscreen-template.c
+@@ -88,3 +88,11 @@ cogl_onscreen_template_set_swap_throttled (
+ {
+   onscreen_template->config.swap_throttled = throttled;
+ }
++
++void
++cogl_onscreen_template_set_stereo_enabled (
++					   CoglOnscreenTemplate *onscreen_template,
++					   CoglBool enabled)
++{
++  onscreen_template->config.stereo_enabled = enabled;
++}
+diff --git a/cogl/cogl-onscreen-template.h b/cogl/cogl-onscreen-template.h
+index 58d88d4..f4645bb 100644
+--- a/cogl/cogl-onscreen-template.h
++++ b/cogl/cogl-onscreen-template.h
+@@ -88,6 +88,24 @@ cogl_onscreen_template_set_swap_throttled (
+                                           CoglBool throttled);
+ 
+ /**
++ * cogl_onscreen_template_set_stereo_enabled:
++ * @onscreen_template: A #CoglOnscreenTemplate template framebuffer
++ * @enabled: Whether framebuffers are created with stereo buffers
++ *
++ * Sets whether future #CoglOnscreen framebuffers derived from this
++ * template are attempted to be created with both left and right
++ * buffers, for use with stereo display. If the display system
++ * does not support stereo, then creation of the framebuffer will
++ * fail.
++ *
++ * Since: 1.20
++ * Stability: unstable
++ */
++void
++cogl_onscreen_template_set_stereo_enabled (
++					   CoglOnscreenTemplate *onscreen_template,
++					   CoglBool enabled);
++/**
+  * cogl_is_onscreen_template:
+  * @object: A #CoglObject pointer
+  *
+diff --git a/cogl/cogl-types.h b/cogl/cogl-types.h
+index 227b7ec..0a9b20c 100644
+--- a/cogl/cogl-types.h
++++ b/cogl/cogl-types.h
+@@ -907,6 +907,21 @@ typedef enum { /*< prefix=COGL_READ_PIXELS >*/
+   COGL_READ_PIXELS_COLOR_BUFFER = 1L << 0
+ } CoglReadPixelsFlags;
+ 
++/**
++ * CoglStereoMode:
++ * @COGL_STEREO_BOTH: draw to both stereo buffers
++ * @COGL_STEREO_LEFT: draw only to the left stereo buffer
++ * @COGL_STEREO_RIGHT: draw only to the left stereo buffer
++ *
++ * Represents how draw should affect the two buffers
++ * of a stereo framebuffer. See cogl_framebuffer_set_stereo_mode().
++ */
++typedef enum {
++  COGL_STEREO_BOTH,
++  COGL_STEREO_LEFT,
++  COGL_STEREO_RIGHT
++} CoglStereoMode;
++
+ COGL_END_DECLS
+ 
+ #endif /* __COGL_TYPES_H__ */
+diff --git a/cogl/driver/gl/cogl-framebuffer-gl.c b/cogl/driver/gl/cogl-framebuffer-gl.c
+index 660098e..86b693b 100644
+--- a/cogl/driver/gl/cogl-framebuffer-gl.c
++++ b/cogl/driver/gl/cogl-framebuffer-gl.c
+@@ -228,6 +228,35 @@ _cogl_framebuffer_gl_flush_front_face_winding_state (CoglFramebuffer *framebuffe
+   context->current_pipeline_age--;
+ }
+ 
++static void
++_cogl_framebuffer_gl_flush_stereo_mode_state (CoglFramebuffer *framebuffer)
++{
++  CoglContext *ctx = framebuffer->context;
++  GLenum draw_buffer = GL_BACK;
++
++  if (framebuffer->type == COGL_FRAMEBUFFER_TYPE_OFFSCREEN)
++    return;
++
++  switch (framebuffer->stereo_mode)
++    {
++    case COGL_STEREO_BOTH:
++      draw_buffer = GL_BACK;
++      break;
++    case COGL_STEREO_LEFT:
++      draw_buffer = GL_BACK_LEFT;
++      break;
++    case COGL_STEREO_RIGHT:
++      draw_buffer = GL_BACK_RIGHT;
++      break;
++    }
++
++  if (ctx->current_gl_draw_buffer != draw_buffer)
++    {
++      GE (ctx, glDrawBuffer (draw_buffer));
++      ctx->current_gl_draw_buffer = draw_buffer;
++    }
++}
++
+ void
+ _cogl_framebuffer_gl_bind (CoglFramebuffer *framebuffer, GLenum target)
+ {
+@@ -365,6 +394,9 @@ _cogl_framebuffer_gl_flush_state (CoglFramebuffer *draw_buffer,
+         case COGL_FRAMEBUFFER_STATE_INDEX_FRONT_FACE_WINDING:
+           _cogl_framebuffer_gl_flush_front_face_winding_state (draw_buffer);
+           break;
++        case COGL_FRAMEBUFFER_STATE_INDEX_STEREO_MODE:
++          _cogl_framebuffer_gl_flush_stereo_mode_state (draw_buffer);
++          break;
+         default:
+           g_warn_if_reached ();
+         }
+diff --git a/cogl/winsys/cogl-winsys-glx-feature-functions.h b/cogl/winsys/cogl-winsys-glx-feature-functions.h
+index 9e7b49d..1e56c66 100644
+--- a/cogl/winsys/cogl-winsys-glx-feature-functions.h
++++ b/cogl/winsys/cogl-winsys-glx-feature-functions.h
+@@ -179,6 +179,7 @@ COGL_WINSYS_FEATURE_BEGIN (255, 255,
+                            0,
+                            COGL_WINSYS_FEATURE_SWAP_BUFFERS_EVENT |
+                            COGL_WINSYS_FEATURE_SYNC_AND_COMPLETE_EVENT)
++
+ COGL_WINSYS_FEATURE_END ()
+ 
+ COGL_WINSYS_FEATURE_BEGIN (255, 255,
+diff --git a/cogl/winsys/cogl-winsys-glx.c b/cogl/winsys/cogl-winsys-glx.c
+index a58a6ce..bff5178 100644
+--- a/cogl/winsys/cogl-winsys-glx.c
++++ b/cogl/winsys/cogl-winsys-glx.c
+@@ -775,6 +775,11 @@ glx_attributes_from_framebuffer_config (CoglDisplay *display,
+   attributes[i++] = 1;
+   attributes[i++] = GLX_STENCIL_SIZE;
+   attributes[i++] = config->need_stencil ? 1: GLX_DONT_CARE;
++  if (config->stereo_enabled)
++    {
++      attributes[i++] = GLX_STEREO;
++      attributes[i++] = TRUE;
++    }
+ 
+   if (glx_renderer->glx_major == 1 && glx_renderer->glx_minor >= 4 &&
+       config->samples_per_pixel)
+@@ -814,6 +819,7 @@ find_fbconfig (CoglDisplay *display,
+                                              xscreen_num,
+                                              attributes,
+                                              &n_configs);
++
+   if (!configs || n_configs == 0)
+     {
+       _cogl_set_error (error, COGL_WINSYS_ERROR,
+@@ -1722,7 +1728,7 @@ _cogl_winsys_onscreen_swap_region (CoglOnscreen *onscreen,
+                                       rect[0], rect[1], x2, y2,
+                                       GL_COLOR_BUFFER_BIT, GL_NEAREST);
+         }
+-      context->glDrawBuffer (GL_BACK);
++      context->glDrawBuffer (context->current_gl_draw_buffer);
+     }
+ 
+   /* NB: unlike glXSwapBuffers, glXCopySubBuffer and
+-- 
+1.9.3
+
